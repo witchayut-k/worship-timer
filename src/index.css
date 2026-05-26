@@ -921,6 +921,207 @@ input:focus {
   font-weight: 600;
 }
 
+.saveNoticeError {
+  color: var(--danger);
+}
+
+.btnSm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.btnDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Services list */
+.servicesPageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.servicesPageHeaderText {
+  min-width: 0;
+}
+
+.servicesHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.servicesToolbar {
+  margin-bottom: 20px;
+}
+
+.servicesSearchField {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0 14px;
+}
+
+.servicesSearchIcon {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.servicesSearchInput {
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  box-shadow: none;
+}
+
+.servicesSearchInput:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.servicesLoading {
+  padding: 24px 0;
+}
+
+.servicesEmpty {
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.servicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.servicesDateGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.servicesDateHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.servicesDateTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.servicesDateCount {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.servicesSessionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.servicesSessionCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-left: 3px solid var(--brand);
+}
+
+.servicesSessionMain {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.servicesSessionTitle {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.servicesSessionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.serviceStatusBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.serviceStatusBadge--draft {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+.serviceStatusBadge--active {
+  background: rgba(122, 162, 255, 0.2);
+  color: var(--brand);
+}
+
+.serviceStatusBadge--ended {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+}
+
+.servicesListFooter {
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.servicesEnvHint {
+  margin-top: 24px;
+  font-size: 13px;
+}
+
 @media (max-width: 960px) {
   .controlShell {
     grid-template-columns: 1fr;

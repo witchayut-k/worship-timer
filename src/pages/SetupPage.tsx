@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
 import { EventLinks } from '../components/EventLinks'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
@@ -11,10 +11,18 @@ import {
   type WorshipEvent,
 } from '../domain/types'
 import { formatSecToHhMmSs } from '../domain/time'
-import { addLeaderToRoster, collectLeadersFromItems } from '../lib/leaders'
-import { encodeLocalEventId } from '../lib/localPayload'
+import { useAuth } from '../hooks/useAuth'
+import { isOfflineEventId } from '../lib/eventSource'
 import { hasFirebaseConfig } from '../lib/firebase'
-import { upsertEventWithItems } from '../lib/firestoreRepo'
+import { addLeaderToRoster, collectLeadersFromItems } from '../lib/leaders'
+import {
+  getLocalEvent,
+  isLibraryEventId,
+  newLocalLibraryId,
+  upsertLocalEvent,
+} from '../lib/localLibrary'
+import { encodeLocalEventId } from '../lib/localPayload'
+import { loadEvent, loadProgramItems, upsertEventWithItems } from '../lib/firestoreRepo'
 import { initialRuntimeState } from '../lib/runtimeEngine'
 
 function newId(): string {
@@ -25,27 +33,113 @@ function newCloudEventId(): string {
   return `evt-${Date.now().toString(36)}`
 }
 
-export function SetupPage() {
+function programToDraftItems(items: ProgramItem[]): DraftItem[] {
+  return items.map((it) => ({
+    id: newId(),
+    order: it.order,
+    name: it.name,
+    leaderName: it.leaderName,
+    durationSec: it.durationSec,
+  }))
+}
+
+type SetupPageProps = {
+  mode: 'new' | 'edit'
+}
+
+export function SetupPage({ mode }: SetupPageProps) {
+  const { eventId: routeEventId } = useParams()
+  return <SetupPageInner key={mode === 'new' ? 'new' : routeEventId} mode={mode} routeEventId={routeEventId} />
+}
+
+function SetupPageInner({
+  mode,
+  routeEventId,
+}: {
+  mode: 'new' | 'edit'
+  routeEventId?: string
+}) {
   const nav = useNavigate()
+  const { uid, ready: authReady } = useAuth()
+  const isEdit = mode === 'edit' && Boolean(routeEventId)
+  const cloudMode = hasFirebaseConfig() && Boolean(uid)
+
   const [title, setTitle] = useState('รอบนมัสการ')
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [settings, setSettings] = useState<EventDisplaySettings>(DEFAULT_EVENT_DISPLAY_SETTINGS)
   const [leaderNames, setLeaderNames] = useState<string[]>([])
-  const [items, setItems] = useState<DraftItem[]>(() => [
-    { id: newId(), order: 1, name: 'นับถอยก่อนเริ่ม', leaderName: 'ทีมสื่อ', durationSec: 300 },
-    { id: newId(), order: 2, name: 'ร้องเพลง', leaderName: 'วงนำสวด', durationSec: 900 },
-    { id: newId(), order: 3, name: 'ต้อนรับและประกาศ', leaderName: '', durationSec: 300 },
-    { id: newId(), order: 4, name: 'คำเทศนา', leaderName: '', durationSec: 2700 },
-  ])
+  const [items, setItems] = useState<DraftItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(isEdit)
   const [saveNotice, setSaveNotice] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const canStart = useMemo(() => items.length > 0, [items.length])
   const cloudReady = hasFirebaseConfig()
   const totalSec = useMemo(() => items.reduce((s, it) => s + it.durationSec, 0), [items])
   const totalLabel = formatSecToHhMmSs(totalSec)
+
+  useEffect(() => {
+    if (!routeEventId || !authReady) {
+      if (!routeEventId) setLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setLoading(true)
+    setLoadError(null)
+
+    const load = async () => {
+      try {
+        if (isLibraryEventId(routeEventId)) {
+          const entry = getLocalEvent(routeEventId)
+          if (!entry) throw new Error('ไม่พบรอบในเครื่อง')
+          if (cancelled) return
+          setTitle(entry.event.title)
+          setDate(entry.event.date)
+          setSettings({ ...DEFAULT_EVENT_DISPLAY_SETTINGS, ...entry.event.settings })
+          setLeaderNames(entry.event.leaderNames ?? [])
+          setItems(programToDraftItems(entry.items))
+          setLastEventId(routeEventId)
+          return
+        }
+
+        if (routeEventId.startsWith('local-')) {
+          setLoadError('ลิงก์ Local แบบเก่า — สร้างรอบใหม่แล้วบันทึกในไลบรารี')
+          return
+        }
+
+        if (cloudReady && uid) {
+          const ev = await loadEvent(routeEventId)
+          if (!ev) throw new Error('ไม่พบรอบใน Cloud')
+          const programItems = await loadProgramItems(routeEventId)
+          if (cancelled) return
+          setTitle(ev.data.title)
+          setDate(ev.data.date)
+          setSettings({ ...DEFAULT_EVENT_DISPLAY_SETTINGS, ...ev.data.settings })
+          setLeaderNames(ev.data.leaderNames ?? [])
+          setItems(programToDraftItems(programItems))
+          setLastEventId(routeEventId)
+          return
+        }
+
+        throw new Error('เข้าสู่ระบบเพื่อแก้ไขรอบ Cloud')
+      } catch (e) {
+        if (!cancelled) {
+          setLoadError(e instanceof Error ? e.message : 'โหลดไม่สำเร็จ')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [routeEventId, authReady, cloudReady, uid])
 
   const buildEvent = (roster: string[]): WorshipEvent => ({
     title,
@@ -54,6 +148,7 @@ export function SetupPage() {
     updatedAtMs: Date.now(),
     settings,
     leaderNames: roster,
+    ...(uid ? { ownerUid: uid } : {}),
   })
 
   const buildProgramItems = (): ProgramItem[] =>
@@ -104,9 +199,28 @@ export function SetupPage() {
     nav(`/start/${eventId}`)
   }
 
+  const persistLocal = (): string => {
+    const roster = collectLeadersFromItems(
+      leaderNames,
+      items.map((it) => it.leaderName),
+    )
+    const programItems = buildProgramItems()
+    const reuseLocalId =
+      isEdit && routeEventId && lastEventId === routeEventId && isLibraryEventId(lastEventId)
+    const id = upsertLocalEvent({
+      id: reuseLocalId ? lastEventId : newLocalLibraryId(),
+      event: buildEvent(roster),
+      items: programItems,
+    })
+    setLastEventId(id)
+    return id
+  }
+
   const persistCloud = async (): Promise<string | null> => {
-    if (!cloudReady) return null
-    const eventId = lastEventId && !lastEventId.startsWith('local-') ? lastEventId : newCloudEventId()
+    if (!cloudMode || !uid) return null
+    const reuseCloudId =
+      isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
+    const eventId = reuseCloudId ? lastEventId! : newCloudEventId()
     const roster = collectLeadersFromItems(
       leaderNames,
       items.map((it) => it.leaderName),
@@ -122,13 +236,29 @@ export function SetupPage() {
     return eventId
   }
 
-  const onSaveToCloud = async () => {
-    if (!cloudReady || !canStart) return
+  const onSave = async () => {
+    if (!canStart) return
     setSaving(true)
     setSaveNotice(null)
     try {
-      const eventId = await persistCloud()
-      if (eventId) setSaveNotice('บันทึก Cloud แล้ว — กด «เริ่มควบคุม» เมื่อพร้อม')
+      if (cloudMode) {
+        const eventId = await persistCloud()
+        if (eventId) {
+          setSaveNotice('บันทึก Cloud แล้ว')
+          if (!isEdit) nav(`/setup/${eventId}`, { replace: true })
+        }
+      } else {
+        const id = persistLocal()
+        setSaveNotice('บันทึกในเครื่องแล้ว')
+        if (!isEdit) nav(`/setup/${id}`, { replace: true })
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'บันทึกไม่สำเร็จ'
+      setSaveNotice(
+        msg.includes('permission') || msg.includes('PERMISSION')
+          ? 'บันทึก Cloud ไม่สำเร็จ — ต้องมีสิทธิ์ controller ใน Firebase'
+          : msg,
+      )
     } finally {
       setSaving(false)
     }
@@ -148,30 +278,30 @@ export function SetupPage() {
 
   const onStartControl = async () => {
     if (!canStart) return
-    if (cloudReady && lastEventId && !lastEventId.startsWith('local-')) {
-      setSaving(true)
-      try {
-        await persistCloud()
-        startWithEventId(lastEventId)
-      } finally {
-        setSaving(false)
-      }
-      return
-    }
-    if (cloudReady && (!lastEventId || lastEventId.startsWith('local-'))) {
-      setSaving(true)
-      try {
+    setSaving(true)
+    try {
+      if (cloudMode) {
         const eventId = await persistCloud()
         if (eventId) startWithEventId(eventId)
-      } finally {
-        setSaving(false)
+        return
       }
-      return
+      const id = persistLocal()
+      startWithEventId(id)
+    } finally {
+      setSaving(false)
     }
-    onStartLocalDemo()
   }
 
   const shellEventId = lastEventId
+  const saveLabel = cloudMode ? 'บันทึก Cloud' : 'บันทึกในเครื่อง'
+
+  if (loading) {
+    return (
+      <ControlShell activeNav="setup" eventId={shellEventId} eventTitle={title}>
+        <p className="muted">กำลังโหลดโปรแกรม…</p>
+      </ControlShell>
+    )
+  }
 
   return (
     <ControlShell
@@ -187,28 +317,31 @@ export function SetupPage() {
     >
       <header className="setupPageHeader">
         <div className="setupPageHeaderText">
-          <h1 className="setupPageTitle">ตั้งค่าโปรแกรม</h1>
+          <h1 className="setupPageTitle">{isEdit ? 'แก้ไขโปรแกรม' : 'ตั้งค่าโปรแกรม'}</h1>
           <p className="setupPageDesc">กำหนดรายการและเวลาสำหรับ «{title}»</p>
         </div>
         <div className="setupHeaderActions">
+          <Link className="btnGhost" to="/services">
+            รายการนมัสการ
+          </Link>
           <button className="btnGhost" type="button" onClick={onClearAll} disabled={!items.length}>
             ล้างทั้งหมด
           </button>
-          {cloudReady ? (
-            <button
-              className="btn"
-              type="button"
-              disabled={!canStart || saving}
-              onClick={onSaveToCloud}
-            >
-              {saving ? 'กำลังบันทึก…' : 'บันทึก Cloud'}
-            </button>
-          ) : null}
+          <button
+            className="btn"
+            type="button"
+            disabled={!canStart || saving}
+            onClick={() => void onSave()}
+          >
+            {saving ? 'กำลังบันทึก…' : saveLabel}
+          </button>
           <button className="btnPrimary" type="button" onClick={onAdd}>
             + เพิ่มรายการ
           </button>
         </div>
       </header>
+
+      {loadError ? <p className="saveNotice saveNoticeError">{loadError}</p> : null}
 
       <section className="card">
         <div className="grid2">
@@ -252,14 +385,17 @@ export function SetupPage() {
             className="btnPrimary"
             type="button"
             disabled={!canStart || saving}
-            onClick={onStartControl}
+            onClick={() => void onStartControl()}
           >
             {saving ? 'กำลังเตรียม…' : 'เริ่มควบคุม'}
           </button>
-          {!cloudReady ? (
+          {!cloudMode && cloudReady ? (
             <button className="btn" type="button" disabled={!canStart} onClick={onStartLocalDemo}>
-              เริ่ม (Local Demo)
+              เริ่ม (Local URL แบบเก่า)
             </button>
+          ) : null}
+          {cloudReady && !uid ? (
+            <div className="muted">เข้าสู่ระบบที่หน้ารายการนมัสการเพื่อบันทึก Cloud</div>
           ) : null}
           {!cloudReady ? (
             <div className="muted">
@@ -270,7 +406,7 @@ export function SetupPage() {
         </div>
       </section>
 
-      {lastEventId ? (
+      {isEdit && lastEventId ? (
         <section className="card">
           <div className="cardHeader">
             <h2 className="cardTitle">ลิงก์แยกจอ</h2>
@@ -281,8 +417,8 @@ export function SetupPage() {
 
       <footer className="footer">
         <div className="muted">
-          Controller: <code>/start/&lt;eventId&gt;</code> · Stage:{' '}
-          <code>/view/&lt;eventId&gt;?kiosk=1</code>
+          <Link to="/services">รายการนมัสการ</Link> · Controller:{' '}
+          <code>/start/&lt;eventId&gt;</code> · Stage: <code>/view/&lt;eventId&gt;?kiosk=1</code>
         </div>
       </footer>
     </ControlShell>

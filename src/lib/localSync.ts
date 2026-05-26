@@ -26,8 +26,12 @@ function writeStoredRuntime(eventId: string, state: RuntimeState): void {
   }
 }
 
+function isOfflineRuntimeId(eventId: string): boolean {
+  return eventId.startsWith('local-') || eventId.startsWith('lib-')
+}
+
 export function publishLocalRuntime(eventId: string, state: RuntimeState): void {
-  if (!eventId.startsWith('local-')) return
+  if (!isOfflineRuntimeId(eventId)) return
   writeStoredRuntime(eventId, state)
   const ch = new BroadcastChannel(channelName(eventId))
   ch.postMessage({ type: 'runtime', state })
@@ -38,7 +42,7 @@ export function subscribeLocalRuntime(
   eventId: string,
   cb: (state: RuntimeState) => void,
 ): () => void {
-  if (!eventId.startsWith('local-')) return () => {}
+  if (!isOfflineRuntimeId(eventId)) return () => {}
 
   const stored = readStoredRuntime(eventId)
   if (stored) {

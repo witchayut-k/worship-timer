@@ -8,12 +8,13 @@ import {
   orderBy,
   query,
   setDoc,
+  where,
   writeBatch,
   type DocumentData,
 } from 'firebase/firestore'
 import { getDb } from './firebase'
-import type { ProgramItem, RuntimeState, WorshipEvent } from '../domain/types'
-import { eventDoc, programItemsCol, runtimeStateDoc } from './firestorePaths'
+import type { EventDoc, ProgramItem, RuntimeState, WorshipEvent } from '../domain/types'
+import { eventsCol, eventDoc, programItemsCol, runtimeStateDoc } from './firestorePaths'
 
 function assertData<T>(data: DocumentData | undefined): T {
   if (!data) throw new Error('Missing document data')
@@ -25,6 +26,19 @@ export async function loadEvent(eventId: string) {
   const snap = await getDoc(doc(db, eventDoc(eventId)))
   if (!snap.exists()) return null
   return { id: snap.id, data: snap.data() as WorshipEvent }
+}
+
+export async function listEventsForUser(uid: string): Promise<EventDoc[]> {
+  const db = getDb()
+  const q = query(
+    collection(db, eventsCol()),
+    where('ownerUid', '==', uid),
+    orderBy('date', 'desc'),
+    orderBy('updatedAtMs', 'desc'),
+    limit(100),
+  )
+  const snaps = await getDocs(q)
+  return snaps.docs.map((d) => ({ id: d.id, data: d.data() as WorshipEvent }))
 }
 
 export async function loadProgramItems(eventId: string): Promise<ProgramItem[]> {

@@ -8,7 +8,7 @@ import { resolveEventSettings } from '../domain/types'
 import { formatSignedMMSS } from '../domain/time'
 import { getTimerThemeClasses } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
-import { decodeLocalPayload } from '../lib/localPayload'
+import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
 import { publishLocalRuntime } from '../lib/localSync'
 import { watchEvent, watchProgramItems, watchRuntimeState, writeRuntimeState } from '../lib/firestoreRepo'
 import { deriveLocalDisplay, initialRuntimeState, reduceRuntimeState } from '../lib/runtimeEngine'
@@ -19,7 +19,7 @@ export function StartPage() {
 }
 
 function StartPageInner({ eventId }: { eventId: string }) {
-  const local = useMemo(() => decodeLocalPayload(eventId), [eventId])
+  const local = useMemo(() => resolveEventPayload(eventId), [eventId])
 
   const [title, setTitle] = useState(() => local?.event.title ?? 'Worship Timer')
   const [eventMeta, setEventMeta] = useState<WorshipEvent | null>(() => local?.event ?? null)
@@ -37,9 +37,9 @@ function StartPageInner({ eventId }: { eventId: string }) {
 
   const timeText = formatSignedMMSS(display.remainingSec)
 
-  const isCloud = !eventId.startsWith('local-')
+  const isCloud = !isOfflineEventId(eventId)
   const cloudReady = isCloud && hasFirebaseConfig()
-  const isLocal = eventId.startsWith('local-')
+  const isLocal = isOfflineEventId(eventId)
 
   const hydratingRef = useRef(false)
 

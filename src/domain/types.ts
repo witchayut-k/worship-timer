@@ -19,6 +19,7 @@ export type WorshipEvent = {
   date: string // YYYY-MM-DD
   status: EventStatus
   updatedAtMs: number
+  ownerUid?: string
   settings?: EventDisplaySettings
   leaderNames?: string[]
 }

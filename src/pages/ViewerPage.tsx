@@ -6,7 +6,7 @@ import { resolveEventSettings } from '../domain/types'
 import { computeRemainingSec } from '../domain/time'
 import { getStageTheme } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
-import { decodeLocalPayload } from '../lib/localPayload'
+import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
 import { subscribeLocalRuntime } from '../lib/localSync'
 import { watchEvent, watchProgramItems, watchRuntimeState } from '../lib/firestoreRepo'
 
@@ -19,7 +19,7 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
   const [searchParams] = useSearchParams()
   const kiosk = searchParams.get('kiosk') === '1'
 
-  const local = useMemo(() => decodeLocalPayload(eventId), [eventId])
+  const local = useMemo(() => resolveEventPayload(eventId), [eventId])
 
   const [title, setTitle] = useState(() => local?.event.title ?? 'Worship Timer')
   const [eventMeta, setEventMeta] = useState<WorshipEvent | null>(() => local?.event ?? null)
@@ -44,9 +44,9 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
   const current = items[currentIndex] ?? null
   const next = currentIndex + 1 < items.length ? items[currentIndex + 1] : null
 
-  const isCloud = !eventId.startsWith('local-')
+  const isCloud = !isOfflineEventId(eventId)
   const cloudReady = isCloud && hasFirebaseConfig()
-  const isLocal = eventId.startsWith('local-')
+  const isLocal = isOfflineEventId(eventId)
 
   useEffect(() => {
     if (!cloudReady) return

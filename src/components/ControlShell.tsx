@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-export type ControlNav = 'setup' | 'control'
+export type ControlNav = 'setup' | 'control' | 'services'
 
 type ControlShellProps = {
   activeNav: ControlNav
@@ -41,6 +41,13 @@ export function ControlShell({
         </div>
 
         <nav className="sidebarNav" aria-label="เมนูหลัก">
+          <Link
+            className={`sidebarNavItem ${activeNav === 'services' ? 'sidebarNavItemActive' : ''}`}
+            to="/services"
+          >
+            รายการนมัสการ
+          </Link>
+
           {eventId ? (
             <Link
               className={`sidebarNavItem ${activeNav === 'control' ? 'sidebarNavItemActive' : ''}`}
