@@ -9,6 +9,10 @@
   --timerBlue: #0b2a6f;
   --timerAmber: #8a5a00;
   --timerOver: #8b1010;
+  --scrollbar-size: 8px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.22);
+  --scrollbar-thumb-hover: rgba(122, 162, 255, 0.55);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
     Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
   color: var(--text);
@@ -19,6 +23,28 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 body {
@@ -560,7 +586,9 @@ input:focus {
 
 /* Control shell (Setup + Start) */
 .controlShell {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 220px 1fr;
 }
@@ -659,10 +687,25 @@ input:focus {
 
 .controlMain {
   min-width: 0;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.controlMain > .controlContent,
+.controlMain > .setupMainGrid {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.controlMain > .controlContent:not(:has(> .controlWorkspace)) {
+  overflow-y: auto;
 }
 
 .controlContent {
+  width: 100%;
   max-width: 980px;
   margin: 0 auto;
   padding: 18px 20px 48px;
@@ -672,19 +715,25 @@ input:focus {
   max-width: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .controlWorkspace {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 340px);
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   align-items: stretch;
 }
 
 .controlWorkspace > .controlContent {
   max-width: none;
   margin: 0;
-  padding: 18px 20px 48px;
+  padding: 18px 20px 20px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .controlRightRail {
@@ -692,8 +741,11 @@ input:focus {
   flex-direction: column;
   border-left: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.12);
-  min-height: 100vh;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
 
 .programSchedule {
@@ -726,7 +778,7 @@ input:focus {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-right: 2px;
+  padding-right: 6px;
 }
 
 .programSchedulePick {
@@ -775,6 +827,7 @@ input:focus {
 
 .stagePreviewDock {
   flex-shrink: 0;
+  margin-top: auto;
   border-top: 1px solid var(--border);
   padding: 12px 14px 16px;
   background: rgba(0, 0, 0, 0.2);
@@ -801,27 +854,39 @@ input:focus {
   background: #000;
   height: 200px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
 .stagePreviewScale {
-  transform: scale(0.42);
-  transform-origin: top center;
+  flex-shrink: 0;
   pointer-events: none;
+}
+
+.stagePreviewDisplayWrap {
+  transform-origin: top left;
+}
+
+.stagePreviewDisplayWrap .stageDisplay {
+  width: 480px;
+  max-width: none;
+  aspect-ratio: 1;
 }
 
 .setupMainGrid {
   display: grid;
   grid-template-columns: 1fr minmax(260px, 300px);
   gap: 0;
-  min-height: 100vh;
-  align-items: start;
+  height: 100%;
+  min-height: 0;
+  align-items: stretch;
 }
 
 .setupMainColumn {
   padding: 24px 24px 48px;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .setupAside {
@@ -831,6 +896,8 @@ input:focus {
   gap: 14px;
   border-left: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.12);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .setupPageHeader {
@@ -1455,6 +1522,7 @@ input:focus {
 @media (max-width: 960px) {
   .controlShell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
 
   .sidebar {
@@ -1488,12 +1556,14 @@ input:focus {
 
   .controlWorkspace {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 
   .controlRightRail {
     border-left: none;
     border-top: 1px solid var(--border);
-    min-height: auto;
+    height: auto;
+    max-height: min(45dvh, 420px);
   }
 
   .stagePreviewFrame {
@@ -1502,12 +1572,14 @@ input:focus {
 
   .setupMainGrid {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 
   .setupAside {
     border-left: none;
     border-top: 1px solid var(--border);
     padding: 16px 24px 48px;
+    max-height: min(45dvh, 420px);
   }
 
   .segmentTableHead,

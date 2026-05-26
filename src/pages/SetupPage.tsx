@@ -510,13 +510,6 @@ function SetupPageInner({
         onClose={() => setImportOpen(false)}
         onImport={onSpreadsheetImport}
       />
-
-      <footer className="footer">
-        <div className="muted">
-          <Link to="/services">รายการนมัสการ</Link> · Controller:{' '}
-          <code>/start/&lt;eventId&gt;</code> · Stage: <code>/view/&lt;eventId&gt;?kiosk=1</code>
-        </div>
-      </footer>
     </ControlShell>
   )
 }
