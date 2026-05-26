@@ -228,6 +228,11 @@ input:focus {
 .btnDanger {
   background: linear-gradient(180deg, rgba(255, 77, 77, 0.35), rgba(255, 77, 77, 0.12));
   border-color: rgba(255, 77, 77, 0.5);
+  color: var(--text);
+}
+.btnDanger:hover {
+  border-color: rgba(255, 77, 77, 0.75);
+  background: linear-gradient(180deg, rgba(255, 77, 77, 0.48), rgba(255, 77, 77, 0.2));
 }
 .btnGhost {
   background: transparent;
@@ -264,6 +269,64 @@ input:focus {
   background: rgba(0, 0, 0, 0.18);
   display: grid;
   gap: 8px;
+}
+.timerMetaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+.timerMetaSlot {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.timerMetaPrev {
+  text-align: left;
+}
+.timerMetaCurrent {
+  flex: 1.4;
+  text-align: center;
+}
+.timerMetaNext {
+  text-align: right;
+}
+.timerMetaLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.timerMetaCurrent .timerMetaLabel {
+  color: var(--brand);
+}
+.timerMetaName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.timerMetaCurrent .timerMetaName {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: normal;
+}
+.timerMetaLeader {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.timerMetaCurrent .timerMetaLeader {
+  font-size: 13px;
 }
 .metaLine {
   display: grid;
@@ -303,16 +366,16 @@ input:focus {
   box-shadow: inset 4px 0 0 var(--danger);
 }
 .timerFlash .timerValue {
-  animation: timerPulse 1s ease-in-out infinite;
+  animation: timerFlashFade 1s ease-in-out infinite;
 }
 
-@keyframes timerPulse {
+@keyframes timerFlashFade {
   0%,
   100% {
-    filter: brightness(1);
+    opacity: 0.55;
   }
   50% {
-    filter: brightness(1.35);
+    opacity: 1;
   }
 }
 
@@ -323,6 +386,44 @@ input:focus {
   padding: 12px 14px;
   background: rgba(0, 0, 0, 0.18);
   justify-content: center;
+}
+.controlsTransport {
+  gap: 12px;
+  align-items: center;
+}
+.btnTransportPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 120px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 800;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+}
+.btnTransportStart {
+  background: linear-gradient(180deg, rgba(110, 231, 168, 0.5), rgba(110, 231, 168, 0.2));
+  border-color: rgba(110, 231, 168, 0.62);
+}
+.btnTransportStart:hover {
+  border-color: rgba(110, 231, 168, 0.85);
+  background: linear-gradient(180deg, rgba(110, 231, 168, 0.62), rgba(110, 231, 168, 0.28));
+}
+.btnTransportPause {
+  background: linear-gradient(180deg, rgba(245, 166, 35, 0.48), rgba(245, 166, 35, 0.18));
+  border-color: rgba(245, 166, 35, 0.62);
+}
+.btnTransportPause:hover {
+  border-color: rgba(245, 166, 35, 0.85);
+  background: linear-gradient(180deg, rgba(245, 166, 35, 0.58), rgba(245, 166, 35, 0.26));
+}
+.transportBtnIcon {
+  flex-shrink: 0;
 }
 
 .pillGroup {
@@ -579,7 +680,7 @@ input:focus {
 .stageFlash .stageRingProgress,
 .stageFlash .stageRingProgressGlow,
 .stageFlash .stageTimerValue {
-  animation: stagePulse 0.5s ease-in-out infinite;
+  animation: stageFlashFade 1s ease-in-out infinite;
 }
 .stageDisplay.stagePaused .stageRingProgressGlow {
   opacity: 0.18;
@@ -594,14 +695,12 @@ input:focus {
   color: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.32em;
 }
-@keyframes stagePulse {
+@keyframes stageFlashFade {
   0%,
   100% {
-    filter: brightness(1);
-    opacity: 1;
+    opacity: 0.45;
   }
   50% {
-    filter: brightness(1.6);
     opacity: 1;
   }
 }
@@ -769,19 +868,108 @@ input:focus {
 
 .controlWorkspace {
   display: grid;
-  grid-template-columns: 1fr minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 280px) minmax(280px, 340px);
   flex: 1;
   min-height: 0;
   height: 100%;
   align-items: stretch;
 }
 
-.controlWorkspace > .controlContent {
+.controlWorkspace > .controlTimerColumn {
   max-width: none;
   margin: 0;
   padding: 18px 20px 20px;
   min-height: 0;
   overflow-y: auto;
+}
+
+.controlSideRail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 14px;
+  border-left: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.1);
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.controlSideRail .controlStatusPanel,
+.controlSideRail .controlStageOutput {
+  margin: 0;
+}
+
+.controlSideRail .controlStatusPanel {
+  padding: 14px;
+}
+
+.controlSideRail .controlStatusGrid {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.controlSideRail .controlStageOutput {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.controlSideRail .controlStageOutputActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.controlSideRail .controlStageOutputActions .btnGhost {
+  width: 100%;
+  justify-content: center;
+}
+
+.controlTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.controlTopClock {
+  min-width: 0;
+}
+.controlTopClockTime {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+.controlTopClockMeta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.controlTopActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.outputLinksBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.outputLinksMonitorIcon {
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .controlRightRail {
@@ -863,7 +1051,7 @@ input:focus {
   flex-shrink: 0;
 }
 
-.scheduleBadgeActive {
+.scheduleBadgeCurrent {
   background: rgba(122, 162, 255, 0.2);
   color: var(--brand);
 }
@@ -881,14 +1069,13 @@ input:focus {
 .controlTimerProgressTrack {
   position: relative;
   height: 8px;
-  border-radius: 999px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
 .controlTimerProgressFill {
   height: 100%;
-  border-radius: inherit;
   background: rgba(255, 255, 255, 0.72);
   transition: width 0.2s linear;
 }
@@ -919,12 +1106,27 @@ input:focus {
   color: var(--muted);
 }
 
+.controlTimerProgressLabels span:first-child {
+  transform: none;
+}
+
+.controlTimerProgressLabels span:last-child {
+  transform: translateX(-100%);
+}
+
 .controlStatusPanel {
   margin-top: 12px;
   padding: 16px;
   border-radius: 18px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.18);
+}
+.controlSideRail .controlStatusPanel {
+  margin-top: 0;
+  padding: 14px;
+}
+.controlSideRail .controlStatusGrid {
+  margin-top: 0;
 }
 
 .controlWallClock {
@@ -1011,6 +1213,28 @@ input:focus {
   background: rgba(122, 162, 255, 0.12);
 }
 
+.controlFlashBtnActive {
+  border-color: rgba(255, 214, 102, 0.55);
+  background: rgba(255, 214, 102, 0.12);
+  animation: flashBtnFade 1s ease-in-out infinite;
+}
+
+@keyframes flashBtnFade {
+  0%,
+  100% {
+    opacity: 0.5;
+    background: rgba(255, 214, 102, 0.08);
+    border-color: rgba(255, 214, 102, 0.35);
+    box-shadow: none;
+  }
+  50% {
+    opacity: 1;
+    background: rgba(255, 214, 102, 0.32);
+    border-color: rgba(255, 214, 102, 0.85);
+    box-shadow: 0 0 10px rgba(255, 214, 102, 0.2);
+  }
+}
+
 .programScheduleRow {
   display: flex;
   flex-direction: column;
@@ -1021,6 +1245,18 @@ input:focus {
   border-color: rgba(122, 162, 255, 0.45);
 }
 
+.programScheduleRowPast {
+  opacity: 0.55;
+}
+
+.programScheduleRowPast .listPickTitle {
+  text-decoration: line-through;
+}
+
+.programScheduleRowPast:hover {
+  opacity: 0.72;
+}
+
 .programScheduleRowTimes {
   display: flex;
   align-items: center;
@@ -1029,12 +1265,6 @@ input:focus {
 
 .programSchedulePlanned {
   font-size: 11px;
-}
-
-.programScheduleRowActions {
-  display: flex;
-  gap: 6px;
-  padding: 0 4px 4px;
 }
 
 .setupMainGrid {
@@ -1210,8 +1440,7 @@ input:focus {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(11, 16, 32, 0.94);
 }
 
 .modalCard {
@@ -1219,10 +1448,10 @@ input:focus {
   max-height: min(90vh, 900px);
   display: flex;
   flex-direction: column;
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: #141c32;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 16px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
 }
 
 .modalHeader {
@@ -1252,10 +1481,310 @@ input:focus {
 
 .modalFooter {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
   border-top: 1px solid var(--border);
+}
+
+.modalCardWide {
+  width: min(960px, 100%);
+}
+
+.outputLinksModal {
+  overflow: hidden;
+}
+
+.outputLinksModalTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.outputLinksTabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.outputLinksTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 88px;
+  padding: 8px 12px 10px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.outputLinksTab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.outputLinksTabActive {
+  color: var(--text);
+  border-bottom-color: var(--brand);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.outputLinksTabLabel {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.outputLinksTabThumb {
+  width: 72px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #0b1020;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.outputLinksTabThumbController {
+  padding: 6px;
+}
+
+.outputLinksTabThumbTimer {
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.outputLinksTabThumbBtns {
+  display: flex;
+  gap: 3px;
+}
+
+.outputLinksTabThumbBtns span {
+  width: 14px;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.outputLinksTabThumbStage {
+  position: relative;
+}
+
+.outputLinksTabThumbRing {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(46, 230, 214, 0.6);
+}
+
+.outputLinksTabThumbTime {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #2ee6d6;
+}
+
+.outputLinksBody {
+  display: grid;
+  grid-template-columns: 1fr minmax(220px, 280px);
+  gap: 20px;
+  align-items: start;
+}
+
+.outputLinksPreviewCol {
+  min-width: 0;
+}
+
+.outputLinksPreviewLabel {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+
+.outputLinksPreviewFrame {
+  aspect-ratio: 1;
+  max-height: 360px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0b1020;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.outputLinksPreviewFrameMock {
+  padding: 16px;
+}
+
+.outputLinksPreviewScale {
+  position: relative;
+}
+
+.outputLinksPreviewDisplayWrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.outputLinksControllerMock {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.outputLinksControllerMockTimer {
+  font-size: 48px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+  line-height: 1;
+}
+
+.outputLinksControllerMockMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.outputLinksControllerMockControls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.outputLinksControllerMockBtn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.outputLinksControllerMockBtnPrimary {
+  background: var(--brand);
+  color: #0b1020;
+}
+
+.outputLinksInfoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.outputLinksInfoTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.outputLinksInfoText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.outputLinksPath {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.outputLinksPathLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.outputLinksPath code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.outputLinksFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.outputLinksUrlBar {
+  display: flex;
+  flex: 1;
+  min-width: 200px;
+  gap: 8px;
+  align-items: center;
+}
+
+.outputLinksUrlInput {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 12px;
+}
+
+.outputLinksOpenLink {
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .outputLinksBody {
+    grid-template-columns: 1fr;
+  }
+
+  .outputLinksPreviewFrame {
+    max-height: 280px;
+  }
+}
+
+@media (max-width: 520px) {
+  .modalFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modalFooter > button {
+    width: 100%;
+  }
 }
 
 .modalHint {
@@ -1532,6 +2061,13 @@ input:focus {
   font-weight: 600;
 }
 
+.servicesActiveBannerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .servicesSessionCard--active {
   border-color: rgba(122, 162, 255, 0.45);
   background: rgba(122, 162, 255, 0.06);
@@ -1753,7 +2289,14 @@ input:focus {
 
   .controlWorkspace {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+  }
+
+  .controlSideRail {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    max-height: min(40dvh, 380px);
+    overflow-y: auto;
   }
 
   .controlRightRail {

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { pauseRuntimeIfRunning } from '../lib/endActiveControlSession'
 import {
   ActiveControlContext,
   type ActiveControl,
@@ -49,6 +50,12 @@ export function ActiveControlProvider({ children }: { children: ReactNode }) {
     writeStoredActiveControl(null)
   }, [])
 
+  const endActiveControl = useCallback(async () => {
+    if (!activeControl) return
+    await pauseRuntimeIfRunning(activeControl.eventId)
+    clearActiveControl()
+  }, [activeControl, clearActiveControl])
+
   const isProductionForEvent = useCallback(
     (eventId: string | null | undefined) =>
       Boolean(eventId && activeControl?.eventId === eventId),
@@ -60,9 +67,10 @@ export function ActiveControlProvider({ children }: { children: ReactNode }) {
       activeControl,
       setActiveControl,
       clearActiveControl,
+      endActiveControl,
       isProductionForEvent,
     }),
-    [activeControl, setActiveControl, clearActiveControl, isProductionForEvent],
+    [activeControl, setActiveControl, clearActiveControl, endActiveControl, isProductionForEvent],
   )
 
   return <ActiveControlContext.Provider value={value}>{children}</ActiveControlContext.Provider>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
 
 type Props = {
   eventId: string
@@ -6,15 +7,11 @@ type Props = {
 }
 
 export function EventLinks({ eventId, showOpenStage = true }: Props) {
-  const [copied, setCopied] = useState<'controller' | 'stage' | null>(null)
+  const [copied, setCopied] = useState<OutputLinkKind | null>(null)
+  const links = getOutputLinks(eventId)
+  const stageLink = links.find((l) => l.kind === 'stage')!
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const controllerPath = `/start/${eventId}`
-  const stagePath = `/view/${eventId}?kiosk=1`
-  const controllerUrl = `${origin}${controllerPath}`
-  const stageUrl = `${origin}${stagePath}`
-
-  const copy = async (which: 'controller' | 'stage', url: string) => {
+  const copy = async (which: OutputLinkKind, url: string) => {
     try {
       await navigator.clipboard.writeText(url)
       setCopied(which)
@@ -25,38 +22,29 @@ export function EventLinks({ eventId, showOpenStage = true }: Props) {
   }
 
   const openStage = () => {
-    window.open(stagePath, '_blank', 'noopener,noreferrer')
+    window.open(stageLink.path, '_blank', 'noopener,noreferrer')
   }
 
   return (
     <div className="linkGrid">
-      <div className="linkRow">
-        <div>
-          <div className="linkLabel">Controller</div>
-          <code className="linkUrl">{controllerPath}</code>
-        </div>
-        <div className="linkActions">
-          <button className="btnGhost" type="button" onClick={() => copy('controller', controllerUrl)}>
-            {copied === 'controller' ? 'Copied' : 'Copy'}
-          </button>
-        </div>
-      </div>
-      <div className="linkRow">
-        <div>
-          <div className="linkLabel">Stage display</div>
-          <code className="linkUrl">{stagePath}</code>
-        </div>
-        <div className="linkActions">
-          <button className="btnGhost" type="button" onClick={() => copy('stage', stageUrl)}>
-            {copied === 'stage' ? 'Copied' : 'Copy'}
-          </button>
-          {showOpenStage ? (
-            <button className="btnPrimary" type="button" onClick={openStage}>
-              เปิดจอเวที
+      {links.map((link) => (
+        <div key={link.kind} className="linkRow">
+          <div>
+            <div className="linkLabel">{link.label}</div>
+            <code className="linkUrl">{link.path}</code>
+          </div>
+          <div className="linkActions">
+            <button className="btnGhost" type="button" onClick={() => copy(link.kind, link.url)}>
+              {copied === link.kind ? 'Copied' : 'Copy'}
             </button>
-          ) : null}
+            {showOpenStage && link.kind === 'stage' ? (
+              <button className="btnPrimary" type="button" onClick={openStage}>
+                เปิดจอเวที
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   )
 }

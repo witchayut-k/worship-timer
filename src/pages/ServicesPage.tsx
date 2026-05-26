@@ -31,7 +31,7 @@ type PendingSwitch = {
 
 export function ServicesPage() {
   const nav = useNavigate()
-  const { activeControl, setActiveControl } = useActiveControl()
+  const { activeControl, setActiveControl, endActiveControl } = useActiveControl()
   const { user, uid, ready, canUseAuth, signIn, signOut } = useAuth()
   const [entries, setEntries] = useState<ServiceListEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -99,14 +99,25 @@ export function ServicesPage() {
     <ControlShell activeNav="services">
       {activeControl ? (
         <div className="servicesActiveBanner">
-          <span>กำลังควบคุม «{activeControl.title}»</span>
-          <button
-            className="btn btnSm"
-            type="button"
-            onClick={() => nav(`/start/${activeControl.eventId}`)}
-          >
-            กลับห้องควบคุม
-          </button>
+          <span>
+            กำลังควบคุม «{activeControl.title}» · Timer ยังทำงานอยู่
+          </span>
+          <div className="servicesActiveBannerActions">
+            <button
+              className="btn btnSm"
+              type="button"
+              onClick={() => nav(`/start/${activeControl.eventId}`)}
+            >
+              กลับห้องควบคุม
+            </button>
+            <button
+              className="btnDanger btnSm"
+              type="button"
+              onClick={() => void endActiveControl()}
+            >
+              จบการควบคุม
+            </button>
+          </div>
         </div>
       ) : null}
 

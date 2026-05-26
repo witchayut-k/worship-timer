@@ -1,0 +1,323 @@
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { StageCircleDisplay } from './StageCircleDisplay'
+import type { StageTheme } from '../lib/displayTheme'
+import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
+
+const STAGE_LAYOUT_PX = 480
+
+type Props = {
+  open: boolean
+  onClose: () => void
+  eventId: string
+  remainingSec: number
+  durationSec: number
+  currentName: string
+  currentLeader: string
+  nextName: string | null
+  nextLeader: string | null
+  theme: StageTheme
+  paused?: boolean
+}
+
+function MonitorIcon() {
+  return (
+    <svg
+      className="outputLinksMonitorIcon"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+    </svg>
+  )
+}
+
+function ControllerTabThumb() {
+  return (
+    <div className="outputLinksTabThumb outputLinksTabThumbController" aria-hidden>
+      <div className="outputLinksTabThumbTimer">10:00</div>
+      <div className="outputLinksTabThumbBtns">
+        <span />
+        <span />
+      </div>
+    </div>
+  )
+}
+
+function StageTabThumb() {
+  return (
+    <div className="outputLinksTabThumb outputLinksTabThumbStage" aria-hidden>
+      <div className="outputLinksTabThumbRing" />
+      <div className="outputLinksTabThumbTime">10:00</div>
+    </div>
+  )
+}
+
+function ControllerPreviewMock() {
+  return (
+    <div className="outputLinksControllerMock" aria-hidden>
+      <div className="outputLinksControllerMockTimer">10:00</div>
+      <div className="outputLinksControllerMockMeta">
+        <span>Prev — Welcome</span>
+        <span>Current — Worship</span>
+        <span>Next — Message</span>
+      </div>
+      <div className="outputLinksControllerMockControls">
+        <span className="outputLinksControllerMockBtn outputLinksControllerMockBtnPrimary">
+          Start
+        </span>
+        <span className="outputLinksControllerMockBtn">Pause</span>
+        <span className="outputLinksControllerMockBtn">Next</span>
+      </div>
+    </div>
+  )
+}
+
+function StagePreviewFrame({
+  remainingSec,
+  durationSec,
+  currentName,
+  currentLeader,
+  nextName,
+  nextLeader,
+  theme,
+  paused,
+}: Omit<Props, 'open' | 'onClose' | 'eventId'>) {
+  const frameRef = useRef<HTMLDivElement>(null)
+  const scaleRef = useRef<HTMLDivElement>(null)
+  const displayRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current
+    const scaleEl = scaleRef.current
+    const display = displayRef.current
+    if (!frame || !scaleEl || !display) return
+
+    const measure = () => {
+      const fitScale = Math.min(
+        frame.clientWidth / STAGE_LAYOUT_PX,
+        frame.clientHeight / STAGE_LAYOUT_PX,
+      )
+      const safeScale = Math.max(0.08, fitScale)
+      const fittedW = STAGE_LAYOUT_PX * safeScale
+      const fittedH = STAGE_LAYOUT_PX * safeScale
+
+      scaleEl.style.width = `${fittedW}px`
+      scaleEl.style.height = `${fittedH}px`
+      display.style.width = `${STAGE_LAYOUT_PX}px`
+      display.style.height = `${STAGE_LAYOUT_PX}px`
+      display.style.transform = `scale(${safeScale})`
+      display.style.transformOrigin = 'top left'
+    }
+
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(frame)
+    ro.observe(scaleEl)
+    return () => ro.disconnect()
+  }, [remainingSec, currentName, currentLeader, nextName, nextLeader, durationSec])
+
+  return (
+    <div className="outputLinksPreviewFrame" ref={frameRef}>
+      <div className="outputLinksPreviewScale" ref={scaleRef}>
+        <div ref={displayRef} className="outputLinksPreviewDisplayWrap">
+          <StageCircleDisplay
+            remainingSec={remainingSec}
+            durationSec={durationSec}
+            currentName={currentName}
+            currentLeader={currentLeader}
+            nextName={nextName}
+            nextLeader={nextLeader}
+            theme={theme}
+            paused={paused}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function OutputLinksModal({
+  open,
+  onClose,
+  eventId,
+  remainingSec,
+  durationSec,
+  currentName,
+  currentLeader,
+  nextName,
+  nextLeader,
+  theme,
+  paused = false,
+}: Props) {
+  const [activeTab, setActiveTab] = useState<OutputLinkKind>('controller')
+  const [copied, setCopied] = useState(false)
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  const links = getOutputLinks(eventId)
+  const activeLink = links.find((l) => l.kind === activeTab) ?? links[0]
+
+  useEffect(() => {
+    if (!open) return
+    closeRef.current?.focus()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  useEffect(() => {
+    if (!open) setCopied(false)
+  }, [open, activeTab])
+
+  if (!open) return null
+
+  const copyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(activeLink.url)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // ignore
+    }
+  }
+
+  const openLink = () => {
+    window.open(activeLink.path, '_blank', 'noopener,noreferrer')
+  }
+
+  const tabs: { kind: OutputLinkKind; label: string; thumb: ReactNode }[] = [
+    { kind: 'controller', label: 'Controller', thumb: <ControllerTabThumb /> },
+    { kind: 'stage', label: 'Stage display', thumb: <StageTabThumb /> },
+  ]
+
+  return (
+    <div
+      className="modalOverlay"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        className="modalCard modalCardWide outputLinksModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="output-links-title"
+      >
+        <header className="modalHeader">
+          <h2 id="output-links-title" className="modalTitle outputLinksModalTitle">
+            <MonitorIcon />
+            Output Links
+          </h2>
+          <button
+            ref={closeRef}
+            className="btnGhost modalClose"
+            type="button"
+            onClick={onClose}
+            aria-label="ปิด"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div className="outputLinksTabs" role="tablist" aria-label="Output types">
+          {tabs.map((tab) => (
+            <button
+              key={tab.kind}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.kind}
+              className={`outputLinksTab ${activeTab === tab.kind ? 'outputLinksTabActive' : ''}`}
+              onClick={() => setActiveTab(tab.kind)}
+            >
+              {tab.thumb}
+              <span className="outputLinksTabLabel">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="modalBody outputLinksBody">
+          <div className="outputLinksPreviewCol">
+            <div className="outputLinksPreviewLabel">
+              {activeTab === 'stage' ? 'Stage Preview' : 'Controller Preview'}
+            </div>
+            {activeTab === 'stage' ? (
+              <StagePreviewFrame
+                remainingSec={remainingSec}
+                durationSec={durationSec}
+                currentName={currentName}
+                currentLeader={currentLeader}
+                nextName={nextName}
+                nextLeader={nextLeader}
+                theme={theme}
+                paused={paused}
+              />
+            ) : (
+              <div className="outputLinksPreviewFrame outputLinksPreviewFrameMock">
+                <ControllerPreviewMock />
+              </div>
+            )}
+          </div>
+
+          <div className="outputLinksInfoCol">
+            <h3 className="outputLinksInfoTitle">{activeLink.label}</h3>
+            {activeTab === 'controller' ? (
+              <p className="outputLinksInfoText">
+                ห้องควบคุม timer และโปรแกรม — ใช้สำหรับผู้ควบคุมที่ต้อง Start/Pause, เปลี่ยน segment
+                และจัดการจอ Stage
+              </p>
+            ) : (
+              <>
+                <p className="outputLinksInfoText">
+                  จอแสดงผลเต็มหน้าจอสำหรับคนดูบนเวที — แสดง timer, segment ปัจจุบัน และ segment ถัดไป
+                  ในโหมด kiosk (ไม่มีเมนู)
+                </p>
+                <button className="btnPrimary btnSm" type="button" onClick={openLink}>
+                  เปิดจอเต็ม
+                </button>
+              </>
+            )}
+            <div className="outputLinksPath">
+              <span className="outputLinksPathLabel">Path</span>
+              <code>{activeLink.path}</code>
+            </div>
+          </div>
+        </div>
+
+        <footer className="outputLinksFooter">
+          <div className="outputLinksUrlBar">
+            <input
+              className="outputLinksUrlInput"
+              type="text"
+              readOnly
+              value={activeLink.url}
+              aria-label="Output link URL"
+            />
+            <button className="btnGhost" type="button" onClick={copyUrl}>
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
+          <button className="outputLinksOpenLink btnGhost" type="button" onClick={openLink}>
+            Open Link ↗
+          </button>
+        </footer>
+      </div>
+    </div>
+  )
+}
+
+export { MonitorIcon }

@@ -17,9 +17,6 @@ type Props = {
   eventDate?: string
   plannedStartTime?: string
   onJumpTo: (index: number) => void
-  onResetCurrent: () => void
-  onStart: () => void
-  onPause: () => void
 }
 
 export function ProgramSchedulePanel({
@@ -31,9 +28,6 @@ export function ProgramSchedulePanel({
   eventDate,
   plannedStartTime,
   onJumpTo,
-  onResetCurrent,
-  onStart,
-  onPause,
 }: Props) {
   const plannedStartMs = useMemo(() => {
     if (!eventDate?.trim() || !plannedStartTime?.trim()) return null
@@ -52,6 +46,7 @@ export function ProgramSchedulePanel({
       <div className="programScheduleList">
         {items.map((it, idx) => {
           const isCurrent = idx === currentIndex
+          const isPast = idx < currentIndex
           const isRunning = isCurrent && phase === 'running'
           const isPaused = isCurrent && phase === 'paused'
           const segmentStartMs =
@@ -62,7 +57,7 @@ export function ProgramSchedulePanel({
           return (
             <div
               key={`${it.order}-${it.name}-${idx}`}
-              className={`programScheduleRow ${isCurrent ? 'active' : ''}`}
+              className={`programScheduleRow ${isCurrent ? 'active' : ''} ${isPast ? 'programScheduleRowPast' : ''}`}
             >
               <button
                 type="button"
@@ -74,7 +69,7 @@ export function ProgramSchedulePanel({
                     {it.order}. {it.name}
                   </div>
                   {isRunning ? (
-                    <span className="scheduleBadge scheduleBadgeActive">Active</span>
+                    <span className="scheduleBadge scheduleBadgeCurrent">Current</span>
                   ) : isPaused ? (
                     <span className="scheduleBadge scheduleBadgePaused">Paused</span>
                   ) : null}
@@ -95,23 +90,6 @@ export function ProgramSchedulePanel({
                   </span>
                 </div>
               </button>
-
-              {isCurrent ? (
-                <div className="programScheduleRowActions">
-                  <button className="btnGhost btnSm" type="button" onClick={onResetCurrent}>
-                    Reset
-                  </button>
-                  {phase !== 'running' ? (
-                    <button className="btnGhost btnSm" type="button" onClick={onStart}>
-                      Start
-                    </button>
-                  ) : (
-                    <button className="btnGhost btnSm" type="button" onClick={onPause}>
-                      Pause
-                    </button>
-                  )}
-                </div>
-              ) : null}
             </div>
           )
         })}

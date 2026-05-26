@@ -390,7 +390,8 @@ function SetupPageInner({
     leaveModalOpen,
     leaveModalTitle,
     requestLeave,
-    confirmLeave,
+    confirmGoToServices,
+    endControlAndLeave,
     cancelLeave,
   } = useLeaveControl(productionMode)
 
@@ -430,7 +431,7 @@ function SetupPageInner({
           ) : null}
           {productionMode ? (
             <button className="btnGhost" type="button" onClick={requestLeave}>
-              ออกไปรายการ…
+              ไปรายการนมัสการ…
             </button>
           ) : (
             <Link className="btnGhost" to="/services">
@@ -546,7 +547,8 @@ function SetupPageInner({
       <LeaveControlModal
         open={leaveModalOpen}
         title={leaveModalTitle}
-        onConfirm={confirmLeave}
+        onGoToServices={confirmGoToServices}
+        onEndControl={endControlAndLeave}
         onCancel={cancelLeave}
       />
     </ControlShell>

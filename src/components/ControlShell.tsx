@@ -81,7 +81,7 @@ export function ControlShell({
       type="button"
       onClick={onLeaveToServices}
     >
-      ออกไปรายการ…
+      ไปรายการนมัสการ…
     </button>
   ) : (
     <Link

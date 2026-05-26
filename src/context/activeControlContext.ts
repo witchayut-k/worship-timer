@@ -9,6 +9,7 @@ export type ActiveControlContextValue = {
   activeControl: ActiveControl | null
   setActiveControl: (eventId: string, title: string) => void
   clearActiveControl: () => void
+  endActiveControl: () => Promise<void>
   isProductionForEvent: (eventId: string | null | undefined) => boolean
 }
 

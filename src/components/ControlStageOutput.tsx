@@ -24,8 +24,9 @@ export function ControlStageOutput({
           Blackout
         </button>
         <button
-          className={`btnGhost ${manualFlashActive ? 'controlStageOutputActive' : ''}`}
+          className={`btnGhost ${manualFlashActive ? 'controlFlashBtnActive' : ''}`}
           type="button"
+          aria-pressed={manualFlashActive}
           onClick={onFlashTrigger}
         >
           Flash

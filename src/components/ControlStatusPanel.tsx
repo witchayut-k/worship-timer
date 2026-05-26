@@ -3,9 +3,7 @@ import type { ProgramItem } from '../domain/types'
 import {
   computeCueFinishMs,
   computeServiceOverUnderSec,
-  formatLocalDateShort,
   formatWallClock,
-  getTimezoneLabel,
   parsePlannedStartMs,
 } from '../domain/schedule'
 import { formatSignedMMSS } from '../domain/time'
@@ -27,10 +25,6 @@ export function ControlStatusPanel({
   currentIndex,
   remainingSec,
 }: Props) {
-  const timezone = getTimezoneLabel()
-  const dateLabel = formatLocalDateShort(nowMs)
-  const clockText = formatWallClock(nowMs)
-
   const scheduleMeta = useMemo(() => {
     if (!eventDate?.trim() || !plannedStartTime?.trim()) return null
     const plannedStartMs = parsePlannedStartMs(eventDate, plannedStartTime, nowMs)
@@ -52,33 +46,24 @@ export function ControlStatusPanel({
     }
   }, [eventDate, plannedStartTime, nowMs, remainingSec, items, currentIndex])
 
+  if (!scheduleMeta) return null
+
   return (
     <section className="controlStatusPanel" aria-label="สถานะเวลา">
-      <div className="controlWallClock" aria-live="off">
-        {clockText}
-      </div>
-      <div className="controlStatusMeta">
-        <span>{timezone}</span>
-        <span className="controlStatusMetaSep">·</span>
-        <span>{dateLabel}</span>
-      </div>
-
-      {scheduleMeta ? (
-        <div className="controlStatusGrid">
-          <div className="controlStatusItem">
-            <span className="controlStatusLabel">Cue finish</span>
-            <span className="controlStatusValue timeMono">{scheduleMeta.cueFinishText}</span>
-          </div>
-          <div className="controlStatusItem">
-            <span className="controlStatusLabel">Over/Under</span>
-            <span
-              className={`controlStatusValue timeMono ${scheduleMeta.overUnderLate ? 'controlStatusLate' : 'controlStatusEarly'}`}
-            >
-              {scheduleMeta.overUnderText}
-            </span>
-          </div>
+      <div className="controlStatusGrid">
+        <div className="controlStatusItem">
+          <span className="controlStatusLabel">Cue finish</span>
+          <span className="controlStatusValue timeMono">{scheduleMeta.cueFinishText}</span>
         </div>
-      ) : null}
+        <div className="controlStatusItem">
+          <span className="controlStatusLabel">Over/Under</span>
+          <span
+            className={`controlStatusValue timeMono ${scheduleMeta.overUnderLate ? 'controlStatusLate' : 'controlStatusEarly'}`}
+          >
+            {scheduleMeta.overUnderText}
+          </span>
+        </div>
+      </div>
     </section>
   )
 }

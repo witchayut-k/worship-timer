@@ -4,17 +4,18 @@ import { ControlShell } from '../components/ControlShell'
 import { ControlStageOutput } from '../components/ControlStageOutput'
 import { ControlStatusPanel } from '../components/ControlStatusPanel'
 import { ControlTimerProgress } from '../components/ControlTimerProgress'
-import { DurationInput } from '../components/DurationInput'
-import { EventLinks } from '../components/EventLinks'
 import { LeaveControlModal } from '../components/LeaveControlModal'
+import { MonitorIcon, OutputLinksModal } from '../components/OutputLinksModal'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
+import { PauseIcon, PlayIcon } from '../components/TransportIcons'
 import type { ProgramItem, WorshipEvent } from '../domain/types'
+import { formatLocalDateShort, formatWallClock, getTimezoneLabel } from '../domain/schedule'
 import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
 import { formatSignedMMSS } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useLeaveControl } from '../hooks/useLeaveControl'
-import { getTimerThemeClasses } from '../lib/displayTheme'
+import { getStageTheme, getTimerThemeClasses } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
 import { loadStoredLocalRuntime, publishLocalRuntime } from '../lib/localSync'
@@ -44,6 +45,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const [title, setTitle] = useState(() => local?.event.title ?? 'Worship Timer')
   const [eventMeta, setEventMeta] = useState<WorshipEvent | null>(() => local?.event ?? null)
   const [items, setItems] = useState<ProgramItem[]>(() => local?.items ?? [])
+  const [outputLinksOpen, setOutputLinksOpen] = useState(false)
 
   const [state, dispatch] = useReducer(
     reduceRuntimeState,
@@ -66,12 +68,20 @@ function StartPageInner({ eventId }: { eventId: string }) {
     settings,
     manualFlash: manualFlashActive,
   })
+  const stageTheme = getStageTheme({
+    remainingSec: display.remainingSec,
+    settings,
+    manualFlash: manualFlashActive,
+  })
 
   const current = items[state.currentIndex] ?? null
   const prev = state.currentIndex > 0 ? items[state.currentIndex - 1] : null
   const next = state.currentIndex + 1 < items.length ? items[state.currentIndex + 1] : null
 
   const timeText = formatSignedMMSS(display.remainingSec)
+  const clockText = formatWallClock(nowMs)
+  const timezoneLabel = getTimezoneLabel()
+  const dateLabel = formatLocalDateShort(nowMs)
 
   const isCloud = !isOfflineEventId(eventId)
   const cloudReady = isCloud && hasFirebaseConfig()
@@ -151,7 +161,8 @@ function StartPageInner({ eventId }: { eventId: string }) {
     leaveModalOpen,
     leaveModalTitle,
     requestLeave,
-    confirmLeave,
+    confirmGoToServices,
+    endControlAndLeave,
     cancelLeave,
   } = useLeaveControl(productionMode)
 
@@ -187,16 +198,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
     dispatch({ type: 'triggerManualFlash', nowMs: Date.now() })
   }
 
-  const updateCurrentDuration = (newSec: number) => {
-    if (!current) return
-    setItems((prevItems) =>
-      prevItems.map((it, idx) =>
-        idx === state.currentIndex ? { ...it, durationSec: Math.max(0, Math.trunc(newSec || 0)) } : it,
-      ),
-    )
-    dispatch({ type: 'setRemaining', nowMs: Date.now(), remainingSec: Math.max(0, Math.trunc(newSec || 0)) })
-  }
-
   return (
     <ControlShell
       activeNav="control"
@@ -206,7 +207,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
       onLeaveToServices={requestLeave}
     >
       <div className="controlWorkspace">
-        <div className="controlContent">
+        <div className="controlTimerColumn">
           {isCloud && !hasFirebaseConfig() ? (
             <div className="card">
               <h1 className="pageTitle">Cloud mode ต้องตั้งค่า Firebase</h1>
@@ -217,12 +218,26 @@ function StartPageInner({ eventId }: { eventId: string }) {
             </div>
           ) : null}
 
-          <section className="card">
-            <div className="cardHeader">
-              <h2 className="cardTitle">ลิงก์แยกจอ</h2>
+          {current ? (
+            <div className="controlTopBar">
+              <div className="controlTopClock" aria-live="off">
+                <div className="controlTopClockTime">{clockText}</div>
+                <div className="controlTopClockMeta">
+                  <span>{timezoneLabel}</span>
+                  <span className="controlStatusMetaSep">·</span>
+                  <span>{dateLabel}</span>
+                </div>
+              </div>
+              <button
+                className="btnGhost outputLinksBtn"
+                type="button"
+                onClick={() => setOutputLinksOpen(true)}
+              >
+                <MonitorIcon />
+                Output Links
+              </button>
             </div>
-            <EventLinks eventId={eventId} />
-          </section>
+          ) : null}
 
           {!current ? (
             <div className="card">
@@ -233,26 +248,43 @@ function StartPageInner({ eventId }: { eventId: string }) {
               </div>
             </div>
           ) : (
-            <>
-              <section className={`timerCard ${timerClass}`}>
-                <div className="timerMeta">
-                  <div className="metaLine">
-                    <span className="metaKey">Prev</span>
-                    <span className="metaVal">
-                      {prev ? `${prev.name}${prev.leaderName ? ` — ${prev.leaderName}` : ''}` : '-'}
+            <section className={`timerCard ${timerClass}`}>
+                <div className="timerMeta timerMetaRow">
+                  <div className="timerMetaSlot timerMetaPrev">
+                    <span className="timerMetaLabel">Prev</span>
+                    <span className="timerMetaName">
+                      {prev ? (
+                        <>
+                          {prev.name}
+                          {prev.leaderName ? (
+                            <span className="timerMetaLeader"> — {prev.leaderName}</span>
+                          ) : null}
+                        </>
+                      ) : (
+                        '—'
+                      )}
                     </span>
                   </div>
-                  <div className="metaLine">
-                    <span className="metaKey">Current</span>
-                    <span className="metaVal">
-                      <b>{current.name}</b>
-                      {current.leaderName ? <span className="muted"> — {current.leaderName}</span> : null}
-                    </span>
+                  <div className="timerMetaSlot timerMetaCurrent">
+                    <span className="timerMetaLabel">Current</span>
+                    <span className="timerMetaName">{current.name}</span>
+                    {current.leaderName ? (
+                      <span className="timerMetaLeader">{current.leaderName}</span>
+                    ) : null}
                   </div>
-                  <div className="metaLine">
-                    <span className="metaKey">Next</span>
-                    <span className="metaVal">
-                      {next ? `${next.name}${next.leaderName ? ` — ${next.leaderName}` : ''}` : '-'}
+                  <div className="timerMetaSlot timerMetaNext">
+                    <span className="timerMetaLabel">Next</span>
+                    <span className="timerMetaName">
+                      {next ? (
+                        <>
+                          {next.name}
+                          {next.leaderName ? (
+                            <span className="timerMetaLeader"> — {next.leaderName}</span>
+                          ) : null}
+                        </>
+                      ) : (
+                        '—'
+                      )}
                     </span>
                   </div>
                 </div>
@@ -266,7 +298,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   durationSec={current.durationSec}
                 />
 
-                <div className="controls">
+                <div className="controls controlsTransport">
                   <button
                     className="btnGhost"
                     type="button"
@@ -277,11 +309,13 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   </button>
 
                   {state.phase !== 'running' ? (
-                    <button className="btnPrimary" type="button" onClick={start}>
+                    <button className="btnTransportPrimary btnTransportStart" type="button" onClick={start}>
+                      <PlayIcon />
                       Start
                     </button>
                   ) : (
-                    <button className="btn" type="button" onClick={pause}>
+                    <button className="btnTransportPrimary btnTransportPause" type="button" onClick={pause}>
+                      <PauseIcon />
                       Pause
                     </button>
                   )}
@@ -316,7 +350,12 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   </div>
                 </div>
               </section>
+          )}
+        </div>
 
+        {current ? (
+          <>
+            <aside className="controlSideRail">
               <ControlStatusPanel
                 nowMs={nowMs}
                 eventDate={eventMeta?.date}
@@ -332,46 +371,44 @@ function StartPageInner({ eventId }: { eventId: string }) {
                 onBlackoutChange={setBlackout}
                 onFlashTrigger={triggerFlash}
               />
+            </aside>
 
-              <section className="card">
-                <div className="cardHeader">
-                  <h2 className="cardTitle">แก้เวลาโปรแกรมปัจจุบัน</h2>
-                  <div className="muted">การแก้ตรงนี้จะตั้งเวลาใหม่และหยุด (กด Start เมื่อพร้อม)</div>
-                </div>
-                <DurationInput
-                  label="เวลา (mm:ss)"
-                  valueSec={current.durationSec}
-                  onChangeSec={updateCurrentDuration}
-                />
-              </section>
-            </>
-          )}
-        </div>
-
-        {current ? (
-          <aside className="controlRightRail">
-            <ProgramSchedulePanel
-              eventId={eventId}
-              items={items}
-              currentIndex={state.currentIndex}
-              phase={state.phase}
-              displayRemainingSec={display.remainingSec}
-              eventDate={eventMeta?.date}
-              plannedStartTime={eventMeta?.plannedStartTime}
-              onJumpTo={jumpTo}
-              onResetCurrent={resetCurrent}
-              onStart={start}
-              onPause={pause}
-            />
-          </aside>
+            <aside className="controlRightRail">
+              <ProgramSchedulePanel
+                eventId={eventId}
+                items={items}
+                currentIndex={state.currentIndex}
+                phase={state.phase}
+                displayRemainingSec={display.remainingSec}
+                eventDate={eventMeta?.date}
+                plannedStartTime={eventMeta?.plannedStartTime}
+                onJumpTo={jumpTo}
+              />
+            </aside>
+          </>
         ) : null}
       </div>
 
       <LeaveControlModal
         open={leaveModalOpen}
         title={leaveModalTitle}
-        onConfirm={confirmLeave}
+        onGoToServices={confirmGoToServices}
+        onEndControl={endControlAndLeave}
         onCancel={cancelLeave}
+      />
+
+      <OutputLinksModal
+        open={outputLinksOpen}
+        onClose={() => setOutputLinksOpen(false)}
+        eventId={eventId}
+        remainingSec={display.remainingSec}
+        durationSec={current?.durationSec ?? 0}
+        currentName={current?.name ?? ''}
+        currentLeader={current?.leaderName ?? ''}
+        nextName={next?.name ?? null}
+        nextLeader={next?.leaderName ?? null}
+        theme={stageTheme}
+        paused={state.phase !== 'running'}
       />
     </ControlShell>
   )

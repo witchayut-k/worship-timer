@@ -3,11 +3,18 @@ import { useEffect, useRef } from 'react'
 type LeaveControlModalProps = {
   open: boolean
   title: string
-  onConfirm: () => void
+  onGoToServices: () => void
+  onEndControl: () => void
   onCancel: () => void
 }
 
-export function LeaveControlModal({ open, title, onConfirm, onCancel }: LeaveControlModalProps) {
+export function LeaveControlModal({
+  open,
+  title,
+  onGoToServices,
+  onEndControl,
+  onCancel,
+}: LeaveControlModalProps) {
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -42,7 +49,7 @@ export function LeaveControlModal({ open, title, onConfirm, onCancel }: LeaveCon
       >
         <header className="modalHeader">
           <h2 id="leave-control-title" className="modalTitle">
-            ออกจากห้องควบคุม?
+            ออกจากหน้าควบคุม?
           </h2>
           <button className="btnGhost modalClose" type="button" onClick={onCancel} aria-label="ปิด">
             ✕
@@ -51,7 +58,8 @@ export function LeaveControlModal({ open, title, onConfirm, onCancel }: LeaveCon
 
         <div className="modalBody">
           <p>
-            กำลังควบคุม «{title}» — ออกไปรายการอาจกดควบคุมรอบอื่นโดยไม่ตั้งใจ
+            กำลังควบคุม «{title}» — Timer และจอ Stage ยังทำงานอยู่
+            คุณสามารถกลับมาควบคุมได้จากรายการ
           </p>
         </div>
 
@@ -59,8 +67,11 @@ export function LeaveControlModal({ open, title, onConfirm, onCancel }: LeaveCon
           <button ref={cancelRef} className="btnPrimary" type="button" onClick={onCancel}>
             ยกเลิก
           </button>
-          <button className="btnGhost" type="button" onClick={onConfirm}>
-            ออกไปรายการ
+          <button className="btn" type="button" onClick={onGoToServices}>
+            ไปรายการนมัสการ
+          </button>
+          <button className="btnDanger" type="button" onClick={onEndControl}>
+            จบการควบคุม
           </button>
         </footer>
       </div>
