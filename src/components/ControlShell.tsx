@@ -66,7 +66,7 @@ export function ControlShell({
 
           <Link
             className={`sidebarNavItem ${activeNav === 'setup' ? 'sidebarNavItemActive' : ''}`}
-            to="/setup"
+            to={eventId ? `/setup/${eventId}` : '/setup'}
           >
             ตั้งค่าโปรแกรม
           </Link>

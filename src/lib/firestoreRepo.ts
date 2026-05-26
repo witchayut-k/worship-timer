@@ -48,6 +48,32 @@ export async function loadProgramItems(eventId: string): Promise<ProgramItem[]> 
   return snaps.docs.map((d) => d.data() as ProgramItem)
 }
 
+export async function loadRuntimeState(eventId: string): Promise<RuntimeState | null> {
+  const db = getDb()
+  const snap = await getDoc(doc(db, runtimeStateDoc(eventId)))
+  if (!snap.exists()) return null
+  return snap.data() as RuntimeState
+}
+
+export async function upsertEventProgram(params: {
+  eventId: string
+  event: WorshipEvent
+  items: ProgramItem[]
+}) {
+  const db = getDb()
+  const { eventId, event, items } = params
+  const batch = writeBatch(db)
+
+  batch.set(doc(db, eventDoc(eventId)), event, { merge: true })
+
+  for (const it of items) {
+    const itemId = String(it.order).padStart(3, '0')
+    batch.set(doc(db, `${programItemsCol(eventId)}/${itemId}`), it, { merge: true })
+  }
+
+  await batch.commit()
+}
+
 export async function upsertEventWithItems(params: {
   eventId: string
   event: WorshipEvent

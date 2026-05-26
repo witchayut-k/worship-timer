@@ -24,6 +24,7 @@ export type DraftItem = ProgramItem & { id: string }
 type SetupSegmentListProps = {
   items: DraftItem[]
   selectedId: string | null
+  liveIndex?: number | null
   leaderNames: string[]
   onSelect: (id: string) => void
   onReorder: (items: DraftItem[]) => void
@@ -42,6 +43,7 @@ function reorderItems(items: DraftItem[], activeId: string, overId: string): Dra
 type SortableRowProps = {
   item: DraftItem
   selected: boolean
+  isLive: boolean
   leaderNames: string[]
   onSelect: (id: string) => void
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
@@ -52,6 +54,7 @@ type SortableRowProps = {
 function SortableRow({
   item,
   selected,
+  isLive,
   leaderNames,
   onSelect,
   onUpdate,
@@ -71,7 +74,7 @@ function SortableRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={`segmentRow ${selected ? 'segmentRowSelected' : ''} ${isDragging ? 'segmentRowDragging' : ''}`}
+      className={`segmentRow ${selected ? 'segmentRowSelected' : ''} ${isLive ? 'segmentRowLive' : ''} ${isDragging ? 'segmentRowDragging' : ''}`}
       onClick={() => onSelect(item.id)}
       role="button"
       tabIndex={0}
@@ -146,6 +149,7 @@ function SortableRow({
 export function SetupSegmentList({
   items,
   selectedId,
+  liveIndex = null,
   leaderNames,
   onSelect,
   onReorder,
@@ -177,11 +181,12 @@ export function SetupSegmentList({
           <span />
         </div>
         <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
-          {items.map((it) => (
+          {items.map((it, idx) => (
             <SortableRow
               key={it.id}
               item={it}
               selected={selectedId === it.id}
+              isLive={liveIndex != null && idx === liveIndex}
               leaderNames={leaderNames}
               onSelect={onSelect}
               onUpdate={onUpdate}

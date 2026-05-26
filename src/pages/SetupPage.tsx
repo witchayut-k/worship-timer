@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
 import { EventLinks } from '../components/EventLinks'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
@@ -18,6 +18,7 @@ import {
 import { formatSecToHhMmSs } from '../domain/time'
 import { useAuth } from '../hooks/useAuth'
 import { isOfflineEventId } from '../lib/eventSource'
+import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { addLeaderToRoster, collectLeadersFromItems } from '../lib/leaders'
 import {
@@ -27,7 +28,13 @@ import {
   upsertLocalEvent,
 } from '../lib/localLibrary'
 import { encodeLocalEventId } from '../lib/localPayload'
-import { loadEvent, loadProgramItems, upsertEventWithItems } from '../lib/firestoreRepo'
+import {
+  loadEvent,
+  loadProgramItems,
+  upsertEventProgram,
+  upsertEventWithItems,
+  watchRuntimeState,
+} from '../lib/firestoreRepo'
 import { initialRuntimeState } from '../lib/runtimeEngine'
 
 function newId(): string {
@@ -79,6 +86,8 @@ function SetupPageInner({
   routeEventId?: string
 }) {
   const nav = useNavigate()
+  const location = useLocation()
+  const focusOrder = (location.state as { focusOrder?: number } | null)?.focusOrder
   const { uid, ready: authReady } = useAuth()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
   const cloudMode = hasFirebaseConfig() && Boolean(uid)
@@ -95,6 +104,7 @@ function SetupPageInner({
   const [saveNotice, setSaveNotice] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [importOpen, setImportOpen] = useState(false)
+  const [liveIndex, setLiveIndex] = useState<number | null>(null)
 
   const canStart = useMemo(() => items.length > 0, [items.length])
   const cloudReady = hasFirebaseConfig()
@@ -160,6 +170,35 @@ function SetupPageInner({
       cancelled = true
     }
   }, [routeEventId, authReady, cloudReady, uid])
+
+  useEffect(() => {
+    if (loading || focusOrder == null || !items.length) return
+    const match = items.find((it) => it.order === focusOrder)
+    if (match) setSelectedId(match.id)
+  }, [loading, focusOrder, items])
+
+  useEffect(() => {
+    const eid = routeEventId ?? lastEventId
+    if (!eid) return
+
+    if (isOfflineEventId(eid)) {
+      const stored = loadStoredLocalRuntime(eid)
+      if (stored) setLiveIndex(stored.currentIndex)
+      return subscribeLocalRuntime(eid, (s) => setLiveIndex(s.currentIndex))
+    }
+
+    if (cloudReady && uid) {
+      return watchRuntimeState(eid, (s) => {
+        if (s) setLiveIndex(s.currentIndex)
+      })
+    }
+  }, [routeEventId, lastEventId, cloudReady, uid])
+
+  useEffect(() => {
+    if (loading || focusOrder != null || liveIndex == null || !items.length) return
+    const match = items[liveIndex]
+    if (match) setSelectedId(match.id)
+  }, [loading, focusOrder, liveIndex, items])
 
   const buildEvent = (roster: string[]): WorshipEvent => ({
     title,
@@ -253,7 +292,7 @@ function SetupPageInner({
     return id
   }
 
-  const persistCloud = async (): Promise<string | null> => {
+  const persistCloud = async (touchRuntime: boolean): Promise<string | null> => {
     if (!cloudMode || !uid) return null
     const reuseCloudId =
       isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
@@ -263,12 +302,17 @@ function SetupPageInner({
       items.map((it) => it.leaderName),
     )
     const programItems = buildProgramItems()
-    await upsertEventWithItems({
-      eventId,
-      event: buildEvent(roster),
-      items: programItems,
-      initialState: initialRuntimeState({ items: programItems }),
-    })
+    const event = buildEvent(roster)
+    if (touchRuntime) {
+      await upsertEventWithItems({
+        eventId,
+        event,
+        items: programItems,
+        initialState: initialRuntimeState({ items: programItems }),
+      })
+    } else {
+      await upsertEventProgram({ eventId, event, items: programItems })
+    }
     setLastEventId(eventId)
     return eventId
   }
@@ -279,7 +323,7 @@ function SetupPageInner({
     setSaveNotice(null)
     try {
       if (cloudMode) {
-        const eventId = await persistCloud()
+        const eventId = await persistCloud(!isEdit)
         if (eventId) {
           setSaveNotice('บันทึก Cloud แล้ว')
           if (!isEdit) nav(`/setup/${eventId}`, { replace: true })
@@ -318,7 +362,9 @@ function SetupPageInner({
     setSaving(true)
     try {
       if (cloudMode) {
-        const eventId = await persistCloud()
+        const reuseCloudId =
+          isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
+        const eventId = await persistCloud(!reuseCloudId)
         if (eventId) startWithEventId(eventId)
         return
       }
@@ -359,6 +405,11 @@ function SetupPageInner({
           <p className="setupPageDesc">กำหนดรายการและเวลาสำหรับ «{title}»</p>
         </div>
         <div className="setupHeaderActions">
+          {lastEventId ? (
+            <Link className="btnGhost" to={`/start/${lastEventId}`}>
+              กลับห้องควบคุม
+            </Link>
+          ) : null}
           <Link className="btnGhost" to="/services">
             รายการนมัสการ
           </Link>
@@ -404,6 +455,7 @@ function SetupPageInner({
       <SetupSegmentList
         items={items}
         selectedId={selectedId}
+        liveIndex={liveIndex}
         leaderNames={leaderNames}
         onSelect={setSelectedId}
         onReorder={setItems}

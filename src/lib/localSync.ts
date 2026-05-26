@@ -8,6 +8,10 @@ function storageKey(eventId: string): string {
   return `worship-timer:runtime:${eventId}`
 }
 
+export function loadStoredLocalRuntime(eventId: string): RuntimeState | null {
+  return readStoredRuntime(eventId)
+}
+
 function readStoredRuntime(eventId: string): RuntimeState | null {
   try {
     const raw = localStorage.getItem(storageKey(eventId))

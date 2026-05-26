@@ -3,14 +3,22 @@ import { Link, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
 import { DurationInput } from '../components/DurationInput'
 import { EventLinks } from '../components/EventLinks'
+import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
+import { StagePreview } from '../components/StagePreview'
 import type { ProgramItem, WorshipEvent } from '../domain/types'
 import { resolveEventSettings } from '../domain/types'
 import { formatSignedMMSS } from '../domain/time'
-import { getTimerThemeClasses } from '../lib/displayTheme'
+import { getStageTheme, getTimerThemeClasses } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
-import { publishLocalRuntime } from '../lib/localSync'
-import { watchEvent, watchProgramItems, watchRuntimeState, writeRuntimeState } from '../lib/firestoreRepo'
+import { loadStoredLocalRuntime, publishLocalRuntime } from '../lib/localSync'
+import {
+  loadRuntimeState,
+  watchEvent,
+  watchProgramItems,
+  watchRuntimeState,
+  writeRuntimeState,
+} from '../lib/firestoreRepo'
 import { deriveLocalDisplay, initialRuntimeState, reduceRuntimeState } from '../lib/runtimeEngine'
 
 export function StartPage() {
@@ -25,11 +33,22 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const [eventMeta, setEventMeta] = useState<WorshipEvent | null>(() => local?.event ?? null)
   const [items, setItems] = useState<ProgramItem[]>(() => local?.items ?? [])
 
-  const [state, dispatch] = useReducer(reduceRuntimeState, initialRuntimeState({ items }))
+  const [state, dispatch] = useReducer(
+    reduceRuntimeState,
+    { eventId, items },
+    ({ eventId: eid, items: programItems }) => {
+      if (isOfflineEventId(eid)) {
+        const stored = loadStoredLocalRuntime(eid)
+        if (stored) return stored
+      }
+      return initialRuntimeState({ items: programItems })
+    },
+  )
   const nowMs = useNowMs(state.phase === 'running' ? 200 : 1000)
   const display = deriveLocalDisplay({ state, nowMs })
   const settings = resolveEventSettings(eventMeta)
   const timerClass = getTimerThemeClasses({ remainingSec: display.remainingSec, settings })
+  const stageTheme = getStageTheme({ remainingSec: display.remainingSec, settings })
 
   const current = items[state.currentIndex] ?? null
   const prev = state.currentIndex > 0 ? items[state.currentIndex - 1] : null
@@ -42,6 +61,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const isLocal = isOfflineEventId(eventId)
 
   const hydratingRef = useRef(false)
+  const runtimeSyncedRef = useRef(isLocal)
 
   useEffect(() => {
     if (!cloudReady) return
@@ -56,6 +76,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
     const unsubState = watchRuntimeState(eventId, (s) => {
       if (!s) return
       hydratingRef.current = true
+      runtimeSyncedRef.current = true
       dispatch({ type: 'hydrate', state: s })
       queueMicrotask(() => {
         hydratingRef.current = false
@@ -71,19 +92,34 @@ function StartPageInner({ eventId }: { eventId: string }) {
   useEffect(() => {
     if (!cloudReady) return
     if (!items.length) return
-    const nextInitial = initialRuntimeState({ items })
-    void writeRuntimeState(eventId, nextInitial).catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, cloudReady])
+    let cancelled = false
+    void (async () => {
+      const existing = await loadRuntimeState(eventId)
+      if (cancelled) return
+      if (existing) {
+        runtimeSyncedRef.current = true
+        return
+      }
+      const nextInitial = initialRuntimeState({ items })
+      await writeRuntimeState(eventId, nextInitial)
+      runtimeSyncedRef.current = true
+    })().catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [eventId, cloudReady, items])
 
   useEffect(() => {
     if (!cloudReady) return
+    if (!runtimeSyncedRef.current) return
     if (hydratingRef.current) return
     void writeRuntimeState(eventId, state).catch(() => {})
   }, [eventId, cloudReady, state])
 
   useEffect(() => {
     if (!isLocal) return
+    if (!runtimeSyncedRef.current) return
+    if (hydratingRef.current) return
     publishLocalRuntime(eventId, state)
   }, [eventId, isLocal, state])
 
@@ -122,34 +158,36 @@ function StartPageInner({ eventId }: { eventId: string }) {
 
   return (
     <ControlShell activeNav="control" eventId={eventId} eventTitle={title}>
-      <div className="controlContent">
-        {isCloud && !hasFirebaseConfig() ? (
-          <div className="card">
-            <h1 className="pageTitle">Cloud mode ต้องตั้งค่า Firebase</h1>
-            <div className="muted">
-              สร้างไฟล์ <code>.env.local</code> จาก <code>.env.example</code> แล้วเติมค่า Firebase config
-              จากนั้นรีเฟรชหน้า หรือใช้ <Link to="/setup">Local Demo</Link> ได้ทันที
+      <div className="controlWorkspace">
+        <div className="controlContent">
+          {isCloud && !hasFirebaseConfig() ? (
+            <div className="card">
+              <h1 className="pageTitle">Cloud mode ต้องตั้งค่า Firebase</h1>
+              <div className="muted">
+                สร้างไฟล์ <code>.env.local</code> จาก <code>.env.example</code> แล้วเติมค่า Firebase config
+                จากนั้นรีเฟรชหน้า หรือใช้ <Link to="/setup">Local Demo</Link> ได้ทันที
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        <section className="card">
-          <div className="cardHeader">
-            <h2 className="cardTitle">ลิงก์แยกจอ</h2>
-          </div>
-          <EventLinks eventId={eventId} />
-        </section>
-
-        {!current ? (
-          <div className="card">
-            <h1 className="pageTitle">Start</h1>
-            <div className="muted">
-              ไม่พบรายการโปรแกรม — กลับไปที่ <Link to="/setup">Setup</Link>
+          <section className="card">
+            <div className="cardHeader">
+              <h2 className="cardTitle">ลิงก์แยกจอ</h2>
             </div>
-          </div>
-        ) : (
-          <>
-            <section className={`timerCard ${timerClass}`}>
+            <EventLinks eventId={eventId} />
+          </section>
+
+          {!current ? (
+            <div className="card">
+              <h1 className="pageTitle">Start</h1>
+              <div className="muted">
+                ไม่พบรายการโปรแกรม — กลับไปที่{' '}
+                <Link to={eventId ? `/setup/${eventId}` : '/setup'}>Setup</Link>
+              </div>
+            </div>
+          ) : (
+            <>
+              <section className={`timerCard ${timerClass}`}>
               <div className="timerMeta">
                 <div className="metaLine">
                   <span className="metaKey">Prev</span>
@@ -227,36 +265,39 @@ function StartPageInner({ eventId }: { eventId: string }) {
               </div>
             </section>
 
-            <section className="card">
-              <div className="cardHeader">
-                <h2 className="cardTitle">แก้เวลาโปรแกรมปัจจุบัน</h2>
-                <div className="muted">การแก้ตรงนี้จะตั้งเวลาใหม่และหยุด (กด Start เมื่อพร้อม)</div>
-              </div>
-              <DurationInput valueSec={current.durationSec} onChangeSec={updateCurrentDuration} />
-            </section>
+              <section className="card">
+                <div className="cardHeader">
+                  <h2 className="cardTitle">แก้เวลาโปรแกรมปัจจุบัน</h2>
+                  <div className="muted">การแก้ตรงนี้จะตั้งเวลาใหม่และหยุด (กด Start เมื่อพร้อม)</div>
+                </div>
+                <DurationInput valueSec={current.durationSec} onChangeSec={updateCurrentDuration} />
+              </section>
+            </>
+          )}
+        </div>
 
-            <section className="card">
-              <div className="cardHeader">
-                <h2 className="cardTitle">รายการทั้งหมด</h2>
-              </div>
-              <div className="list">
-                {items.map((it, idx) => (
-                  <button
-                    key={`${it.order}-${it.name}`}
-                    type="button"
-                    className={`listPick ${idx === state.currentIndex ? 'active' : ''}`}
-                    onClick={() => jumpTo(idx)}
-                  >
-                    <div className="listPickTitle">
-                      {it.order}. {it.name}
-                    </div>
-                    <div className="muted">{it.leaderName || '-'}</div>
-                  </button>
-                ))}
-              </div>
-            </section>
-          </>
-        )}
+        {current ? (
+          <aside className="controlRightRail">
+            <ProgramSchedulePanel
+              eventId={eventId}
+              items={items}
+              currentIndex={state.currentIndex}
+              phase={state.phase}
+              displayRemainingSec={display.remainingSec}
+              onJumpTo={jumpTo}
+            />
+            <StagePreview
+              eventId={eventId}
+              remainingSec={display.remainingSec}
+              durationSec={current.durationSec}
+              currentName={current.name}
+              currentLeader={current.leaderName}
+              nextName={next?.name ?? null}
+              nextLeader={next?.leaderName ?? null}
+              theme={stageTheme}
+            />
+          </aside>
+        ) : null}
       </div>
     </ControlShell>
   )
