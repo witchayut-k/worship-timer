@@ -3,7 +3,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
 import { EventLinks } from '../components/EventLinks'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
+import {
+  SpreadsheetImportModal,
+  type SpreadsheetImportMode,
+} from '../components/SpreadsheetImportModal'
 import { SetupSegmentList, type DraftItem } from '../components/SetupSegmentList'
+import type { ParsedProgramRow } from '../domain/spreadsheetImport'
 import {
   DEFAULT_EVENT_DISPLAY_SETTINGS,
   type EventDisplaySettings,
@@ -40,6 +45,20 @@ function programToDraftItems(items: ProgramItem[]): DraftItem[] {
     name: it.name,
     leaderName: it.leaderName,
     durationSec: it.durationSec,
+    roomLights: it.roomLights ?? '',
+    mediaNote: it.mediaNote ?? '',
+  }))
+}
+
+function parsedRowsToDraftItems(rows: ParsedProgramRow[]): DraftItem[] {
+  return rows.map((row, i) => ({
+    id: newId(),
+    order: i + 1,
+    name: row.name,
+    leaderName: row.leaderName,
+    durationSec: row.durationSec,
+    roomLights: row.roomLights,
+    mediaNote: row.mediaNote,
   }))
 }
 
@@ -75,6 +94,7 @@ function SetupPageInner({
   const [loading, setLoading] = useState(isEdit)
   const [saveNotice, setSaveNotice] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
 
   const canStart = useMemo(() => items.length > 0, [items.length])
   const cloudReady = hasFirebaseConfig()
@@ -169,6 +189,8 @@ function SetupPageInner({
         name: 'รายการใหม่',
         leaderName: '',
         durationSec: 300,
+        roomLights: '',
+        mediaNote: '',
       },
     ])
     setSelectedId(id)
@@ -192,6 +214,21 @@ function SetupPageInner({
 
   const onLeaderCommit = (name: string) => {
     setLeaderNames((prev) => addLeaderToRoster(prev, name))
+  }
+
+  const onSpreadsheetImport = (rows: ParsedProgramRow[], mode: SpreadsheetImportMode) => {
+    const imported = parsedRowsToDraftItems(rows)
+    setItems((prev) => {
+      const merged = mode === 'replace' ? imported : [...prev, ...imported]
+      return merged.map((x, i) => ({ ...x, order: i + 1 }))
+    })
+    setLeaderNames((prev) =>
+      collectLeadersFromItems(
+        prev,
+        imported.map((it) => it.leaderName),
+      ),
+    )
+    setSelectedId(imported[0]?.id ?? null)
   }
 
   const startWithEventId = (eventId: string) => {
@@ -312,6 +349,7 @@ function SetupPageInner({
         <SetupAsidePanel
           settings={settings}
           onSettingsChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
+          onOpenSpreadsheetImport={() => setImportOpen(true)}
         />
       }
     >
@@ -414,6 +452,12 @@ function SetupPageInner({
           <EventLinks eventId={lastEventId} />
         </section>
       ) : null}
+
+      <SpreadsheetImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImport={onSpreadsheetImport}
+      />
 
       <footer className="footer">
         <div className="muted">

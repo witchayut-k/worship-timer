@@ -113,6 +113,22 @@ function SortableRow({
           onChangeSec={(durationSec) => onUpdate(item.id, { durationSec })}
         />
       </div>
+      <label className="field segmentColLights" onClick={(e) => e.stopPropagation()}>
+        <input
+          value={item.roomLights ?? ''}
+          onChange={(e) => onUpdate(item.id, { roomLights: e.target.value })}
+          placeholder="ไฟในห้อง"
+          aria-label="ไฟในห้องประชุม"
+        />
+      </label>
+      <label className="field segmentColMedia" onClick={(e) => e.stopPropagation()}>
+        <input
+          value={item.mediaNote ?? ''}
+          onChange={(e) => onUpdate(item.id, { mediaNote: e.target.value })}
+          placeholder="มีเดีย"
+          aria-label="มีเดีย"
+        />
+      </label>
       <button
         className="btnDanger segmentRowDelete segmentColDelete"
         type="button"
@@ -156,6 +172,8 @@ export function SetupSegmentList({
           <span>ชื่อรายการ</span>
           <span>ผู้นำ / ผู้พูด</span>
           <span>ระยะเวลา</span>
+          <span>ไฟ</span>
+          <span>มีเดีย</span>
           <span />
         </div>
         <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>

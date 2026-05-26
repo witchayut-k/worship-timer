@@ -13,7 +13,9 @@ type Props = {
   theme: StageTheme
 }
 
-const RING_RADIUS = 200
+const RING_RADIUS = 196
+const ARC_TEXT_RADIUS = RING_RADIUS + 32
+const FRAME_RADIUS = RING_RADIUS + 28
 const SIZE = 480
 const CENTER = SIZE / 2
 
@@ -57,6 +59,8 @@ export function StageCircleDisplay({
     '--stage-accent': theme.accent,
     '--stage-glow': theme.glow,
     '--stage-muted': theme.muted,
+    '--stage-secondary': theme.secondary,
+    '--stage-secondary-glow': theme.secondaryGlow,
   } as CSSProperties
 
   return (
@@ -70,23 +74,43 @@ export function StageCircleDisplay({
           <defs>
             <path
               id="stageArcTop"
-              d={`M ${CENTER - RING_RADIUS - 28} ${CENTER} A ${RING_RADIUS + 28} ${RING_RADIUS + 28} 0 0 1 ${CENTER + RING_RADIUS + 28} ${CENTER}`}
+              d={`M ${CENTER - ARC_TEXT_RADIUS} ${CENTER} A ${ARC_TEXT_RADIUS} ${ARC_TEXT_RADIUS} 0 0 1 ${CENTER + ARC_TEXT_RADIUS} ${CENTER}`}
               fill="none"
             />
             <path
               id="stageArcBottom"
-              d={`M ${CENTER + RING_RADIUS + 28} ${CENTER} A ${RING_RADIUS + 28} ${RING_RADIUS + 28} 0 0 1 ${CENTER - RING_RADIUS - 28} ${CENTER}`}
+              d={`M ${CENTER - ARC_TEXT_RADIUS} ${CENTER} A ${ARC_TEXT_RADIUS} ${ARC_TEXT_RADIUS} 0 0 0 ${CENTER + ARC_TEXT_RADIUS} ${CENTER}`}
               fill="none"
             />
+            <filter id="stageProgressGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="8" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
 
           <circle
-            className="stageRingTrack"
+            className="stageRingFrame"
+            cx={CENTER}
+            cy={CENTER}
+            r={FRAME_RADIUS}
+            fill="none"
+            strokeWidth={1.5}
+          />
+
+          <circle
+            className="stageRingProgressGlow"
             cx={CENTER}
             cy={CENTER}
             r={RING_RADIUS}
             fill="none"
-            strokeWidth={6}
+            strokeWidth={28}
+            strokeDasharray={ring.dashArray}
+            strokeDashoffset={ring.dashOffset}
+            transform={`rotate(-90 ${CENTER} ${CENTER})`}
+            filter="url(#stageProgressGlow)"
           />
 
           <circle
@@ -95,7 +119,7 @@ export function StageCircleDisplay({
             cy={CENTER}
             r={RING_RADIUS}
             fill="none"
-            strokeWidth={14}
+            strokeWidth={18}
             strokeDasharray={ring.dashArray}
             strokeDashoffset={ring.dashOffset}
             transform={`rotate(-90 ${CENTER} ${CENTER})`}

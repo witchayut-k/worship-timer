@@ -3,24 +3,24 @@ import type { EventDisplaySettings } from '../domain/types'
 type SetupAsidePanelProps = {
   settings: EventDisplaySettings
   onSettingsChange: (patch: Partial<EventDisplaySettings>) => void
+  onOpenSpreadsheetImport: () => void
 }
 
-export function SetupAsidePanel({ settings, onSettingsChange }: SetupAsidePanelProps) {
+export function SetupAsidePanel({
+  settings,
+  onSettingsChange,
+  onOpenSpreadsheetImport,
+}: SetupAsidePanelProps) {
   return (
     <>
       <section className="asideCard">
         <h2 className="asideCardTitle">เครื่องมือ</h2>
         <div className="toolGrid">
-          <button
-            className="toolTile toolTileDisabled"
-            type="button"
-            disabled
-            title="เร็วๆ นี้"
-          >
+          <button className="toolTile" type="button" onClick={onOpenSpreadsheetImport}>
             <span className="toolTileIcon" aria-hidden>
               📋
             </span>
-            เทมเพลต
+            นำเข้าจากตาราง
           </button>
           <button
             className="toolTile toolTileDisabled"

@@ -29,6 +29,8 @@ export type ProgramItem = {
   name: string
   leaderName: string
   durationSec: number
+  roomLights?: string
+  mediaNote?: string
 }
 
 export type RuntimeState = {

@@ -8,28 +8,41 @@ export type StageTheme = {
   accent: string
   glow: string
   muted: string
+  secondary: string
+  secondaryGlow: string
 }
 
-const STAGE_COLORS: Record<StageThemeVariant, Pick<StageTheme, 'accent' | 'glow' | 'muted'>> = {
+const STAGE_COLORS: Record<
+  StageThemeVariant,
+  Pick<StageTheme, 'accent' | 'glow' | 'muted' | 'secondary' | 'secondaryGlow'>
+> = {
   normal: {
     accent: '#2ee6d6',
     glow: 'rgba(46, 230, 214, 0.55)',
     muted: 'rgba(46, 230, 214, 0.75)',
+    secondary: '#f0a030',
+    secondaryGlow: 'rgba(240, 160, 48, 0.5)',
   },
   warning: {
     accent: '#f5a623',
     glow: 'rgba(245, 166, 35, 0.55)',
     muted: 'rgba(245, 166, 35, 0.85)',
+    secondary: '#ffd080',
+    secondaryGlow: 'rgba(255, 208, 128, 0.45)',
   },
   over: {
     accent: '#ff4d3d',
     glow: 'rgba(255, 77, 61, 0.55)',
     muted: 'rgba(255, 120, 90, 0.85)',
+    secondary: '#ff9070',
+    secondaryGlow: 'rgba(255, 144, 112, 0.45)',
   },
   overFlash: {
     accent: '#ff4d3d',
     glow: 'rgba(255, 77, 61, 0.75)',
     muted: 'rgba(255, 120, 90, 0.85)',
+    secondary: '#ff9070',
+    secondaryGlow: 'rgba(255, 144, 112, 0.45)',
   },
 }
 

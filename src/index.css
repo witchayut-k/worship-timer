@@ -425,7 +425,7 @@ input:focus {
 
 /* Circular stage display */
 .stageDisplay {
-  width: min(90vmin, 900px);
+  width: min(92vmin, 920px);
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -433,38 +433,61 @@ input:focus {
   --stage-accent: #2ee6d6;
   --stage-glow: rgba(46, 230, 214, 0.55);
   --stage-muted: rgba(46, 230, 214, 0.75);
+  --stage-secondary: #f0a030;
+  --stage-secondary-glow: rgba(240, 160, 48, 0.5);
 }
 .stageCircleWrap {
   position: relative;
   width: 100%;
   height: 100%;
 }
+.stageCircleWrap::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(46, 230, 214, 0.06) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
 .stageSvg {
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
 }
-.stageRingTrack {
-  stroke: rgba(255, 255, 255, 0.08);
+.stageRingFrame {
+  stroke: rgba(255, 255, 255, 0.14);
+}
+.stageRingProgressGlow {
+  stroke: var(--stage-accent);
+  stroke-linecap: round;
+  opacity: 0.35;
+  pointer-events: none;
 }
 .stageRingProgress {
   stroke: var(--stage-accent);
   stroke-linecap: round;
-  filter: drop-shadow(0 0 12px var(--stage-glow));
   transition: stroke 0.35s ease, stroke-dasharray 0.2s linear;
 }
 .stageArcText {
   fill: var(--stage-muted);
-  font-size: 11px;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 .stageArcTextTop {
   fill: var(--stage-accent);
 }
 .stageArcTextBottom {
-  fill: rgba(255, 255, 255, 0.45);
+  fill: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.16em;
 }
 .stageCenter {
   position: absolute;
@@ -477,35 +500,49 @@ input:focus {
   pointer-events: none;
 }
 .stageRemainingLabel {
-  font-size: clamp(10px, 1.4vmin, 14px);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+  font-size: clamp(11px, 1.5vmin, 15px);
   font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--stage-muted);
-  margin-bottom: 0.4em;
+  letter-spacing: 0.28em;
+  color: var(--stage-secondary);
+  margin-bottom: 0.55em;
 }
 .stageTimerValue {
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
-  font-size: clamp(56px, 12vmin, 120px);
+  font-size: clamp(64px, 13vmin, 132px);
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.02em;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
   color: #fff;
-  text-shadow: 0 0 24px var(--stage-glow), 0 0 48px var(--stage-glow);
+  text-shadow:
+    0 0 20px var(--stage-glow),
+    0 0 40px var(--stage-glow),
+    0 0 80px rgba(46, 230, 214, 0.15);
 }
 .stageSpeakerBlock {
-  margin-top: clamp(12px, 2vmin, 24px);
+  margin-top: clamp(14px, 2.2vmin, 28px);
 }
 .stageSpeakerLabel {
-  font-size: clamp(10px, 1.4vmin, 13px);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+  font-size: clamp(9px, 1.2vmin, 12px);
   font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--stage-muted);
-  margin-bottom: 0.35em;
+  letter-spacing: 0.28em;
+  color: var(--stage-accent);
+  margin-bottom: 0.45em;
+  opacity: 0.9;
 }
 .stageSpeakerName {
-  font-size: clamp(18px, 3.5vmin, 32px);
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(20px, 3.8vmin, 36px);
   font-weight: 700;
+  letter-spacing: 0.02em;
   color: #fff;
+  text-shadow:
+    0 0 16px var(--stage-secondary-glow),
+    0 0 32px var(--stage-secondary-glow);
 }
 .stageFlash .stageRingProgress,
 .stageFlash .stageTimerValue {
@@ -514,12 +551,10 @@ input:focus {
 @keyframes stagePulse {
   0%,
   100% {
-    filter: drop-shadow(0 0 12px var(--stage-glow));
     opacity: 1;
   }
   50% {
-    filter: drop-shadow(0 0 28px var(--stage-glow));
-    opacity: 0.88;
+    opacity: 0.82;
   }
 }
 
@@ -726,7 +761,7 @@ input:focus {
 
 .segmentTableHead {
   display: grid;
-  grid-template-columns: 32px 1fr 1fr 120px 52px;
+  grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
   gap: 10px;
   padding: 0 10px 6px;
   font-size: 11px;
@@ -738,7 +773,7 @@ input:focus {
 
 .segmentRow {
   display: grid;
-  grid-template-columns: 32px 1fr 1fr 120px 52px;
+  grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
   gap: 10px;
   align-items: start;
   padding: 10px;
@@ -781,6 +816,153 @@ input:focus {
   height: 42px;
   padding: 0 8px;
   font-size: 12px;
+}
+
+.segmentColLights input,
+.segmentColMedia input {
+  font-size: 13px;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.modalCard {
+  width: min(720px, 100%);
+  max-height: min(90vh, 900px);
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.modalClose {
+  min-width: 36px;
+  padding: 6px 10px;
+}
+
+.modalBody {
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.modalHint {
+  margin: 0;
+  font-size: 14px;
+}
+
+.modalActionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.importTextarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.importPreview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.importPreviewTitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.importPreviewTableWrap {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.importPreviewTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.importPreviewTable th,
+.importPreviewTable td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.importPreviewTable th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.importWarnings {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #e8b86a;
+}
+
+.importModeFieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.importModeFieldset .label {
+  margin-bottom: 8px;
+}
+
+.importModeOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .asideCard {
@@ -1168,7 +1350,7 @@ input:focus {
 
   .segmentTableHead,
   .segmentRow {
-    grid-template-columns: 28px 1fr 1fr 100px 44px;
+    grid-template-columns: 28px minmax(100px, 1.2fr) minmax(80px, 1fr) 90px minmax(70px, 0.7fr) minmax(70px, 0.7fr) 44px;
   }
 }
 
@@ -1190,6 +1372,8 @@ input:focus {
       'handle name'
       'handle leader'
       'handle duration'
+      'handle lights'
+      'handle media'
       'handle delete';
   }
 
@@ -1201,6 +1385,12 @@ input:focus {
   }
   .segmentColDuration {
     grid-area: duration;
+  }
+  .segmentColLights {
+    grid-area: lights;
+  }
+  .segmentColMedia {
+    grid-area: media;
   }
   .segmentColDelete {
     grid-area: delete;
