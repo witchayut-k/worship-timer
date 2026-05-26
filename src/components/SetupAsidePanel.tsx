@@ -1,4 +1,5 @@
 import type { EventDisplaySettings } from '../domain/types'
+import { useLocale } from '../i18n/useLocale'
 
 type SetupAsidePanelProps = {
   settings: EventDisplaySettings
@@ -11,37 +12,39 @@ export function SetupAsidePanel({
   onSettingsChange,
   onOpenSpreadsheetImport,
 }: SetupAsidePanelProps) {
+  const { t } = useLocale()
+
   return (
     <>
       <section className="asideCard">
-        <h2 className="asideCardTitle">เครื่องมือ</h2>
+        <h2 className="asideCardTitle">{t('setupAside.tools')}</h2>
         <div className="toolGrid">
           <button className="toolTile" type="button" onClick={onOpenSpreadsheetImport}>
             <span className="toolTileIcon" aria-hidden>
               📋
             </span>
-            นำเข้าจากตาราง
+            {t('setupAside.importSpreadsheet')}
           </button>
           <button
             className="toolTile toolTileDisabled"
             type="button"
             disabled
-            title="เร็วๆ นี้"
+            title={t('setupAside.comingSoon')}
           >
             <span className="toolTileIcon" aria-hidden>
               ▶
             </span>
-            เลื่อนอัตโนมัติ
+            {t('setupAside.autoAdvance')}
           </button>
         </div>
       </section>
 
       <section className="asideCard">
-        <h2 className="asideCardTitle">การแจ้งเตือน</h2>
+        <h2 className="asideCardTitle">{t('setupAside.alerts')}</h2>
         <div className="alertSettingRow">
           <div className="alertSettingText">
-            <div className="alertSettingTitle">กระพริบเมื่อเกินเวลา</div>
-            <div className="alertSettingDesc">จอจะกระพริบสีแดงเมื่อเวลาติดลบ</div>
+            <div className="alertSettingTitle">{t('setupAside.overtimeFlash')}</div>
+            <div className="alertSettingDesc">{t('setupAside.overtimeFlashDesc')}</div>
           </div>
           <label className="switch">
             <input
@@ -54,8 +57,8 @@ export function SetupAsidePanel({
         </div>
         <div className="alertSettingRow">
           <div className="alertSettingText">
-            <div className="alertSettingTitle">เตือนก่อนหมดเวลา</div>
-            <div className="alertSettingDesc">เปลี่ยนเป็นสีเหลืองเมื่อเหลือ 1 นาที</div>
+            <div className="alertSettingTitle">{t('setupAside.warningOneMinute')}</div>
+            <div className="alertSettingDesc">{t('setupAside.warningOneMinuteDesc')}</div>
           </div>
           <label className="switch">
             <input

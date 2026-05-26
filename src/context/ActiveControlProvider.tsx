@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { pauseRuntimeIfRunning } from '../lib/endActiveControlSession'
+import { getStoredLocale, translate } from '../i18n/translate'
 import {
   ActiveControlContext,
   type ActiveControl,
@@ -40,7 +41,7 @@ export function ActiveControlProvider({ children }: { children: ReactNode }) {
   )
 
   const setActiveControl = useCallback((eventId: string, title: string) => {
-    const next = { eventId, title: title.trim() || 'Worship Timer' }
+    const next = { eventId, title: title.trim() || translate('event.untitled', getStoredLocale()) }
     setActiveControlState(next)
     writeStoredActiveControl(next)
   }, [])

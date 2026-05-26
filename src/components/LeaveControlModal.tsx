@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useLocale } from '../i18n/useLocale'
 
 type LeaveControlModalProps = {
   open: boolean
@@ -15,6 +16,7 @@ export function LeaveControlModal({
   onEndControl,
   onCancel,
 }: LeaveControlModalProps) {
+  const { t } = useLocale()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -49,29 +51,26 @@ export function LeaveControlModal({
       >
         <header className="modalHeader">
           <h2 id="leave-control-title" className="modalTitle">
-            ออกจากหน้าควบคุม?
+            {t('modal.leaveTitle')}
           </h2>
-          <button className="btnGhost modalClose" type="button" onClick={onCancel} aria-label="ปิด">
+          <button className="btnGhost modalClose" type="button" onClick={onCancel} aria-label={t('common.close')}>
             ✕
           </button>
         </header>
 
         <div className="modalBody">
-          <p>
-            กำลังควบคุม «{title}» — Timer และจอ Stage ยังทำงานอยู่
-            คุณสามารถกลับมาควบคุมได้จากรายการ
-          </p>
+          <p>{t('modal.leaveBody', { title })}</p>
         </div>
 
         <footer className="modalFooter">
           <button ref={cancelRef} className="btnPrimary" type="button" onClick={onCancel}>
-            ยกเลิก
+            {t('common.cancel')}
           </button>
           <button className="btn" type="button" onClick={onGoToServices}>
-            ไปรายการนมัสการ
+            {t('modal.goToServices')}
           </button>
           <button className="btnDanger" type="button" onClick={onEndControl}>
-            จบการควบคุม
+            {t('modal.endControl')}
           </button>
         </footer>
       </div>
@@ -94,6 +93,7 @@ export function SwitchControlModal({
   onConfirm,
   onCancel,
 }: SwitchControlModalProps) {
+  const { t } = useLocale()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -128,25 +128,23 @@ export function SwitchControlModal({
       >
         <header className="modalHeader">
           <h2 id="switch-control-title" className="modalTitle">
-            สลับห้องควบคุม?
+            {t('modal.switchTitle')}
           </h2>
-          <button className="btnGhost modalClose" type="button" onClick={onCancel} aria-label="ปิด">
+          <button className="btnGhost modalClose" type="button" onClick={onCancel} aria-label={t('common.close')}>
             ✕
           </button>
         </header>
 
         <div className="modalBody">
-          <p>
-            สลับจาก «{fromTitle}» ไป «{toTitle}»?
-          </p>
+          <p>{t('modal.switchBody', { from: fromTitle, to: toTitle })}</p>
         </div>
 
         <footer className="modalFooter">
           <button ref={cancelRef} className="btnPrimary" type="button" onClick={onCancel}>
-            ยกเลิก
+            {t('common.cancel')}
           </button>
           <button className="btnGhost" type="button" onClick={onConfirm}>
-            สลับห้องควบคุม
+            {t('modal.switchConfirm')}
           </button>
         </footer>
       </div>

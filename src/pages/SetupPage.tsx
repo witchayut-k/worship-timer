@@ -20,6 +20,7 @@ import { formatSecToHhMmSs } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
+import { useLocale } from '../i18n/useLocale'
 import { isOfflineEventId } from '../lib/eventSource'
 import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
@@ -90,13 +91,15 @@ function SetupPageInner({
 }) {
   const nav = useNavigate()
   const location = useLocation()
+  const { t } = useLocale()
   const { isProductionForEvent } = useActiveControl()
   const focusOrder = (location.state as { focusOrder?: number } | null)?.focusOrder
   const { uid, ready: authReady } = useAuth()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
   const cloudMode = hasFirebaseConfig() && Boolean(uid)
 
-  const [title, setTitle] = useState('รอบนมัสการ')
+  const [title, setTitle] = useState('')
+  const [titleError, setTitleError] = useState<string | null>(null)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [plannedStartTime, setPlannedStartTime] = useState('')
   const [settings, setSettings] = useState<EventDisplaySettings>(DEFAULT_EVENT_DISPLAY_SETTINGS)
@@ -130,7 +133,7 @@ function SetupPageInner({
       try {
         if (isLibraryEventId(routeEventId)) {
           const entry = getLocalEvent(routeEventId)
-          if (!entry) throw new Error('ไม่พบรอบในเครื่อง')
+          if (!entry) throw new Error(t('setup.loadLocalNotFound'))
           if (cancelled) return
           setTitle(entry.event.title)
           setDate(entry.event.date)
@@ -143,13 +146,13 @@ function SetupPageInner({
         }
 
         if (routeEventId.startsWith('local-')) {
-          setLoadError('ลิงก์ Local แบบเก่า — สร้างรอบใหม่แล้วบันทึกในไลบรารี')
+          setLoadError(t('setup.loadLegacyLocal'))
           return
         }
 
         if (cloudReady && uid) {
           const ev = await loadEvent(routeEventId)
-          if (!ev) throw new Error('ไม่พบรอบใน Cloud')
+          if (!ev) throw new Error(t('setup.loadCloudNotFound'))
           const programItems = await loadProgramItems(routeEventId)
           if (cancelled) return
           setTitle(ev.data.title)
@@ -162,10 +165,10 @@ function SetupPageInner({
           return
         }
 
-        throw new Error('เข้าสู่ระบบเพื่อแก้ไขรอบ Cloud')
+        throw new Error(t('setup.loadSignInRequired'))
       } catch (e) {
         if (!cancelled) {
-          setLoadError(e instanceof Error ? e.message : 'โหลดไม่สำเร็จ')
+          setLoadError(e instanceof Error ? e.message : t('setup.loadFailed'))
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -176,7 +179,7 @@ function SetupPageInner({
     return () => {
       cancelled = true
     }
-  }, [routeEventId, authReady, cloudReady, uid])
+  }, [routeEventId, authReady, cloudReady, t, uid])
 
   useEffect(() => {
     if (loading || focusOrder == null || !items.length) return
@@ -233,7 +236,7 @@ function SetupPageInner({
       {
         id,
         order: prev.length + 1,
-        name: 'รายการใหม่',
+        name: t('setup.newSegment'),
         leaderName: '',
         durationSec: 300,
         roomLights: '',
@@ -245,7 +248,7 @@ function SetupPageInner({
 
   const onClearAll = () => {
     if (!items.length) return
-    if (!confirm('ลบรายการทั้งหมด?')) return
+    if (!confirm(t('setup.clearAllConfirm'))) return
     setItems([])
     setSelectedId(null)
   }
@@ -325,27 +328,36 @@ function SetupPageInner({
     return eventId
   }
 
+  const validateTitle = (): boolean => {
+    if (title.trim()) {
+      setTitleError(null)
+      return true
+    }
+    setTitleError(t('setup.titleRequired'))
+    return false
+  }
+
   const onSave = async () => {
-    if (!canStart) return
+    if (!canStart || !validateTitle()) return
     setSaving(true)
     setSaveNotice(null)
     try {
       if (cloudMode) {
         const eventId = await persistCloud(!isEdit)
         if (eventId) {
-          setSaveNotice('บันทึก Cloud แล้ว')
+          setSaveNotice(t('setup.savedCloud'))
           if (!isEdit) nav(`/setup/${eventId}`, { replace: true })
         }
       } else {
         const id = persistLocal()
-        setSaveNotice('บันทึกในเครื่องแล้ว')
+        setSaveNotice(t('setup.savedLocal'))
         if (!isEdit) nav(`/setup/${id}`, { replace: true })
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'บันทึกไม่สำเร็จ'
+      const msg = e instanceof Error ? e.message : t('setup.saveFailed')
       setSaveNotice(
         msg.includes('permission') || msg.includes('PERMISSION')
-          ? 'บันทึก Cloud ไม่สำเร็จ — ต้องมีสิทธิ์ controller ใน Firebase'
+          ? t('setup.saveCloudPermission')
           : msg,
       )
     } finally {
@@ -354,6 +366,7 @@ function SetupPageInner({
   }
 
   const onStartLocalDemo = () => {
+    if (!validateTitle()) return
     const roster = collectLeadersFromItems(
       leaderNames,
       items.map((it) => it.leaderName),
@@ -366,7 +379,7 @@ function SetupPageInner({
   }
 
   const onStartControl = async () => {
-    if (!canStart) return
+    if (!canStart || !validateTitle()) return
     setSaving(true)
     try {
       if (cloudMode) {
@@ -384,7 +397,8 @@ function SetupPageInner({
   }
 
   const shellEventId = lastEventId
-  const saveLabel = cloudMode ? 'บันทึก Cloud' : 'บันทึกในเครื่อง'
+  const saveLabel = cloudMode ? t('setup.saveCloud') : t('setup.saveLocal')
+  const displayTitle = title.trim() || t('event.untitled')
   const productionMode = isProductionForEvent(shellEventId)
   const {
     leaveModalOpen,
@@ -398,7 +412,7 @@ function SetupPageInner({
   if (loading) {
     return (
       <ControlShell activeNav="setup" eventId={shellEventId} eventTitle={title}>
-        <p className="muted">กำลังโหลดโปรแกรม…</p>
+        <p className="muted">{t('setup.loadingProgram')}</p>
       </ControlShell>
     )
   }
@@ -420,26 +434,26 @@ function SetupPageInner({
     >
       <header className="setupPageHeader">
         <div className="setupPageHeaderText">
-          <h1 className="setupPageTitle">{isEdit ? 'แก้ไขโปรแกรม' : 'ตั้งค่าโปรแกรม'}</h1>
-          <p className="setupPageDesc">กำหนดรายการและเวลาสำหรับ «{title}»</p>
+          <h1 className="setupPageTitle">{isEdit ? t('setup.editTitle') : t('setup.newTitle')}</h1>
+          <p className="setupPageDesc">{t('setup.desc', { title: displayTitle })}</p>
         </div>
         <div className="setupHeaderActions">
           {lastEventId ? (
             <Link className="btnGhost" to={`/start/${lastEventId}`}>
-              กลับห้องควบคุม
+              {t('setup.backToControl')}
             </Link>
           ) : null}
           {productionMode ? (
             <button className="btnGhost" type="button" onClick={requestLeave}>
-              ไปรายการนมัสการ…
+              {t('nav.goToServices')}
             </button>
           ) : (
             <Link className="btnGhost" to="/services">
-              รายการนมัสการ
+              {t('nav.services')}
             </Link>
           )}
           <button className="btnGhost" type="button" onClick={onClearAll} disabled={!items.length}>
-            ล้างทั้งหมด
+            {t('setup.clearAll')}
           </button>
           <button
             className="btn"
@@ -447,10 +461,10 @@ function SetupPageInner({
             disabled={!canStart || saving}
             onClick={() => void onSave()}
           >
-            {saving ? 'กำลังบันทึก…' : saveLabel}
+            {saving ? t('setup.saving') : saveLabel}
           </button>
           <button className="btnPrimary" type="button" onClick={onAdd}>
-            + เพิ่มรายการ
+            {t('setup.addItem')}
           </button>
         </div>
       </header>
@@ -460,16 +474,25 @@ function SetupPageInner({
       <section className="card">
         <div className="grid2">
           <label className="field">
-            <div className="label">ชื่องาน</div>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <div className="label">{t('setup.eventTitle')}</div>
+            <input
+              value={title}
+              placeholder={t('event.titlePlaceholder')}
+              aria-invalid={titleError != null}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                if (titleError && e.target.value.trim()) setTitleError(null)
+              }}
+            />
+            {titleError ? <p className="fieldError">{titleError}</p> : null}
           </label>
           <label className="field">
-            <div className="label">วันที่</div>
+            <div className="label">{t('setup.date')}</div>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </label>
         </div>
         <label className="field" style={{ marginTop: 10 }}>
-          <div className="label">เวลาเริ่มงานตามแผน (ไม่บังคับ)</div>
+          <div className="label">{t('setup.plannedStart')}</div>
           <input
             type="time"
             value={plannedStartTime}
@@ -480,7 +503,7 @@ function SetupPageInner({
 
       <div className="durationSummaryBar">
         <span className="durationSummaryLabel">
-          <span aria-hidden>🕐</span> รวมเวลาโปรแกรม
+          <span aria-hidden>🕐</span> {t('setup.totalDuration')}
         </span>
         <span className="durationSummaryValue timeMono">{totalLabel}</span>
       </div>
@@ -501,7 +524,7 @@ function SetupPageInner({
 
       <section className="card">
         <div className="cardHeader">
-          <h2 className="cardTitle">เริ่มงาน</h2>
+          <h2 className="cardTitle">{t('setup.startSection')}</h2>
         </div>
         <div className="stack">
           <button
@@ -510,20 +533,19 @@ function SetupPageInner({
             disabled={!canStart || saving}
             onClick={() => void onStartControl()}
           >
-            {saving ? 'กำลังเตรียม…' : 'เริ่มควบคุม'}
+            {saving ? t('setup.preparing') : t('setup.startControl')}
           </button>
           {!cloudMode && cloudReady ? (
             <button className="btn" type="button" disabled={!canStart} onClick={onStartLocalDemo}>
-              เริ่ม (Local URL แบบเก่า)
+              {t('setup.startLocalLegacy')}
             </button>
           ) : null}
           {cloudReady && !uid ? (
-            <div className="muted">เข้าสู่ระบบที่หน้ารายการนมัสการเพื่อบันทึก Cloud</div>
+            <div className="muted">{t('setup.signInForCloud')}</div>
           ) : null}
           {!cloudReady ? (
             <div className="muted">
-              Cloud: สร้าง <code>.env.local</code> จาก <code>.env.example</code> เพื่อบันทึกและ sync
-              realtime
+              {t('setup.cloudEnvHint', { envFile: '.env.local', envExample: '.env.example' })}
             </div>
           ) : null}
         </div>
@@ -532,7 +554,7 @@ function SetupPageInner({
       {isEdit && lastEventId ? (
         <section className="card">
           <div className="cardHeader">
-            <h2 className="cardTitle">ลิงก์แยกจอ</h2>
+            <h2 className="cardTitle">{t('setup.outputLinks')}</h2>
           </div>
           <EventLinks eventId={lastEventId} />
         </section>

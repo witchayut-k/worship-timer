@@ -5,6 +5,7 @@ import type { ProgramItem, RuntimePhase, WorshipEvent } from '../domain/types'
 import { resolveEventSettings } from '../domain/types'
 import { computeRemainingSec } from '../domain/time'
 import { isManualFlashActive } from '../domain/stageOutput'
+import { useLocale } from '../i18n/useLocale'
 import { getStageTheme } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
@@ -17,12 +18,13 @@ export function ViewerPage() {
 }
 
 function ViewerPageInner({ eventId }: { eventId: string }) {
+  const { t } = useLocale()
   const [searchParams] = useSearchParams()
   const kiosk = searchParams.get('kiosk') === '1'
 
   const local = useMemo(() => resolveEventPayload(eventId), [eventId])
 
-  const [title, setTitle] = useState(() => local?.event.title ?? 'Worship Timer')
+  const [title, setTitle] = useState(() => local?.event.title ?? '')
   const [eventMeta, setEventMeta] = useState<WorshipEvent | null>(() => local?.event ?? null)
   const [items, setItems] = useState<ProgramItem[]>(() => local?.items ?? [])
 
@@ -51,6 +53,7 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
   const isCloud = !isOfflineEventId(eventId)
   const cloudReady = isCloud && hasFirebaseConfig()
   const isLocal = isOfflineEventId(eventId)
+  const displayTitle = title.trim() || t('event.untitled')
 
   useEffect(() => {
     if (!cloudReady) return
@@ -106,7 +109,7 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
     <div className={`viewer ${kiosk ? 'kiosk' : ''}`}>
       {!kiosk ? (
         <div className="viewerTop">
-          <div className="viewerTitle">{title}</div>
+          <div className="viewerTitle">{displayTitle}</div>
           <div className="viewerLinks">
             <Link className="topNavLink" to={`/start/${eventId}`}>
               Controller
@@ -138,19 +141,17 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
             {blackout ? <div className="viewerBlackout" aria-hidden /> : null}
           </>
         ) : (
-          <div className="stageEmpty muted">ไม่พบรายการโปรแกรม</div>
+          <div className="stageEmpty muted">{t('viewer.noProgram')}</div>
         )}
       </div>
 
       {!kiosk ? (
         <div className="viewerFooter muted">
-          {isLocal
-            ? 'Local demo: เปิด Controller ในอีกแท็บเพื่อ sync realtime'
-            : 'Realtime ผ่าน Firebase — เปิด Controller เพื่อควบคุม'}
-          {isCloud && !hasFirebaseConfig() ? ' · ต้องตั้งค่า Firebase สำหรับ cloud' : ''}
+          {isLocal ? t('viewer.localSyncHint') : t('viewer.cloudSyncHint')}
+          {isCloud && !hasFirebaseConfig() ? ` · ${t('viewer.firebaseRequired')}` : ''}
         </div>
       ) : (
-        <div className="viewerFooter muted">กด F เพื่อ fullscreen</div>
+        <div className="viewerFooter muted">{t('viewer.kioskFullscreen')}</div>
       )}
     </div>
   )

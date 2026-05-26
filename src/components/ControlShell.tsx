@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { LanguageToggle } from './LanguageToggle'
+import { useLocale } from '../i18n/useLocale'
 
 export type ControlNav = 'setup' | 'control' | 'services'
 
@@ -26,26 +28,27 @@ export function ControlShell({
   aside,
   children,
 }: ControlShellProps) {
-  const statusTitle = eventTitle?.trim() || 'ยังไม่ได้เริ่มงาน'
+  const { t } = useLocale()
+  const statusTitle = eventTitle?.trim() || t('event.untitled')
   const statusSub = productionMode
-    ? 'กำลังควบคุม'
+    ? t('nav.controlling')
     : eventId
-      ? 'กำลังผลิตรายการ'
-      : 'ตั้งค่าโปรแกรมก่อนเริ่ม'
+      ? t('nav.inProduction')
+      : t('nav.setupBeforeStart')
 
   const controlLink = eventId ? (
     <Link
       className={`sidebarNavItem ${activeNav === 'control' ? 'sidebarNavItemActive' : ''}`}
       to={`/start/${eventId}`}
     >
-      ห้องควบคุม
+      {t('nav.controlRoom')}
     </Link>
   ) : (
     <span
       className="sidebarNavItem sidebarNavItemDisabled"
-      title="บันทึกหรือเริ่มงานก่อนเพื่อเข้าห้องควบคุม"
+      title={t('nav.controlRoomDisabled')}
     >
-      ห้องควบคุม
+      {t('nav.controlRoom')}
     </span>
   )
 
@@ -54,7 +57,7 @@ export function ControlShell({
       className={`sidebarNavItem ${activeNav === 'setup' ? 'sidebarNavItemActive' : ''}`}
       to={eventId ? `/setup/${eventId}` : '/setup'}
     >
-      ตั้งค่าโปรแกรม
+      {t('nav.programSetup')}
     </Link>
   )
 
@@ -64,14 +67,14 @@ export function ControlShell({
       type="button"
       onClick={() => openStage(eventId)}
     >
-      จอ Stage
+      {t('nav.stageDisplay')}
     </button>
   ) : (
     <span
       className="sidebarNavItem sidebarNavItemDisabled"
-      title="บันทึกหรือเริ่มงานก่อนเพื่อเปิดจอ Stage"
+      title={t('nav.stageDisabled')}
     >
-      จอ Stage
+      {t('nav.stageDisplay')}
     </span>
   )
 
@@ -81,14 +84,14 @@ export function ControlShell({
       type="button"
       onClick={onLeaveToServices}
     >
-      ไปรายการนมัสการ…
+      {t('nav.goToServices')}
     </button>
   ) : (
     <Link
       className={`sidebarNavItem ${activeNav === 'services' ? 'sidebarNavItemActive' : ''}`}
       to="/services"
     >
-      รายการนมัสการ
+      {t('nav.services')}
     </Link>
   )
 
@@ -96,6 +99,7 @@ export function ControlShell({
     <div className="controlShell">
       <aside className="sidebar">
         <div className="sidebarBrand">Worship Timer</div>
+        <LanguageToggle />
 
         <div className="sidebarStatus">
           <div className="sidebarStatusIcon" aria-hidden>
@@ -107,14 +111,14 @@ export function ControlShell({
           </div>
         </div>
 
-        <nav className="sidebarNav" aria-label="เมนูหลัก">
+        <nav className="sidebarNav" aria-label={t('nav.mainMenu')}>
           {productionMode ? (
             <>
               {controlLink}
               {setupLink}
               {stageButton}
               <div className="sidebarNavDivider" role="separator" />
-              <div className="sidebarNavSectionLabel">ไลบรารี</div>
+              <div className="sidebarNavSectionLabel">{t('nav.library')}</div>
               {servicesLink}
             </>
           ) : (

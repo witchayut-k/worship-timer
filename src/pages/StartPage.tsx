@@ -15,6 +15,7 @@ import { isManualFlashActive } from '../domain/stageOutput'
 import { formatSignedMMSS } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useLeaveControl } from '../hooks/useLeaveControl'
+import { useLocale } from '../i18n/useLocale'
 import { getStageTheme, getTimerThemeClasses } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
@@ -39,10 +40,11 @@ export function StartPage() {
 }
 
 function StartPageInner({ eventId }: { eventId: string }) {
+  const { t, locale } = useLocale()
   const { setActiveControl, isProductionForEvent } = useActiveControl()
   const local = useMemo(() => resolveEventPayload(eventId), [eventId])
 
-  const [title, setTitle] = useState(() => local?.event.title ?? 'Worship Timer')
+  const [title, setTitle] = useState(() => local?.event.title ?? '')
   const [eventMeta, setEventMeta] = useState<WorshipEvent | null>(() => local?.event ?? null)
   const [items, setItems] = useState<ProgramItem[]>(() => local?.items ?? [])
   const [outputLinksOpen, setOutputLinksOpen] = useState(false)
@@ -81,7 +83,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const timeText = formatSignedMMSS(display.remainingSec)
   const clockText = formatWallClock(nowMs)
   const timezoneLabel = getTimezoneLabel()
-  const dateLabel = formatLocalDateShort(nowMs)
+  const dateLabel = formatLocalDateShort(nowMs, locale)
 
   const isCloud = !isOfflineEventId(eventId)
   const cloudReady = isCloud && hasFirebaseConfig()
@@ -210,10 +212,13 @@ function StartPageInner({ eventId }: { eventId: string }) {
         <div className="controlTimerColumn">
           {isCloud && !hasFirebaseConfig() ? (
             <div className="card">
-              <h1 className="pageTitle">Cloud mode ต้องตั้งค่า Firebase</h1>
+              <h1 className="pageTitle">{t('control.firebaseRequired')}</h1>
               <div className="muted">
-                สร้างไฟล์ <code>.env.local</code> จาก <code>.env.example</code> แล้วเติมค่า Firebase config
-                จากนั้นรีเฟรชหน้า หรือใช้ <Link to="/setup">Local Demo</Link> ได้ทันที
+                {t('control.firebaseHint', {
+                  envFile: '.env.local',
+                  envExample: '.env.example',
+                })}{' '}
+                <Link to="/setup">{t('control.localDemo')}</Link>
               </div>
             </div>
           ) : null}
@@ -234,24 +239,24 @@ function StartPageInner({ eventId }: { eventId: string }) {
                 onClick={() => setOutputLinksOpen(true)}
               >
                 <MonitorIcon />
-                Output Links
+                {t('control.outputLinks')}
               </button>
             </div>
           ) : null}
 
           {!current ? (
             <div className="card">
-              <h1 className="pageTitle">Start</h1>
+              <h1 className="pageTitle">{t('control.start')}</h1>
               <div className="muted">
-                ไม่พบรายการโปรแกรม — กลับไปที่{' '}
-                <Link to={eventId ? `/setup/${eventId}` : '/setup'}>Setup</Link>
+                {t('control.noProgramBefore')}{' '}
+                <Link to={eventId ? `/setup/${eventId}` : '/setup'}>{t('control.setup')}</Link>
               </div>
             </div>
           ) : (
             <section className={`timerCard ${timerClass}`}>
                 <div className="timerMeta timerMetaRow">
                   <div className="timerMetaSlot timerMetaPrev">
-                    <span className="timerMetaLabel">Prev</span>
+                    <span className="timerMetaLabel">{t('control.prev')}</span>
                     <span className="timerMetaName">
                       {prev ? (
                         <>
@@ -266,14 +271,14 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     </span>
                   </div>
                   <div className="timerMetaSlot timerMetaCurrent">
-                    <span className="timerMetaLabel">Current</span>
+                    <span className="timerMetaLabel">{t('control.current')}</span>
                     <span className="timerMetaName">{current.name}</span>
                     {current.leaderName ? (
                       <span className="timerMetaLeader">{current.leaderName}</span>
                     ) : null}
                   </div>
                   <div className="timerMetaSlot timerMetaNext">
-                    <span className="timerMetaLabel">Next</span>
+                    <span className="timerMetaLabel">{t('control.next')}</span>
                     <span className="timerMetaName">
                       {next ? (
                         <>
@@ -305,18 +310,18 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     onClick={() => jumpTo(state.currentIndex - 1)}
                     disabled={state.currentIndex === 0}
                   >
-                    ◀ Prev
+                    ◀ {t('control.prev')}
                   </button>
 
                   {state.phase !== 'running' ? (
                     <button className="btnTransportPrimary btnTransportStart" type="button" onClick={start}>
                       <PlayIcon />
-                      Start
+                      {t('control.start')}
                     </button>
                   ) : (
                     <button className="btnTransportPrimary btnTransportPause" type="button" onClick={pause}>
                       <PauseIcon />
-                      Pause
+                      {t('control.pause')}
                     </button>
                   )}
 
@@ -326,13 +331,13 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     onClick={() => jumpTo(state.currentIndex + 1)}
                     disabled={state.currentIndex + 1 >= items.length}
                   >
-                    Next ▶
+                    {t('control.next')} ▶
                   </button>
                 </div>
 
                 <div className="controls">
                   <button className="btn" type="button" onClick={resetCurrent}>
-                    Reset
+                    {t('control.reset')}
                   </button>
                   <div className="pillGroup">
                     <button className="btnGhost" type="button" onClick={() => adjustSec(-60)}>

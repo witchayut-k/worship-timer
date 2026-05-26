@@ -1,3 +1,5 @@
+import type { AppLocale } from '../i18n/types'
+import { toIntlLocale } from '../i18n/translate'
 import type { EventDoc } from './types'
 
 export type ServiceListEntry = EventDoc & {
@@ -10,17 +12,19 @@ export type ServiceDateGroup = {
   sessions: ServiceListEntry[]
 }
 
-const dateLabelFmt = new Intl.DateTimeFormat('th-TH', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
+function createDateLabelFmt(locale: AppLocale) {
+  return new Intl.DateTimeFormat(toIntlLocale(locale), {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
 
-export function formatServiceDateLabel(date: string): string {
+export function formatServiceDateLabel(date: string, locale: AppLocale = 'en'): string {
   const [y, m, d] = date.split('-').map(Number)
   if (!y || !m || !d) return date
-  return dateLabelFmt.format(new Date(y, m - 1, d))
+  return createDateLabelFmt(locale).format(new Date(y, m - 1, d))
 }
 
 export function sortServiceEntries(entries: ServiceListEntry[]): ServiceListEntry[] {
@@ -31,7 +35,10 @@ export function sortServiceEntries(entries: ServiceListEntry[]): ServiceListEntr
   })
 }
 
-export function groupServicesByDate(entries: ServiceListEntry[]): ServiceDateGroup[] {
+export function groupServicesByDate(
+  entries: ServiceListEntry[],
+  locale: AppLocale = 'en',
+): ServiceDateGroup[] {
   const sorted = sortServiceEntries(entries)
   const groups: ServiceDateGroup[] = []
 
@@ -42,7 +49,7 @@ export function groupServicesByDate(entries: ServiceListEntry[]): ServiceDateGro
     } else {
       groups.push({
         date: entry.data.date,
-        label: formatServiceDateLabel(entry.data.date),
+        label: formatServiceDateLabel(entry.data.date, locale),
         sessions: [entry],
       })
     }
@@ -58,6 +65,7 @@ export function groupServicesByDate(entries: ServiceListEntry[]): ServiceDateGro
 export function filterServiceEntries(
   entries: ServiceListEntry[],
   query: string,
+  locale: AppLocale = 'en',
 ): ServiceListEntry[] {
   const q = query.trim().toLowerCase()
   if (!q) return entries
@@ -65,6 +73,6 @@ export function filterServiceEntries(
     (e) =>
       e.data.title.toLowerCase().includes(q) ||
       e.data.date.includes(q) ||
-      formatServiceDateLabel(e.data.date).toLowerCase().includes(q),
+      formatServiceDateLabel(e.data.date, locale).toLowerCase().includes(q),
   )
 }

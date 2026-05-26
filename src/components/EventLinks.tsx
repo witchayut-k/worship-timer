@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
 }
 
 export function EventLinks({ eventId, showOpenStage = true }: Props) {
+  const { t } = useLocale()
   const [copied, setCopied] = useState<OutputLinkKind | null>(null)
   const links = getOutputLinks(eventId)
   const stageLink = links.find((l) => l.kind === 'stage')!
@@ -25,21 +27,24 @@ export function EventLinks({ eventId, showOpenStage = true }: Props) {
     window.open(stageLink.path, '_blank', 'noopener,noreferrer')
   }
 
+  const linkLabel = (kind: OutputLinkKind) =>
+    kind === 'controller' ? t('modal.controllerTab') : t('modal.stageTab')
+
   return (
     <div className="linkGrid">
       {links.map((link) => (
         <div key={link.kind} className="linkRow">
           <div>
-            <div className="linkLabel">{link.label}</div>
+            <div className="linkLabel">{linkLabel(link.kind)}</div>
             <code className="linkUrl">{link.path}</code>
           </div>
           <div className="linkActions">
             <button className="btnGhost" type="button" onClick={() => copy(link.kind, link.url)}>
-              {copied === link.kind ? 'Copied' : 'Copy'}
+              {copied === link.kind ? t('common.copied') : t('common.copy')}
             </button>
             {showOpenStage && link.kind === 'stage' ? (
               <button className="btnPrimary" type="button" onClick={openStage}>
-                เปิดจอเวที
+                {t('control.openStage')}
               </button>
             ) : null}
           </div>

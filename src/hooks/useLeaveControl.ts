@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { useBlocker, useNavigate } from 'react-router-dom'
+import { getStoredLocale, translate } from '../i18n/translate'
 import { useActiveControl } from './useActiveControl'
 
 export function useLeaveControl(productionMode: boolean) {
@@ -59,7 +60,7 @@ export function useLeaveControl(productionMode: boolean) {
 
   return {
     leaveModalOpen,
-    leaveModalTitle: activeControl?.title ?? 'Worship Timer',
+    leaveModalTitle: activeControl?.title?.trim() || translate('event.untitled', getStoredLocale()),
     requestLeave,
     confirmGoToServices,
     endControlAndLeave,

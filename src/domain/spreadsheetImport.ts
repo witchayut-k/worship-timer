@@ -8,9 +8,16 @@ export type ParsedProgramRow = {
   mediaNote: string
 }
 
+export type ImportWarning =
+  | { key: 'missingDuration'; rowNum: number }
+  | { key: 'noData' }
+  | { key: 'missingNameColumn' }
+  | { key: 'fewColumns'; rowNum: number; count: number }
+  | { key: 'noRowsWithName' }
+
 export type ParseResult = {
   rows: ParsedProgramRow[]
-  warnings: string[]
+  warnings: ImportWarning[]
   skipped: number
 }
 
@@ -52,6 +59,13 @@ function normalizeHeader(cell: string): string {
 function isHeaderRow(cells: string[]): boolean {
   const joined = cells.map(normalizeHeader).join(' ')
   return (
+    joined.includes('item') ||
+    joined.includes('leader') ||
+    joined.includes('start') ||
+    joined.includes('duration') ||
+    joined.includes('minutes') ||
+    joined.includes('lights') ||
+    joined.includes('media') ||
     joined.includes('ที่') ||
     joined.includes('เริ่ม') ||
     joined.includes('รายการ') ||
@@ -64,13 +78,30 @@ function mapColumnsFromHeader(cells: string[]): ColumnMap {
   cells.forEach((raw, index) => {
     const h = normalizeHeader(raw)
     if (!h) return
-    if (h.includes('เริ่ม') && !h.includes('สิ้น')) map.start = index
-    else if (h.includes('สิ้นสุด') || h.includes('สิ้น')) map.end = index
-    else if (h.includes('นาที')) map.minutes = index
-    else if (h.includes('ไฟ')) map.roomLights = index
-    else if (h.includes('รายการ')) map.name = index
-    else if (h.includes('ผู้รับพระพร') || h.includes('ผู้นำ')) map.leaderName = index
-    else if (h.includes('มีเดีย') || h.includes('สื่อ')) map.mediaNote = index
+    if (
+      (h.includes('start') && !h.includes('end')) ||
+      (h.includes('เริ่ม') && !h.includes('สิ้น'))
+    ) {
+      map.start = index
+    } else if (h.includes('end') || h.includes('finish') || h.includes('สิ้นสุด') || h.includes('สิ้น')) {
+      map.end = index
+    } else if (h.includes('minute') || h.includes('duration') || h.includes('นาที')) {
+      map.minutes = index
+    } else if (h.includes('light') || h.includes('ไฟ')) {
+      map.roomLights = index
+    } else if (h === 'item' || h.includes('segment') || h.includes('program') || h.includes('รายการ')) {
+      map.name = index
+    } else if (
+      h.includes('leader') ||
+      h.includes('speaker') ||
+      h.includes('host') ||
+      h.includes('ผู้รับพระพร') ||
+      h.includes('ผู้นำ')
+    ) {
+      map.leaderName = index
+    } else if (h.includes('media') || h.includes('av') || h.includes('มีเดีย') || h.includes('สื่อ')) {
+      map.mediaNote = index
+    }
   })
   return { ...DEFAULT_COLUMNS, ...map }
 }
@@ -117,7 +148,7 @@ function resolveDurationSec(
   cells: string[],
   cols: ColumnMap,
   rowNum: number,
-  warnings: string[],
+  warnings: ImportWarning[],
 ): number {
   const minutesRaw = cellAt(cells, cols.minutes)
   const startRaw = cellAt(cells, cols.start)
@@ -132,16 +163,16 @@ function resolveDurationSec(
   const fromRange = durationFromStartEnd(startRaw, endRaw)
   if (fromRange != null) return fromRange
 
-  warnings.push(`แถว ${rowNum}: ไม่ระบุเวลา — ใช้ค่าเริ่มต้น 5:00`)
+  warnings.push({ key: 'missingDuration', rowNum })
   return DEFAULT_DURATION_SEC
 }
 
 export function parseSpreadsheetTsv(text: string): ParseResult {
-  const warnings: string[] = []
+  const warnings: ImportWarning[] = []
   let skipped = 0
   const rawRows = splitRows(text)
   if (!rawRows.length) {
-    return { rows: [], warnings: ['ไม่พบข้อมูล — ลอง copy ช่วงตารางจาก Excel หรือ Google Sheets'], skipped: 0 }
+    return { rows: [], warnings: [{ key: 'noData' }], skipped: 0 }
   }
 
   let dataRows = rawRows
@@ -151,7 +182,7 @@ export function parseSpreadsheetTsv(text: string): ParseResult {
     cols = mapColumnsFromHeader(rawRows[0])
     dataRows = rawRows.slice(1)
     if (cols.name === undefined) {
-      warnings.push('ไม่พบคอลัมน์ «รายการ» ในหัวตาราง — ใช้ตำแหน่งคอลัมน์มาตรฐาน')
+      warnings.push({ key: 'missingNameColumn' })
       cols = { ...DEFAULT_COLUMNS, ...cols }
     }
   }
@@ -168,7 +199,7 @@ export function parseSpreadsheetTsv(text: string): ParseResult {
     }
 
     if (cells.length < 4 && !isHeaderRow(cells)) {
-      warnings.push(`แถว ${rowNum}: คอลัมน์น้อยกว่าที่คาดไว้ (${cells.length})`)
+      warnings.push({ key: 'fewColumns', rowNum, count: cells.length })
     }
 
     let leaderName = cellAt(cells, cols.leaderName)
@@ -185,7 +216,7 @@ export function parseSpreadsheetTsv(text: string): ParseResult {
   })
 
   if (!rows.length && dataRows.length > 0) {
-    warnings.push('ไม่พบแถวที่มีชื่อรายการ — ตรวจสอบว่า copy ครบคอลัมน์ «รายการ»')
+    warnings.push({ key: 'noRowsWithName' })
   }
 
   return { rows, warnings, skipped }

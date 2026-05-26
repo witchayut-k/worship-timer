@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatSecToMmSs, parseMmSsToSec } from '../domain/time'
+import { useLocale } from '../i18n/useLocale'
 
 type Props = {
   valueSec: number
@@ -8,10 +9,12 @@ type Props = {
 }
 
 export function DurationInput({ valueSec, onChangeSec, label }: Props) {
+  const { t } = useLocale()
   const [focused, setFocused] = useState(false)
   const [draft, setDraft] = useState(() => formatSecToMmSs(valueSec))
 
   const shown = focused ? draft : formatSecToMmSs(valueSec)
+  const ariaLabel = label ?? t('duration.aria')
 
   const commit = () => {
     const parsed = parseMmSsToSec(draft)
@@ -30,7 +33,7 @@ export function DurationInput({ valueSec, onChangeSec, label }: Props) {
         value={shown}
         placeholder="05:00"
         inputMode="numeric"
-        aria-label={label ?? 'ระยะเวลา'}
+        aria-label={ariaLabel}
         onFocus={() => {
           setFocused(true)
           setDraft(formatSecToMmSs(valueSec))

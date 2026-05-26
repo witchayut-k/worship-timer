@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocale } from '../i18n/useLocale'
 import { formatSecToMmSs } from '../domain/time'
 import {
   parseSpreadsheetTsv,
   type ParsedProgramRow,
 } from '../domain/spreadsheetImport'
+import { translateImportWarning } from '../i18n/translate'
 
 export type SpreadsheetImportMode = 'replace' | 'append'
 
@@ -14,6 +16,7 @@ type SpreadsheetImportModalProps = {
 }
 
 export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetImportModalProps) {
+  const { t, locale } = useLocale()
   const [text, setText] = useState('')
   const [mode, setMode] = useState<SpreadsheetImportMode>('replace')
   const [clipboardError, setClipboardError] = useState<string | null>(null)
@@ -32,12 +35,12 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
     try {
       const clip = await navigator.clipboard.readText()
       if (!clip.trim()) {
-        setClipboardError('คลิปบอร์ดว่าง — copy ตารางจาก Excel หรือ Google Sheets ก่อน')
+        setClipboardError(t('import.clipboardEmpty'))
         return
       }
       setText(clip)
     } catch {
-      setClipboardError('อ่านคลิปบอร์ดไม่ได้ — วางข้อมูลในช่องด้านล่างแทน (Ctrl+V)')
+      setClipboardError(t('import.clipboardDenied'))
     }
   }
 
@@ -48,6 +51,9 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
   }
 
   if (!open) return null
+
+  const previewSkipped =
+    parsed.skipped > 0 ? t('import.previewSkipped', { count: parsed.skipped }) : ''
 
   return (
     <div
@@ -60,32 +66,30 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
       <div className="modalCard" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
         <header className="modalHeader">
           <h2 id="import-modal-title" className="modalTitle">
-            นำเข้าจากตาราง
+            {t('import.title')}
           </h2>
-          <button className="btnGhost modalClose" type="button" onClick={onClose} aria-label="ปิด">
+          <button className="btnGhost modalClose" type="button" onClick={onClose} aria-label={t('common.close')}>
             ✕
           </button>
         </header>
 
         <div className="modalBody stack">
-          <p className="muted modalHint">
-            เลือกช่วงตารางใน Excel หรือ Google Sheets แล้ว Copy (Ctrl+C / Cmd+C) จากนั้นวางที่นี่
-          </p>
+          <p className="muted modalHint">{t('import.hint')}</p>
 
           <div className="modalActionsRow">
             <button className="btn" type="button" onClick={() => void onPasteFromClipboard()}>
-              วางจากคลิปบอร์ด
+              {t('import.pasteClipboard')}
             </button>
           </div>
           {clipboardError ? <p className="saveNotice saveNoticeError">{clipboardError}</p> : null}
 
           <label className="field">
-            <div className="label">ข้อมูลตาราง (วางด้วย Ctrl+V)</div>
+            <div className="label">{t('import.tableData')}</div>
             <textarea
               className="importTextarea"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="วางข้อมูลที่ copy จากตารางที่นี่…"
+              placeholder={t('import.textareaPlaceholder')}
               rows={6}
               spellCheck={false}
             />
@@ -95,8 +99,10 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
             <section className="importPreview">
               <div className="importPreviewHead">
                 <span className="importPreviewTitle">
-                  ตัวอย่าง ({parsed.rows.length} รายการ
-                  {parsed.skipped > 0 ? `, ข้าม ${parsed.skipped} แถว` : ''})
+                  {t('import.preview', {
+                    count: parsed.rows.length,
+                    skipped: previewSkipped,
+                  })}
                 </span>
               </div>
               {parsed.rows.length > 0 ? (
@@ -104,11 +110,11 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
                   <table className="importPreviewTable">
                     <thead>
                       <tr>
-                        <th>รายการ</th>
-                        <th>ผู้นำ</th>
-                        <th>เวลา</th>
-                        <th>ไฟ</th>
-                        <th>มีเดีย</th>
+                        <th>{t('import.colItem')}</th>
+                        <th>{t('import.colLeader')}</th>
+                        <th>{t('import.colTime')}</th>
+                        <th>{t('import.colLights')}</th>
+                        <th>{t('import.colMedia')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -125,12 +131,12 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
                   </table>
                 </div>
               ) : (
-                <p className="muted">ยังไม่พบรายการที่นำเข้าได้</p>
+                <p className="muted">{t('import.noImportableRows')}</p>
               )}
               {parsed.warnings.length > 0 ? (
                 <ul className="importWarnings">
                   {parsed.warnings.map((w, i) => (
-                    <li key={`${w}-${i}`}>{w}</li>
+                    <li key={`${w.key}-${i}`}>{translateImportWarning(w, locale)}</li>
                   ))}
                 </ul>
               ) : null}
@@ -138,7 +144,7 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
           ) : null}
 
           <fieldset className="importModeFieldset">
-            <legend className="label">เมื่อนำเข้า</legend>
+            <legend className="label">{t('import.onImport')}</legend>
             <label className="importModeOption">
               <input
                 type="radio"
@@ -147,7 +153,7 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
                 checked={mode === 'replace'}
                 onChange={() => setMode('replace')}
               />
-              แทนที่รายการทั้งหมด
+              {t('import.replaceAll')}
             </label>
             <label className="importModeOption">
               <input
@@ -157,14 +163,14 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
                 checked={mode === 'append'}
                 onChange={() => setMode('append')}
               />
-              ต่อท้ายรายการเดิม
+              {t('import.append')}
             </label>
           </fieldset>
         </div>
 
         <footer className="modalFooter">
           <button className="btnGhost" type="button" onClick={onClose}>
-            ยกเลิก
+            {t('common.cancel')}
           </button>
           <button
             className="btnPrimary"
@@ -172,7 +178,7 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
             disabled={!parsed.rows.length}
             onClick={onConfirm}
           >
-            นำเข้า {parsed.rows.length > 0 ? `(${parsed.rows.length})` : ''}
+            {t('import.importBtn')} {parsed.rows.length > 0 ? `(${parsed.rows.length})` : ''}
           </button>
         </footer>
       </div>

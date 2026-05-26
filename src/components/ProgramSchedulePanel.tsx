@@ -7,6 +7,7 @@ import {
 } from '../domain/schedule'
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { formatSecToMmSs, formatSignedMMSS } from '../domain/time'
+import { useLocale } from '../i18n/useLocale'
 
 type Props = {
   eventId: string
@@ -29,17 +30,18 @@ export function ProgramSchedulePanel({
   plannedStartTime,
   onJumpTo,
 }: Props) {
+  const { t } = useLocale()
   const plannedStartMs = useMemo(() => {
     if (!eventDate?.trim() || !plannedStartTime?.trim()) return null
     return parsePlannedStartMs(eventDate, plannedStartTime, Date.now())
   }, [eventDate, plannedStartTime])
 
   return (
-    <section className="programSchedule" aria-label="ตารางโปรแกรม">
+    <section className="programSchedule" aria-label={t('control.programSchedule')}>
       <div className="programScheduleHeader">
-        <h2 className="programScheduleTitle">ตารางโปรแกรม</h2>
+        <h2 className="programScheduleTitle">{t('control.programSchedule')}</h2>
         <Link className="btnGhost btnSm" to={`/setup/${eventId}`}>
-          แก้ไขโปรแกรม
+          {t('control.editProgram')}
         </Link>
       </div>
 
@@ -69,9 +71,9 @@ export function ProgramSchedulePanel({
                     {it.order}. {it.name}
                   </div>
                   {isRunning ? (
-                    <span className="scheduleBadge scheduleBadgeCurrent">Current</span>
+                    <span className="scheduleBadge scheduleBadgeCurrent">{t('control.current')}</span>
                   ) : isPaused ? (
-                    <span className="scheduleBadge scheduleBadgePaused">Paused</span>
+                    <span className="scheduleBadge scheduleBadgePaused">{t('control.paused')}</span>
                   ) : null}
                 </div>
                 <div className="programScheduleRowMeta">

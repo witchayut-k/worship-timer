@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale'
+
 type Props = {
   value: string
   leaderNames: string[]
@@ -8,14 +10,16 @@ type Props = {
 }
 
 export function LeaderPicker({ value, leaderNames, listId, hideLabel, onChange, onCommit }: Props) {
+  const { t } = useLocale()
+
   return (
     <label className="field">
-      {hideLabel ? null : <div className="label">ผู้ดำเนินรายการ</div>}
+      {hideLabel ? null : <div className="label">{t('leaderPicker.label')}</div>}
       <input
         list={listId}
         value={value}
-        placeholder="เลือกหรือพิมพ์ชื่อใหม่"
-        aria-label={hideLabel ? 'ผู้นำ / ผู้พูด' : undefined}
+        placeholder={t('leaderPicker.placeholder')}
+        aria-label={hideLabel ? t('leaderPicker.ariaLeader') : undefined}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => onCommit?.(value)}
       />

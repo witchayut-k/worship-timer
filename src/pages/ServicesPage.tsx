@@ -10,18 +10,18 @@ import {
 import type { EventStatus } from '../domain/types'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
+import { useLocale } from '../i18n/useLocale'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { listEventsForUser } from '../lib/firestoreRepo'
 import { listLocalEvents } from '../lib/localLibrary'
 
-const STATUS_LABEL: Record<EventStatus, string> = {
-  draft: 'ร่าง',
-  active: 'พร้อม',
-  ended: 'จบแล้ว',
-}
-
 function StatusBadge({ status }: { status: EventStatus }) {
-  return <span className={`serviceStatusBadge serviceStatusBadge--${status}`}>{STATUS_LABEL[status]}</span>
+  const { t } = useLocale()
+  return (
+    <span className={`serviceStatusBadge serviceStatusBadge--${status}`}>
+      {t(`services.status.${status}`)}
+    </span>
+  )
 }
 
 type PendingSwitch = {
@@ -31,6 +31,7 @@ type PendingSwitch = {
 
 export function ServicesPage() {
   const nav = useNavigate()
+  const { t, locale } = useLocale()
   const { activeControl, setActiveControl, endActiveControl } = useActiveControl()
   const { user, uid, ready, canUseAuth, signIn, signOut } = useAuth()
   const [entries, setEntries] = useState<ServiceListEntry[]>([])
@@ -59,26 +60,27 @@ export function ServicesPage() {
         )
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'โหลดรายการไม่สำเร็จ')
+      setError(e instanceof Error ? e.message : t('services.loadFailed'))
       setEntries([])
-    } finally {
-      setLoading(false)
     }
-  }, [cloudMode, uid])
+  }, [cloudMode, t, uid])
 
   useEffect(() => {
     if (!ready) return
     void refresh()
   }, [ready, refresh])
 
-  const filtered = useMemo(() => filterServiceEntries(entries, search), [entries, search])
-  const groups = useMemo(() => groupServicesByDate(filtered), [filtered])
+  const filtered = useMemo(
+    () => filterServiceEntries(entries, search, locale),
+    [entries, locale, search],
+  )
+  const groups = useMemo(() => groupServicesByDate(filtered, locale), [filtered, locale])
 
   const storageHint = cloudMode
-    ? 'ซิงก์กับ Cloud แล้ว'
+    ? t('services.storageCloud')
     : canUseAuth
-      ? 'เก็บในเครื่อง — เข้าสู่ระบบเพื่อซิงก์ Cloud'
-      : 'เก็บในเครื่อง (Local)'
+      ? t('services.storageLocalSignIn')
+      : t('services.storageLocal')
 
   const openControl = (session: ServiceListEntry) => {
     if (activeControl && activeControl.eventId !== session.id) {
@@ -99,23 +101,21 @@ export function ServicesPage() {
     <ControlShell activeNav="services">
       {activeControl ? (
         <div className="servicesActiveBanner">
-          <span>
-            กำลังควบคุม «{activeControl.title}» · Timer ยังทำงานอยู่
-          </span>
+          <span>{t('services.activeBanner', { title: activeControl.title })}</span>
           <div className="servicesActiveBannerActions">
             <button
               className="btn btnSm"
               type="button"
               onClick={() => nav(`/start/${activeControl.eventId}`)}
             >
-              กลับห้องควบคุม
+              {t('services.backToControl')}
             </button>
             <button
               className="btnDanger btnSm"
               type="button"
               onClick={() => void endActiveControl()}
             >
-              จบการควบคุม
+              {t('services.endControl')}
             </button>
           </div>
         </div>
@@ -123,23 +123,23 @@ export function ServicesPage() {
 
       <header className="servicesPageHeader">
         <div className="servicesPageHeaderText">
-          <h1 className="setupPageTitle">รายการนมัสการ</h1>
-          <p className="setupPageDesc">ไลบรารีรอบนมัสการ — {storageHint}</p>
+          <h1 className="setupPageTitle">{t('services.title')}</h1>
+          <p className="setupPageDesc">{t('services.desc', { hint: storageHint })}</p>
         </div>
         <div className="servicesHeaderActions">
           {canUseAuth ? (
             user ? (
               <button className="btnGhost" type="button" onClick={() => void signOut()}>
-                ออกจากระบบ
+                {t('services.signOut')}
               </button>
             ) : (
               <button className="btn" type="button" onClick={() => void signIn().then(() => refresh())}>
-                เข้าสู่ระบบ
+                {t('services.signIn')}
               </button>
             )
           ) : null}
           <Link className="btnPrimary" to="/setup">
-            + สร้างรอบใหม่
+            {t('services.createNew')}
           </Link>
         </div>
       </header>
@@ -152,7 +152,7 @@ export function ServicesPage() {
           <input
             className="servicesSearchInput"
             type="search"
-            placeholder="ค้นหาชื่องานหรือวันที่…"
+            placeholder={t('services.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -162,12 +162,12 @@ export function ServicesPage() {
       {error ? <p className="saveNotice saveNoticeError">{error}</p> : null}
 
       {loading ? (
-        <p className="muted servicesLoading">กำลังโหลดรายการ…</p>
+        <p className="muted servicesLoading">{t('services.loadingList')}</p>
       ) : groups.length === 0 ? (
         <div className="servicesEmpty">
-          <p className="muted">ยังไม่มีรอบในไลบรารี</p>
+          <p className="muted">{t('services.empty')}</p>
           <Link className="btnPrimary" to="/setup">
-            สร้างรอบใหม่
+            {t('services.createNewAction')}
           </Link>
         </div>
       ) : (
@@ -177,7 +177,7 @@ export function ServicesPage() {
               <header className="servicesDateHeader">
                 <h2 className="servicesDateTitle">{group.label}</h2>
                 <span className="servicesDateCount">
-                  {group.sessions.length} รอบ
+                  {t('services.sessionCount', { count: group.sessions.length })}
                 </span>
               </header>
               <ul className="servicesSessionList">
@@ -192,7 +192,7 @@ export function ServicesPage() {
                     >
                       <div className="servicesSessionMain">
                         {isActiveSession ? (
-                          <span className="serviceLiveBadge">กำลังควบคุม</span>
+                          <span className="serviceLiveBadge">{t('services.liveBadge')}</span>
                         ) : (
                           <StatusBadge status={session.data.status} />
                         )}
@@ -200,7 +200,7 @@ export function ServicesPage() {
                       </div>
                       <div className="servicesSessionActions">
                         <Link className="btn btnSm" to={`/setup/${session.id}`}>
-                          แก้ไข
+                          {t('services.edit')}
                         </Link>
                         {canControl ? (
                           isActiveSession ? (
@@ -209,7 +209,7 @@ export function ServicesPage() {
                               type="button"
                               onClick={() => nav(`/start/${session.id}`)}
                             >
-                              กลับห้องควบคุม
+                              {t('services.backToControl')}
                             </button>
                           ) : (
                             <button
@@ -217,12 +217,12 @@ export function ServicesPage() {
                               type="button"
                               onClick={() => openControl(session)}
                             >
-                              ควบคุม
+                              {t('services.control')}
                             </button>
                           )
                         ) : (
-                          <span className="btn btnSm btnDisabled" title="ยังไม่มีรายการโปรแกรม">
-                            ควบคุม
+                          <span className="btn btnSm btnDisabled" title={t('services.noProgram')}>
+                            {t('services.control')}
                           </span>
                         )}
                       </div>
@@ -237,16 +237,16 @@ export function ServicesPage() {
 
       {!loading && groups.length > 0 ? (
         <footer className="servicesListFooter">
-          <p className="muted">ท้ายไลบรารี — สร้างรอบใหม่เพื่อเพิ่มรายการ</p>
+          <p className="muted">{t('services.footer')}</p>
           <Link className="btn" to="/setup">
-            + สร้างรอบใหม่
+            {t('services.createNew')}
           </Link>
         </footer>
       ) : null}
 
       {!hasFirebaseConfig() ? (
         <p className="muted servicesEnvHint">
-          ตั้งค่า Firebase ใน <code>.env.local</code> เพื่อซิงก์ Cloud เมื่อเข้าสู่ระบบ
+          {t('services.firebaseHint', { envFile: '.env.local' })}
         </p>
       ) : null}
 

@@ -7,6 +7,7 @@ import {
   parsePlannedStartMs,
 } from '../domain/schedule'
 import { formatSignedMMSS } from '../domain/time'
+import { useLocale } from '../i18n/useLocale'
 
 type Props = {
   nowMs: number
@@ -25,6 +26,8 @@ export function ControlStatusPanel({
   currentIndex,
   remainingSec,
 }: Props) {
+  const { t } = useLocale()
+
   const scheduleMeta = useMemo(() => {
     if (!eventDate?.trim() || !plannedStartTime?.trim()) return null
     const plannedStartMs = parsePlannedStartMs(eventDate, plannedStartTime, nowMs)
@@ -46,24 +49,24 @@ export function ControlStatusPanel({
     }
   }, [eventDate, plannedStartTime, nowMs, remainingSec, items, currentIndex])
 
-  if (!scheduleMeta) return null
-
   return (
-    <section className="controlStatusPanel" aria-label="สถานะเวลา">
-      <div className="controlStatusGrid">
-        <div className="controlStatusItem">
-          <span className="controlStatusLabel">Cue finish</span>
-          <span className="controlStatusValue timeMono">{scheduleMeta.cueFinishText}</span>
+    <section className="controlStatusPanel" aria-label={t('control.timeStatus')}>
+      {scheduleMeta ? (
+        <div className="controlStatusGrid">
+          <div className="controlStatusItem">
+            <span className="controlStatusLabel">{t('control.cueFinish')}</span>
+            <span className="controlStatusValue timeMono">{scheduleMeta.cueFinishText}</span>
+          </div>
+          <div className="controlStatusItem">
+            <span className="controlStatusLabel">{t('control.overUnder')}</span>
+            <span
+              className={`controlStatusValue timeMono ${scheduleMeta.overUnderLate ? 'controlStatusLate' : 'controlStatusEarly'}`}
+            >
+              {scheduleMeta.overUnderText}
+            </span>
+          </div>
         </div>
-        <div className="controlStatusItem">
-          <span className="controlStatusLabel">Over/Under</span>
-          <span
-            className={`controlStatusValue timeMono ${scheduleMeta.overUnderLate ? 'controlStatusLate' : 'controlStatusEarly'}`}
-          >
-            {scheduleMeta.overUnderText}
-          </span>
-        </div>
-      </div>
+      ) : null}
     </section>
   )
 }

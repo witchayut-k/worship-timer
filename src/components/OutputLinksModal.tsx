@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { StageCircleDisplay } from './StageCircleDisplay'
 import type { StageTheme } from '../lib/displayTheme'
+import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
 
 const STAGE_LAYOUT_PX = 480
@@ -158,6 +159,7 @@ export function OutputLinksModal({
   theme,
   paused = false,
 }: Props) {
+  const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<OutputLinkKind>('controller')
   const [copied, setCopied] = useState(false)
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -200,8 +202,8 @@ export function OutputLinksModal({
   }
 
   const tabs: { kind: OutputLinkKind; label: string; thumb: ReactNode }[] = [
-    { kind: 'controller', label: 'Controller', thumb: <ControllerTabThumb /> },
-    { kind: 'stage', label: 'Stage display', thumb: <StageTabThumb /> },
+    { kind: 'controller', label: t('modal.controllerTab'), thumb: <ControllerTabThumb /> },
+    { kind: 'stage', label: t('modal.stageTab'), thumb: <StageTabThumb /> },
   ]
 
   return (
@@ -221,20 +223,20 @@ export function OutputLinksModal({
         <header className="modalHeader">
           <h2 id="output-links-title" className="modalTitle outputLinksModalTitle">
             <MonitorIcon />
-            Output Links
+            {t('modal.outputLinksTitle')}
           </h2>
           <button
             ref={closeRef}
             className="btnGhost modalClose"
             type="button"
             onClick={onClose}
-            aria-label="ปิด"
+            aria-label={t('common.close')}
           >
             ✕
           </button>
         </header>
 
-        <div className="outputLinksTabs" role="tablist" aria-label="Output types">
+        <div className="outputLinksTabs" role="tablist" aria-label={t('modal.outputTypes')}>
           {tabs.map((tab) => (
             <button
               key={tab.kind}
@@ -253,7 +255,7 @@ export function OutputLinksModal({
         <div className="modalBody outputLinksBody">
           <div className="outputLinksPreviewCol">
             <div className="outputLinksPreviewLabel">
-              {activeTab === 'stage' ? 'Stage Preview' : 'Controller Preview'}
+              {activeTab === 'stage' ? t('modal.stagePreview') : t('modal.controllerPreview')}
             </div>
             {activeTab === 'stage' ? (
               <StagePreviewFrame
@@ -274,25 +276,21 @@ export function OutputLinksModal({
           </div>
 
           <div className="outputLinksInfoCol">
-            <h3 className="outputLinksInfoTitle">{activeLink.label}</h3>
+            <h3 className="outputLinksInfoTitle">
+              {activeTab === 'controller' ? t('modal.controllerTab') : t('modal.stageTab')}
+            </h3>
             {activeTab === 'controller' ? (
-              <p className="outputLinksInfoText">
-                ห้องควบคุม timer และโปรแกรม — ใช้สำหรับผู้ควบคุมที่ต้อง Start/Pause, เปลี่ยน segment
-                และจัดการจอ Stage
-              </p>
+              <p className="outputLinksInfoText">{t('modal.controllerDesc')}</p>
             ) : (
               <>
-                <p className="outputLinksInfoText">
-                  จอแสดงผลเต็มหน้าจอสำหรับคนดูบนเวที — แสดง timer, segment ปัจจุบัน และ segment ถัดไป
-                  ในโหมด kiosk (ไม่มีเมนู)
-                </p>
+                <p className="outputLinksInfoText">{t('modal.stageDesc')}</p>
                 <button className="btnPrimary btnSm" type="button" onClick={openLink}>
-                  เปิดจอเต็ม
+                  {t('control.openFullscreen')}
                 </button>
               </>
             )}
             <div className="outputLinksPath">
-              <span className="outputLinksPathLabel">Path</span>
+              <span className="outputLinksPathLabel">{t('common.path')}</span>
               <code>{activeLink.path}</code>
             </div>
           </div>
@@ -308,11 +306,11 @@ export function OutputLinksModal({
               aria-label="Output link URL"
             />
             <button className="btnGhost" type="button" onClick={copyUrl}>
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? t('common.copied') : t('common.copy')}
             </button>
           </div>
           <button className="outputLinksOpenLink btnGhost" type="button" onClick={openLink}>
-            Open Link ↗
+            {t('common.openLink')}
           </button>
         </footer>
       </div>

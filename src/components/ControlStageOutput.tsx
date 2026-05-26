@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/useLocale'
+
 type Props = {
   blackout: boolean
   manualFlashActive: boolean
@@ -11,9 +13,11 @@ export function ControlStageOutput({
   onBlackoutChange,
   onFlashTrigger,
 }: Props) {
+  const { t } = useLocale()
+
   return (
-    <section className="controlStageOutput" aria-label="ควบคุมจอ Stage">
-      <span className="controlStageOutputLabel">จอ Stage</span>
+    <section className="controlStageOutput" aria-label={t('control.stageControl')}>
+      <span className="controlStageOutputLabel">{t('control.stageLabel')}</span>
       <div className="controlStageOutputActions">
         <button
           className={`btnGhost ${blackout ? 'controlStageOutputActive' : ''}`}
@@ -21,7 +25,7 @@ export function ControlStageOutput({
           aria-pressed={blackout}
           onClick={() => onBlackoutChange(!blackout)}
         >
-          Blackout
+          {t('control.blackout')}
         </button>
         <button
           className={`btnGhost ${manualFlashActive ? 'controlFlashBtnActive' : ''}`}
@@ -29,7 +33,7 @@ export function ControlStageOutput({
           aria-pressed={manualFlashActive}
           onClick={onFlashTrigger}
         >
-          Flash
+          {t('control.flash')}
         </button>
       </div>
     </section>

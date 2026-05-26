@@ -18,6 +18,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { DurationInput } from './DurationInput'
 import { LeaderPicker } from './LeaderPicker'
 import type { ProgramItem } from '../domain/types'
+import { useLocale } from '../i18n/useLocale'
 
 export type DraftItem = ProgramItem & { id: string }
 
@@ -61,6 +62,7 @@ function SortableRow({
   onRemove,
   onLeaderCommit,
 }: SortableRowProps) {
+  const { t } = useLocale()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -90,7 +92,7 @@ function SortableRow({
         {...attributes}
         {...listeners}
         onClick={(e) => e.stopPropagation()}
-        aria-label="ลากเพื่อเรียงลำดับ"
+        aria-label={t('setupSegment.dragHandle')}
       >
         ⋮⋮
       </div>
@@ -98,7 +100,7 @@ function SortableRow({
         <input
           value={item.name}
           onChange={(e) => onUpdate(item.id, { name: e.target.value })}
-          aria-label="ชื่อรายการ"
+          aria-label={t('setupSegment.itemName')}
         />
       </div>
       <div className="segmentColLeader" onClick={(e) => e.stopPropagation()}>
@@ -121,16 +123,16 @@ function SortableRow({
         <input
           value={item.roomLights ?? ''}
           onChange={(e) => onUpdate(item.id, { roomLights: e.target.value })}
-          placeholder="ไฟในห้อง"
-          aria-label="ไฟในห้องประชุม"
+          placeholder={t('setupSegment.roomLightsPlaceholder')}
+          aria-label={t('setupSegment.roomLightsAria')}
         />
       </div>
       <div className="field segmentColMedia" onClick={(e) => e.stopPropagation()}>
         <input
           value={item.mediaNote ?? ''}
           onChange={(e) => onUpdate(item.id, { mediaNote: e.target.value })}
-          placeholder="มีเดีย"
-          aria-label="มีเดีย"
+          placeholder={t('setupSegment.mediaPlaceholder')}
+          aria-label={t('setupSegment.mediaAria')}
         />
       </div>
       <button
@@ -141,7 +143,7 @@ function SortableRow({
           onRemove(item.id)
         }}
       >
-        ลบ
+        {t('common.delete')}
       </button>
     </div>
   )
@@ -158,6 +160,7 @@ export function SetupSegmentList({
   onRemove,
   onLeaderCommit,
 }: SetupSegmentListProps) {
+  const { t } = useLocale()
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -174,11 +177,11 @@ export function SetupSegmentList({
       <div className="segmentTable">
         <div className="segmentTableHead" aria-hidden>
           <span />
-          <span>ชื่อรายการ</span>
-          <span>ผู้นำ / ผู้พูด</span>
-          <span>ระยะเวลา</span>
-          <span>ไฟ</span>
-          <span>มีเดีย</span>
+          <span>{t('setupSegment.colName')}</span>
+          <span>{t('setupSegment.colLeader')}</span>
+          <span>{t('setupSegment.colDuration')}</span>
+          <span>{t('setupSegment.colLights')}</span>
+          <span>{t('setupSegment.colMedia')}</span>
           <span />
         </div>
         <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>

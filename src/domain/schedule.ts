@@ -1,3 +1,5 @@
+import type { AppLocale } from '../i18n/types'
+import { toIntlLocale } from '../i18n/translate'
 import type { ProgramItem } from './types'
 
 export function parsePlannedStartMs(date: string, time: string, nowMs: number): number | null {
@@ -94,8 +96,8 @@ export function getTimezoneLabel(): string {
   }
 }
 
-export function formatLocalDateShort(nowMs: number): string {
-  return new Intl.DateTimeFormat('th-TH', {
+export function formatLocalDateShort(nowMs: number, locale: AppLocale = 'en'): string {
+  return new Intl.DateTimeFormat(toIntlLocale(locale), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

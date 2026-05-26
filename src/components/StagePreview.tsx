@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from 'react'
 import { StageCircleDisplay } from './StageCircleDisplay'
 import type { StageTheme } from '../lib/displayTheme'
+import { useLocale } from '../i18n/useLocale'
 
 const STAGE_LAYOUT_PX = 480
 
@@ -31,6 +32,7 @@ export function StagePreview({
   theme,
   paused = false,
 }: Props) {
+  const { t } = useLocale()
   const frameRef = useRef<HTMLDivElement>(null)
   const scaleRef = useRef<HTMLDivElement>(null)
   const displayRef = useRef<HTMLDivElement>(null)
@@ -75,9 +77,9 @@ export function StagePreview({
   return (
     <div className="stagePreviewDock">
       <div className="stagePreviewHeader">
-        <span className="stagePreviewLabel">Preview จอ Stage</span>
+        <span className="stagePreviewLabel">{t('control.stagePreview')}</span>
         <button className="btnGhost btnSm" type="button" onClick={() => openStage(eventId)}>
-          เปิดจอเต็ม
+          {t('control.openFullscreen')}
         </button>
       </div>
       <div className="stagePreviewFrame" ref={frameRef} aria-hidden>
