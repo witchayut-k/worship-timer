@@ -6,8 +6,6 @@
   --muted: rgba(255, 255, 255, 0.66);
   --brand: #7aa2ff;
   --danger: #ff4d4d;
-  --timerBlue: #0b2a6f;
-  --timerAmber: #8a5a00;
   --timerOver: #8b1010;
   --scrollbar-size: 8px;
   --scrollbar-track: transparent;
@@ -288,23 +286,23 @@ input:focus {
   letter-spacing: 1px;
   padding: 22px 14px;
   text-align: center;
-  background: var(--timerBlue);
-  color: white;
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
-.timerNormal .timerValue,
-.viewerTimer.timerNormal {
-  background: var(--timerBlue);
+.timerNormal .timerValue {
+  color: var(--text);
 }
-.timerWarning .timerValue,
-.viewerTimer.timerWarning {
-  background: var(--timerAmber);
+.timerWarning .timerValue {
+  color: #f5a623;
+  box-shadow: inset 4px 0 0 #f5a623;
 }
-.timerOver .timerValue,
-.viewerTimer.timerOver {
-  background: var(--timerOver);
+.timerOver .timerValue {
+  color: #ff6b5a;
+  box-shadow: inset 4px 0 0 var(--danger);
 }
-.timerFlash .timerValue,
-.viewerTimer.timerFlash {
+.timerFlash .timerValue {
   animation: timerPulse 1s ease-in-out infinite;
 }
 
@@ -438,6 +436,14 @@ input:focus {
   justify-content: center;
   padding: 16px;
   min-height: 0;
+  position: relative;
+}
+
+.viewerBlackout {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 20;
 }
 .viewerFooter {
   padding: 12px 18px;
@@ -571,16 +577,32 @@ input:focus {
     0 0 32px var(--stage-secondary-glow);
 }
 .stageFlash .stageRingProgress,
+.stageFlash .stageRingProgressGlow,
 .stageFlash .stageTimerValue {
-  animation: stagePulse 1s ease-in-out infinite;
+  animation: stagePulse 0.5s ease-in-out infinite;
+}
+.stageDisplay.stagePaused .stageRingProgressGlow {
+  opacity: 0.18;
+}
+.stageDisplay.stagePaused .stageTimerValue {
+  opacity: 0.82;
+  text-shadow:
+    0 0 12px var(--stage-glow),
+    0 0 24px rgba(46, 230, 214, 0.1);
+}
+.stageDisplay.stagePaused .stageRemainingLabel {
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.32em;
 }
 @keyframes stagePulse {
   0%,
   100% {
+    filter: brightness(1);
     opacity: 1;
   }
   50% {
-    opacity: 0.82;
+    filter: brightness(1.6);
+    opacity: 1;
   }
 }
 
@@ -683,6 +705,32 @@ input:focus {
 
 .sidebarNavItemButton {
   appearance: none;
+}
+
+.sidebarNavDivider {
+  height: 1px;
+  margin: 10px 16px 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebarNavSectionLabel {
+  padding: 4px 18px 6px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+.sidebarNavItemMuted {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.sidebarNavItemMuted:hover:not(.sidebarNavItemDisabled) {
+  color: var(--text);
 }
 
 .controlMain {
@@ -825,52 +873,168 @@ input:focus {
   color: var(--muted);
 }
 
-.stagePreviewDock {
-  flex-shrink: 0;
-  margin-top: auto;
-  border-top: 1px solid var(--border);
-  padding: 12px 14px 16px;
-  background: rgba(0, 0, 0, 0.2);
+.controlTimerProgress {
+  padding: 0 14px 12px;
+  background: rgba(0, 0, 0, 0.12);
 }
 
-.stagePreviewHeader {
+.controlTimerProgressTrack {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.controlTimerProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.72);
+  transition: width 0.2s linear;
+}
+
+.controlTimerProgressOver .controlTimerProgressFill {
+  background: var(--timerOver);
+}
+
+.controlTimerProgressTick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.controlTimerProgressLabels {
+  position: relative;
+  height: 18px;
+  margin-top: 6px;
+}
+
+.controlTimerProgressLabels span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.controlStatusPanel {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.controlWallClock {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.controlStatusMeta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.controlStatusMetaSep {
+  opacity: 0.5;
+}
+
+.controlStatusGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.controlStatusItem {
+  display: grid;
+  gap: 4px;
+}
+
+.controlStatusLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.controlStatusValue {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.controlStatusLate {
+  color: var(--timerOver);
+}
+
+.controlStatusEarly {
+  color: #6ee7a8;
+}
+
+.controlStageOutput {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.14);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.stagePreviewLabel {
+.controlStageOutputLabel {
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
 }
 
-.stagePreviewFrame {
-  overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #000;
-  height: 200px;
+.controlStageOutputActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.controlStageOutputActive {
+  border-color: rgba(122, 162, 255, 0.55);
+  background: rgba(122, 162, 255, 0.12);
+}
+
+.programScheduleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.programScheduleRow.active .programSchedulePick {
+  border-color: rgba(122, 162, 255, 0.45);
+}
+
+.programScheduleRowTimes {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
 }
 
-.stagePreviewScale {
-  flex-shrink: 0;
-  pointer-events: none;
+.programSchedulePlanned {
+  font-size: 11px;
 }
 
-.stagePreviewDisplayWrap {
-  transform-origin: top left;
-}
-
-.stagePreviewDisplayWrap .stageDisplay {
-  width: 480px;
-  max-width: none;
-  aspect-ratio: 1;
+.programScheduleRowActions {
+  display: flex;
+  gap: 6px;
+  padding: 0 4px 4px;
 }
 
 .setupMainGrid {
@@ -1353,6 +1517,39 @@ input:focus {
   align-items: center;
 }
 
+.servicesActiveBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 162, 255, 0.35);
+  background: rgba(122, 162, 255, 0.1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.servicesSessionCard--active {
+  border-color: rgba(122, 162, 255, 0.45);
+  background: rgba(122, 162, 255, 0.06);
+}
+
+.serviceLiveBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  width: fit-content;
+  color: var(--brand);
+  background: rgba(122, 162, 255, 0.15);
+}
+
 .servicesToolbar {
   margin-bottom: 20px;
 }
@@ -1564,10 +1761,6 @@ input:focus {
     border-top: 1px solid var(--border);
     height: auto;
     max-height: min(45dvh, 420px);
-  }
-
-  .stagePreviewFrame {
-    height: 160px;
   }
 
   .setupMainGrid {

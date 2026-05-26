@@ -11,6 +11,7 @@ type Props = {
   nextName: string | null
   nextLeader: string | null
   theme: StageTheme
+  paused?: boolean
 }
 
 const RING_RADIUS = 196
@@ -42,6 +43,7 @@ export function StageCircleDisplay({
   nextName,
   nextLeader,
   theme,
+  paused = false,
 }: Props) {
   const ring = useMemo(
     () => computeRingDash({ remainingSec, durationSec, radius: RING_RADIUS }),
@@ -53,7 +55,8 @@ export function StageCircleDisplay({
   const timeText = formatSignedMMSS(remainingSec)
   const speakerName = currentLeader.trim() || '—'
 
-  const rootClass = `stageDisplay stageTheme-${theme.variant}${theme.flash ? ' stageFlash' : ''}`
+  const rootClass = `stageDisplay stageTheme-${theme.variant}${theme.flash ? ' stageFlash' : ''}${paused ? ' stagePaused' : ''}`
+  const timerAriaLabel = paused ? `timer paused, ${timeText}` : 'timer'
 
   const style = {
     '--stage-accent': theme.accent,
@@ -139,8 +142,8 @@ export function StageCircleDisplay({
         </svg>
 
         <div className="stageCenter">
-          <div className="stageRemainingLabel">REMAINING</div>
-          <div className="stageTimerValue" aria-live="polite" aria-label="timer">
+          <div className="stageRemainingLabel">{paused ? 'PAUSED' : 'REMAINING'}</div>
+          <div className="stageTimerValue" aria-live="polite" aria-label={timerAriaLabel}>
             {timeText}
           </div>
           <div className="stageSpeakerBlock">

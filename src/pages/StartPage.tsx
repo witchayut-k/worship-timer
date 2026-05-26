@@ -1,14 +1,20 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
+import { ControlStageOutput } from '../components/ControlStageOutput'
+import { ControlStatusPanel } from '../components/ControlStatusPanel'
+import { ControlTimerProgress } from '../components/ControlTimerProgress'
 import { DurationInput } from '../components/DurationInput'
 import { EventLinks } from '../components/EventLinks'
+import { LeaveControlModal } from '../components/LeaveControlModal'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
-import { StagePreview } from '../components/StagePreview'
 import type { ProgramItem, WorshipEvent } from '../domain/types'
 import { resolveEventSettings } from '../domain/types'
+import { isManualFlashActive } from '../domain/stageOutput'
 import { formatSignedMMSS } from '../domain/time'
-import { getStageTheme, getTimerThemeClasses } from '../lib/displayTheme'
+import { useActiveControl } from '../hooks/useActiveControl'
+import { useLeaveControl } from '../hooks/useLeaveControl'
+import { getTimerThemeClasses } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
 import { loadStoredLocalRuntime, publishLocalRuntime } from '../lib/localSync'
@@ -19,7 +25,12 @@ import {
   watchRuntimeState,
   writeRuntimeState,
 } from '../lib/firestoreRepo'
-import { deriveLocalDisplay, initialRuntimeState, reduceRuntimeState } from '../lib/runtimeEngine'
+import {
+  deriveLocalDisplay,
+  initialRuntimeState,
+  normalizeRuntimeState,
+  reduceRuntimeState,
+} from '../lib/runtimeEngine'
 
 export function StartPage() {
   const { eventId = '' } = useParams()
@@ -27,6 +38,7 @@ export function StartPage() {
 }
 
 function StartPageInner({ eventId }: { eventId: string }) {
+  const { setActiveControl, isProductionForEvent } = useActiveControl()
   const local = useMemo(() => resolveEventPayload(eventId), [eventId])
 
   const [title, setTitle] = useState(() => local?.event.title ?? 'Worship Timer')
@@ -39,16 +51,21 @@ function StartPageInner({ eventId }: { eventId: string }) {
     ({ eventId: eid, items: programItems }) => {
       if (isOfflineEventId(eid)) {
         const stored = loadStoredLocalRuntime(eid)
-        if (stored) return stored
+        if (stored) return normalizeRuntimeState(stored)
       }
       return initialRuntimeState({ items: programItems })
     },
   )
-  const nowMs = useNowMs(state.phase === 'running' ? 200 : 1000)
+  const flashPending = state.manualFlashUntilMs != null
+  const nowMs = useNowMs(state.phase === 'running' || flashPending ? 200 : 1000)
   const display = deriveLocalDisplay({ state, nowMs })
   const settings = resolveEventSettings(eventMeta)
-  const timerClass = getTimerThemeClasses({ remainingSec: display.remainingSec, settings })
-  const stageTheme = getStageTheme({ remainingSec: display.remainingSec, settings })
+  const manualFlashActive = isManualFlashActive(state.manualFlashUntilMs, nowMs)
+  const timerClass = getTimerThemeClasses({
+    remainingSec: display.remainingSec,
+    settings,
+    manualFlash: manualFlashActive,
+  })
 
   const current = items[state.currentIndex] ?? null
   const prev = state.currentIndex > 0 ? items[state.currentIndex - 1] : null
@@ -123,8 +140,24 @@ function StartPageInner({ eventId }: { eventId: string }) {
     publishLocalRuntime(eventId, state)
   }, [eventId, isLocal, state])
 
+  useEffect(() => {
+    if (state.phase === 'running' || state.phase === 'paused') {
+      setActiveControl(eventId, title)
+    }
+  }, [eventId, title, state.phase, setActiveControl])
+
+  const productionMode = isProductionForEvent(eventId)
+  const {
+    leaveModalOpen,
+    leaveModalTitle,
+    requestLeave,
+    confirmLeave,
+    cancelLeave,
+  } = useLeaveControl(productionMode)
+
   const start = () => {
     if (!current) return
+    setActiveControl(eventId, title)
     dispatch({ type: 'start', nowMs: Date.now() })
   }
 
@@ -146,6 +179,14 @@ function StartPageInner({ eventId }: { eventId: string }) {
     dispatch({ type: 'adjust', nowMs: Date.now(), deltaSec: delta })
   }
 
+  const setBlackout = (enabled: boolean) => {
+    dispatch({ type: 'setBlackout', nowMs: Date.now(), enabled })
+  }
+
+  const triggerFlash = () => {
+    dispatch({ type: 'triggerManualFlash', nowMs: Date.now() })
+  }
+
   const updateCurrentDuration = (newSec: number) => {
     if (!current) return
     setItems((prevItems) =>
@@ -157,7 +198,13 @@ function StartPageInner({ eventId }: { eventId: string }) {
   }
 
   return (
-    <ControlShell activeNav="control" eventId={eventId} eventTitle={title}>
+    <ControlShell
+      activeNav="control"
+      eventId={eventId}
+      eventTitle={title}
+      productionMode={productionMode}
+      onLeaveToServices={requestLeave}
+    >
       <div className="controlWorkspace">
         <div className="controlContent">
           {isCloud && !hasFirebaseConfig() ? (
@@ -188,82 +235,103 @@ function StartPageInner({ eventId }: { eventId: string }) {
           ) : (
             <>
               <section className={`timerCard ${timerClass}`}>
-              <div className="timerMeta">
-                <div className="metaLine">
-                  <span className="metaKey">Prev</span>
-                  <span className="metaVal">
-                    {prev ? `${prev.name}${prev.leaderName ? ` — ${prev.leaderName}` : ''}` : '-'}
-                  </span>
+                <div className="timerMeta">
+                  <div className="metaLine">
+                    <span className="metaKey">Prev</span>
+                    <span className="metaVal">
+                      {prev ? `${prev.name}${prev.leaderName ? ` — ${prev.leaderName}` : ''}` : '-'}
+                    </span>
+                  </div>
+                  <div className="metaLine">
+                    <span className="metaKey">Current</span>
+                    <span className="metaVal">
+                      <b>{current.name}</b>
+                      {current.leaderName ? <span className="muted"> — {current.leaderName}</span> : null}
+                    </span>
+                  </div>
+                  <div className="metaLine">
+                    <span className="metaKey">Next</span>
+                    <span className="metaVal">
+                      {next ? `${next.name}${next.leaderName ? ` — ${next.leaderName}` : ''}` : '-'}
+                    </span>
+                  </div>
                 </div>
-                <div className="metaLine">
-                  <span className="metaKey">Current</span>
-                  <span className="metaVal">
-                    <b>{current.name}</b>
-                    {current.leaderName ? <span className="muted"> — {current.leaderName}</span> : null}
-                  </span>
+
+                <div className="timerValue" aria-label="timer">
+                  {timeText}
                 </div>
-                <div className="metaLine">
-                  <span className="metaKey">Next</span>
-                  <span className="metaVal">
-                    {next ? `${next.name}${next.leaderName ? ` — ${next.leaderName}` : ''}` : '-'}
-                  </span>
-                </div>
-              </div>
 
-              <div className="timerValue" aria-label="timer">
-                {timeText}
-              </div>
+                <ControlTimerProgress
+                  remainingSec={display.remainingSec}
+                  durationSec={current.durationSec}
+                />
 
-              <div className="controls">
-                <button
-                  className="btnGhost"
-                  type="button"
-                  onClick={() => jumpTo(state.currentIndex - 1)}
-                  disabled={state.currentIndex === 0}
-                >
-                  ◀ Prev
-                </button>
+                <div className="controls">
+                  <button
+                    className="btnGhost"
+                    type="button"
+                    onClick={() => jumpTo(state.currentIndex - 1)}
+                    disabled={state.currentIndex === 0}
+                  >
+                    ◀ Prev
+                  </button>
 
-                {state.phase !== 'running' ? (
-                  <button className="btnPrimary" type="button" onClick={start}>
-                    Start
-                  </button>
-                ) : (
-                  <button className="btn" type="button" onClick={pause}>
-                    Pause
-                  </button>
-                )}
+                  {state.phase !== 'running' ? (
+                    <button className="btnPrimary" type="button" onClick={start}>
+                      Start
+                    </button>
+                  ) : (
+                    <button className="btn" type="button" onClick={pause}>
+                      Pause
+                    </button>
+                  )}
 
-                <button
-                  className="btnGhost"
-                  type="button"
-                  onClick={() => jumpTo(state.currentIndex + 1)}
-                  disabled={state.currentIndex + 1 >= items.length}
-                >
-                  Next ▶
-                </button>
-              </div>
-
-              <div className="controls">
-                <button className="btn" type="button" onClick={resetCurrent}>
-                  Reset
-                </button>
-                <div className="pillGroup">
-                  <button className="btnGhost" type="button" onClick={() => adjustSec(-60)}>
-                    -60s
-                  </button>
-                  <button className="btnGhost" type="button" onClick={() => adjustSec(-10)}>
-                    -10s
-                  </button>
-                  <button className="btnGhost" type="button" onClick={() => adjustSec(+10)}>
-                    +10s
-                  </button>
-                  <button className="btnGhost" type="button" onClick={() => adjustSec(+60)}>
-                    +60s
+                  <button
+                    className="btnGhost"
+                    type="button"
+                    onClick={() => jumpTo(state.currentIndex + 1)}
+                    disabled={state.currentIndex + 1 >= items.length}
+                  >
+                    Next ▶
                   </button>
                 </div>
-              </div>
-            </section>
+
+                <div className="controls">
+                  <button className="btn" type="button" onClick={resetCurrent}>
+                    Reset
+                  </button>
+                  <div className="pillGroup">
+                    <button className="btnGhost" type="button" onClick={() => adjustSec(-60)}>
+                      -60s
+                    </button>
+                    <button className="btnGhost" type="button" onClick={() => adjustSec(-10)}>
+                      -10s
+                    </button>
+                    <button className="btnGhost" type="button" onClick={() => adjustSec(+10)}>
+                      +10s
+                    </button>
+                    <button className="btnGhost" type="button" onClick={() => adjustSec(+60)}>
+                      +60s
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <ControlStatusPanel
+                nowMs={nowMs}
+                eventDate={eventMeta?.date}
+                plannedStartTime={eventMeta?.plannedStartTime}
+                items={items}
+                currentIndex={state.currentIndex}
+                remainingSec={display.remainingSec}
+              />
+
+              <ControlStageOutput
+                blackout={state.blackout}
+                manualFlashActive={manualFlashActive}
+                onBlackoutChange={setBlackout}
+                onFlashTrigger={triggerFlash}
+              />
 
               <section className="card">
                 <div className="cardHeader">
@@ -288,21 +356,23 @@ function StartPageInner({ eventId }: { eventId: string }) {
               currentIndex={state.currentIndex}
               phase={state.phase}
               displayRemainingSec={display.remainingSec}
+              eventDate={eventMeta?.date}
+              plannedStartTime={eventMeta?.plannedStartTime}
               onJumpTo={jumpTo}
-            />
-            <StagePreview
-              eventId={eventId}
-              remainingSec={display.remainingSec}
-              durationSec={current.durationSec}
-              currentName={current.name}
-              currentLeader={current.leaderName}
-              nextName={next?.name ?? null}
-              nextLeader={next?.leaderName ?? null}
-              theme={stageTheme}
+              onResetCurrent={resetCurrent}
+              onStart={start}
+              onPause={pause}
             />
           </aside>
         ) : null}
       </div>
+
+      <LeaveControlModal
+        open={leaveModalOpen}
+        title={leaveModalTitle}
+        onConfirm={confirmLeave}
+        onCancel={cancelLeave}
+      />
     </ControlShell>
   )
 }

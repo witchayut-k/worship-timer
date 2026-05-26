@@ -1,4 +1,5 @@
 import type { ProgramItem, RuntimePhase, RuntimeState } from '../domain/types'
+import { MANUAL_FLASH_DURATION_MS } from '../domain/stageOutput'
 import { clampInt } from '../domain/time'
 
 export type RuntimeAction =
@@ -8,7 +9,17 @@ export type RuntimeAction =
   | { type: 'jumpTo'; nowMs: number; index: number; items: ProgramItem[]; uid?: string | null }
   | { type: 'adjust'; nowMs: number; deltaSec: number; uid?: string | null }
   | { type: 'setRemaining'; nowMs: number; remainingSec: number; uid?: string | null }
+  | { type: 'setBlackout'; nowMs: number; enabled: boolean; uid?: string | null }
+  | { type: 'triggerManualFlash'; nowMs: number; uid?: string | null }
   | { type: 'hydrate'; state: RuntimeState }
+
+export function normalizeRuntimeState(state: RuntimeState): RuntimeState {
+  return {
+    ...state,
+    blackout: state.blackout ?? false,
+    manualFlashUntilMs: state.manualFlashUntilMs ?? null,
+  }
+}
 
 export function tickRemainingSec(params: { state: RuntimeState; nowMs: number }): number {
   const { state, nowMs } = params
@@ -29,11 +40,13 @@ export function initialRuntimeState(params: { items: ProgramItem[]; uid?: string
     lastTickAtMs: nowMs,
     version: 1,
     updatedByUid: params.uid ?? null,
+    blackout: false,
+    manualFlashUntilMs: null,
   }
 }
 
 export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): RuntimeState {
-  if (action.type === 'hydrate') return action.state
+  if (action.type === 'hydrate') return normalizeRuntimeState(action.state)
 
   const base: RuntimeState = {
     ...prev,
@@ -41,6 +54,8 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
     version: prev.version + 1,
     updatedByUid: action.uid ?? prev.updatedByUid ?? null,
   }
+
+  const clearStageOutput = { blackout: false, manualFlashUntilMs: null as number | null }
 
   switch (action.type) {
     case 'start': {
@@ -75,6 +90,7 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
       const dur = action.items[idx]?.durationSec ?? 0
       return {
         ...base,
+        ...clearStageOutput,
         currentIndex: idx,
         phase: 'stopped',
         startedAtMs: null,
@@ -100,6 +116,18 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
         remainingSec: next,
       }
     }
+    case 'setBlackout': {
+      return {
+        ...base,
+        blackout: action.enabled,
+      }
+    }
+    case 'triggerManualFlash': {
+      return {
+        ...base,
+        manualFlashUntilMs: action.nowMs + MANUAL_FLASH_DURATION_MS,
+      }
+    }
   }
 }
 
@@ -113,4 +141,3 @@ export function deriveLocalDisplay(params: { state: RuntimeState; nowMs: number 
 export function normalizePhase(phase: RuntimePhase): RuntimePhase {
   return phase
 }
-

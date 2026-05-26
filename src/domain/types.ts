@@ -17,6 +17,8 @@ export const DEFAULT_EVENT_DISPLAY_SETTINGS: EventDisplaySettings = {
 export type WorshipEvent = {
   title: string
   date: string // YYYY-MM-DD
+  /** Local time "HH:mm" for planned service start (optional). */
+  plannedStartTime?: string
   status: EventStatus
   updatedAtMs: number
   ownerUid?: string
@@ -41,6 +43,8 @@ export type RuntimeState = {
   lastTickAtMs: number
   version: number
   updatedByUid: string | null
+  blackout: boolean
+  manualFlashUntilMs: number | null
 }
 
 export type EventDoc = {

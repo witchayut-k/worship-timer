@@ -49,15 +49,16 @@ const STAGE_COLORS: Record<
 export function getStageTheme(params: {
   remainingSec: number
   settings: EventDisplaySettings
+  manualFlash?: boolean
 }): StageTheme {
-  const { remainingSec, settings } = params
+  const { remainingSec, settings, manualFlash = false } = params
 
   let variant: StageThemeVariant = 'normal'
-  let flash = false
+  let flash = manualFlash
 
   if (remainingSec < 0) {
     variant = settings.overtimeFlash ? 'overFlash' : 'over'
-    flash = settings.overtimeFlash
+    flash = flash || settings.overtimeFlash
   } else if (settings.warningAtOneMinute && remainingSec > 0 && remainingSec <= 60) {
     variant = 'warning'
   }
@@ -69,10 +70,11 @@ export function getStageTheme(params: {
 export function getTimerThemeClasses(params: {
   remainingSec: number
   settings: EventDisplaySettings
+  manualFlash?: boolean
 }): string {
   const theme = getStageTheme(params)
   if (theme.variant === 'overFlash') return 'timerOver timerFlash'
-  if (theme.variant === 'over') return 'timerOver'
-  if (theme.variant === 'warning') return 'timerWarning'
-  return 'timerNormal'
+  if (theme.variant === 'over') return theme.flash ? 'timerOver timerFlash' : 'timerOver'
+  if (theme.variant === 'warning') return theme.flash ? 'timerWarning timerFlash' : 'timerWarning'
+  return theme.flash ? 'timerNormal timerFlash' : 'timerNormal'
 }

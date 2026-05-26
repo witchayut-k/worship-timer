@@ -7,6 +7,8 @@ type ControlShellProps = {
   activeNav: ControlNav
   eventId?: string | null
   eventTitle?: string
+  productionMode?: boolean
+  onLeaveToServices?: () => void
   aside?: ReactNode
   children: ReactNode
 }
@@ -19,11 +21,76 @@ export function ControlShell({
   activeNav,
   eventId,
   eventTitle,
+  productionMode = false,
+  onLeaveToServices,
   aside,
   children,
 }: ControlShellProps) {
   const statusTitle = eventTitle?.trim() || 'ยังไม่ได้เริ่มงาน'
-  const statusSub = eventId ? 'กำลังผลิตรายการ' : 'ตั้งค่าโปรแกรมก่อนเริ่ม'
+  const statusSub = productionMode
+    ? 'กำลังควบคุม'
+    : eventId
+      ? 'กำลังผลิตรายการ'
+      : 'ตั้งค่าโปรแกรมก่อนเริ่ม'
+
+  const controlLink = eventId ? (
+    <Link
+      className={`sidebarNavItem ${activeNav === 'control' ? 'sidebarNavItemActive' : ''}`}
+      to={`/start/${eventId}`}
+    >
+      ห้องควบคุม
+    </Link>
+  ) : (
+    <span
+      className="sidebarNavItem sidebarNavItemDisabled"
+      title="บันทึกหรือเริ่มงานก่อนเพื่อเข้าห้องควบคุม"
+    >
+      ห้องควบคุม
+    </span>
+  )
+
+  const setupLink = (
+    <Link
+      className={`sidebarNavItem ${activeNav === 'setup' ? 'sidebarNavItemActive' : ''}`}
+      to={eventId ? `/setup/${eventId}` : '/setup'}
+    >
+      ตั้งค่าโปรแกรม
+    </Link>
+  )
+
+  const stageButton = eventId ? (
+    <button
+      className="sidebarNavItem sidebarNavItemButton"
+      type="button"
+      onClick={() => openStage(eventId)}
+    >
+      จอ Stage
+    </button>
+  ) : (
+    <span
+      className="sidebarNavItem sidebarNavItemDisabled"
+      title="บันทึกหรือเริ่มงานก่อนเพื่อเปิดจอ Stage"
+    >
+      จอ Stage
+    </span>
+  )
+
+  const servicesLink = productionMode ? (
+    <button
+      className="sidebarNavItem sidebarNavItemButton sidebarNavItemMuted"
+      type="button"
+      onClick={onLeaveToServices}
+    >
+      ออกไปรายการ…
+    </button>
+  ) : (
+    <Link
+      className={`sidebarNavItem ${activeNav === 'services' ? 'sidebarNavItemActive' : ''}`}
+      to="/services"
+    >
+      รายการนมัสการ
+    </Link>
+  )
 
   return (
     <div className="controlShell">
@@ -41,51 +108,22 @@ export function ControlShell({
         </div>
 
         <nav className="sidebarNav" aria-label="เมนูหลัก">
-          <Link
-            className={`sidebarNavItem ${activeNav === 'services' ? 'sidebarNavItemActive' : ''}`}
-            to="/services"
-          >
-            รายการนมัสการ
-          </Link>
-
-          {eventId ? (
-            <Link
-              className={`sidebarNavItem ${activeNav === 'control' ? 'sidebarNavItemActive' : ''}`}
-              to={`/start/${eventId}`}
-            >
-              ห้องควบคุม
-            </Link>
+          {productionMode ? (
+            <>
+              {controlLink}
+              {setupLink}
+              {stageButton}
+              <div className="sidebarNavDivider" role="separator" />
+              <div className="sidebarNavSectionLabel">ไลบรารี</div>
+              {servicesLink}
+            </>
           ) : (
-            <span
-              className="sidebarNavItem sidebarNavItemDisabled"
-              title="บันทึกหรือเริ่มงานก่อนเพื่อเข้าห้องควบคุม"
-            >
-              ห้องควบคุม
-            </span>
-          )}
-
-          <Link
-            className={`sidebarNavItem ${activeNav === 'setup' ? 'sidebarNavItemActive' : ''}`}
-            to={eventId ? `/setup/${eventId}` : '/setup'}
-          >
-            ตั้งค่าโปรแกรม
-          </Link>
-
-          {eventId ? (
-            <button
-              className="sidebarNavItem sidebarNavItemButton"
-              type="button"
-              onClick={() => openStage(eventId)}
-            >
-              จอ Stage
-            </button>
-          ) : (
-            <span
-              className="sidebarNavItem sidebarNavItemDisabled"
-              title="บันทึกหรือเริ่มงานก่อนเพื่อเปิดจอ Stage"
-            >
-              จอ Stage
-            </span>
+            <>
+              {servicesLink}
+              {controlLink}
+              {setupLink}
+              {stageButton}
+            </>
           )}
         </nav>
       </aside>

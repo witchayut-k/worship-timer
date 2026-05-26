@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
+import { SwitchControlModal } from '../components/LeaveControlModal'
 import {
   filterServiceEntries,
   groupServicesByDate,
   type ServiceListEntry,
 } from '../domain/serviceList'
 import type { EventStatus } from '../domain/types'
+import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { listEventsForUser } from '../lib/firestoreRepo'
@@ -22,13 +24,20 @@ function StatusBadge({ status }: { status: EventStatus }) {
   return <span className={`serviceStatusBadge serviceStatusBadge--${status}`}>{STATUS_LABEL[status]}</span>
 }
 
+type PendingSwitch = {
+  eventId: string
+  title: string
+}
+
 export function ServicesPage() {
   const nav = useNavigate()
+  const { activeControl, setActiveControl } = useActiveControl()
   const { user, uid, ready, canUseAuth, signIn, signOut } = useAuth()
   const [entries, setEntries] = useState<ServiceListEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [pendingSwitch, setPendingSwitch] = useState<PendingSwitch | null>(null)
 
   const cloudMode = canUseAuth && Boolean(uid)
 
@@ -71,8 +80,36 @@ export function ServicesPage() {
       ? 'เก็บในเครื่อง — เข้าสู่ระบบเพื่อซิงก์ Cloud'
       : 'เก็บในเครื่อง (Local)'
 
+  const openControl = (session: ServiceListEntry) => {
+    if (activeControl && activeControl.eventId !== session.id) {
+      setPendingSwitch({ eventId: session.id, title: session.data.title })
+      return
+    }
+    nav(`/start/${session.id}`)
+  }
+
+  const confirmSwitch = () => {
+    if (!pendingSwitch) return
+    setActiveControl(pendingSwitch.eventId, pendingSwitch.title)
+    setPendingSwitch(null)
+    nav(`/start/${pendingSwitch.eventId}`)
+  }
+
   return (
     <ControlShell activeNav="services">
+      {activeControl ? (
+        <div className="servicesActiveBanner">
+          <span>กำลังควบคุม «{activeControl.title}»</span>
+          <button
+            className="btn btnSm"
+            type="button"
+            onClick={() => nav(`/start/${activeControl.eventId}`)}
+          >
+            กลับห้องควบคุม
+          </button>
+        </div>
+      ) : null}
+
       <header className="servicesPageHeader">
         <div className="servicesPageHeaderText">
           <h1 className="setupPageTitle">รายการนมัสการ</h1>
@@ -136,10 +173,18 @@ export function ServicesPage() {
                 {group.sessions.map((session) => {
                   const canControl =
                     session.itemCount === undefined || session.itemCount > 0
+                  const isActiveSession = activeControl?.eventId === session.id
                   return (
-                    <li key={session.id} className="servicesSessionCard">
+                    <li
+                      key={session.id}
+                      className={`servicesSessionCard${isActiveSession ? ' servicesSessionCard--active' : ''}`}
+                    >
                       <div className="servicesSessionMain">
-                        <StatusBadge status={session.data.status} />
+                        {isActiveSession ? (
+                          <span className="serviceLiveBadge">กำลังควบคุม</span>
+                        ) : (
+                          <StatusBadge status={session.data.status} />
+                        )}
                         <div className="servicesSessionTitle">{session.data.title}</div>
                       </div>
                       <div className="servicesSessionActions">
@@ -147,13 +192,23 @@ export function ServicesPage() {
                           แก้ไข
                         </Link>
                         {canControl ? (
-                          <button
-                            className="btnPrimary btnSm"
-                            type="button"
-                            onClick={() => nav(`/start/${session.id}`)}
-                          >
-                            ควบคุม
-                          </button>
+                          isActiveSession ? (
+                            <button
+                              className="btnPrimary btnSm"
+                              type="button"
+                              onClick={() => nav(`/start/${session.id}`)}
+                            >
+                              กลับห้องควบคุม
+                            </button>
+                          ) : (
+                            <button
+                              className="btnPrimary btnSm"
+                              type="button"
+                              onClick={() => openControl(session)}
+                            >
+                              ควบคุม
+                            </button>
+                          )
                         ) : (
                           <span className="btn btnSm btnDisabled" title="ยังไม่มีรายการโปรแกรม">
                             ควบคุม
@@ -183,6 +238,14 @@ export function ServicesPage() {
           ตั้งค่า Firebase ใน <code>.env.local</code> เพื่อซิงก์ Cloud เมื่อเข้าสู่ระบบ
         </p>
       ) : null}
+
+      <SwitchControlModal
+        open={pendingSwitch != null}
+        fromTitle={activeControl?.title ?? ''}
+        toTitle={pendingSwitch?.title ?? ''}
+        onConfirm={confirmSwitch}
+        onCancel={() => setPendingSwitch(null)}
+      />
     </ControlShell>
   )
 }

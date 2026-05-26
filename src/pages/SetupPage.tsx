@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
 import { EventLinks } from '../components/EventLinks'
+import { LeaveControlModal } from '../components/LeaveControlModal'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
 import {
   SpreadsheetImportModal,
@@ -16,7 +17,9 @@ import {
   type WorshipEvent,
 } from '../domain/types'
 import { formatSecToHhMmSs } from '../domain/time'
+import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
+import { useLeaveControl } from '../hooks/useLeaveControl'
 import { isOfflineEventId } from '../lib/eventSource'
 import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
@@ -87,6 +90,7 @@ function SetupPageInner({
 }) {
   const nav = useNavigate()
   const location = useLocation()
+  const { isProductionForEvent } = useActiveControl()
   const focusOrder = (location.state as { focusOrder?: number } | null)?.focusOrder
   const { uid, ready: authReady } = useAuth()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
@@ -94,6 +98,7 @@ function SetupPageInner({
 
   const [title, setTitle] = useState('รอบนมัสการ')
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [plannedStartTime, setPlannedStartTime] = useState('')
   const [settings, setSettings] = useState<EventDisplaySettings>(DEFAULT_EVENT_DISPLAY_SETTINGS)
   const [leaderNames, setLeaderNames] = useState<string[]>([])
   const [items, setItems] = useState<DraftItem[]>([])
@@ -129,6 +134,7 @@ function SetupPageInner({
           if (cancelled) return
           setTitle(entry.event.title)
           setDate(entry.event.date)
+          setPlannedStartTime(entry.event.plannedStartTime ?? '')
           setSettings({ ...DEFAULT_EVENT_DISPLAY_SETTINGS, ...entry.event.settings })
           setLeaderNames(entry.event.leaderNames ?? [])
           setItems(programToDraftItems(entry.items))
@@ -148,6 +154,7 @@ function SetupPageInner({
           if (cancelled) return
           setTitle(ev.data.title)
           setDate(ev.data.date)
+          setPlannedStartTime(ev.data.plannedStartTime ?? '')
           setSettings({ ...DEFAULT_EVENT_DISPLAY_SETTINGS, ...ev.data.settings })
           setLeaderNames(ev.data.leaderNames ?? [])
           setItems(programToDraftItems(programItems))
@@ -203,6 +210,7 @@ function SetupPageInner({
   const buildEvent = (roster: string[]): WorshipEvent => ({
     title,
     date,
+    ...(plannedStartTime.trim() ? { plannedStartTime: plannedStartTime.trim() } : {}),
     status: 'active',
     updatedAtMs: Date.now(),
     settings,
@@ -377,6 +385,14 @@ function SetupPageInner({
 
   const shellEventId = lastEventId
   const saveLabel = cloudMode ? 'บันทึก Cloud' : 'บันทึกในเครื่อง'
+  const productionMode = isProductionForEvent(shellEventId)
+  const {
+    leaveModalOpen,
+    leaveModalTitle,
+    requestLeave,
+    confirmLeave,
+    cancelLeave,
+  } = useLeaveControl(productionMode)
 
   if (loading) {
     return (
@@ -391,6 +407,8 @@ function SetupPageInner({
       activeNav="setup"
       eventId={shellEventId}
       eventTitle={title}
+      productionMode={productionMode}
+      onLeaveToServices={requestLeave}
       aside={
         <SetupAsidePanel
           settings={settings}
@@ -410,9 +428,15 @@ function SetupPageInner({
               กลับห้องควบคุม
             </Link>
           ) : null}
-          <Link className="btnGhost" to="/services">
-            รายการนมัสการ
-          </Link>
+          {productionMode ? (
+            <button className="btnGhost" type="button" onClick={requestLeave}>
+              ออกไปรายการ…
+            </button>
+          ) : (
+            <Link className="btnGhost" to="/services">
+              รายการนมัสการ
+            </Link>
+          )}
           <button className="btnGhost" type="button" onClick={onClearAll} disabled={!items.length}>
             ล้างทั้งหมด
           </button>
@@ -443,6 +467,14 @@ function SetupPageInner({
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </label>
         </div>
+        <label className="field" style={{ marginTop: 10 }}>
+          <div className="label">เวลาเริ่มงานตามแผน (ไม่บังคับ)</div>
+          <input
+            type="time"
+            value={plannedStartTime}
+            onChange={(e) => setPlannedStartTime(e.target.value)}
+          />
+        </label>
       </section>
 
       <div className="durationSummaryBar">
@@ -509,6 +541,13 @@ function SetupPageInner({
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImport={onSpreadsheetImport}
+      />
+
+      <LeaveControlModal
+        open={leaveModalOpen}
+        title={leaveModalTitle}
+        onConfirm={confirmLeave}
+        onCancel={cancelLeave}
       />
     </ControlShell>
   )

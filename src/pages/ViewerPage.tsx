@@ -4,6 +4,7 @@ import { StageCircleDisplay } from '../components/StageCircleDisplay'
 import type { ProgramItem, RuntimePhase, WorshipEvent } from '../domain/types'
 import { resolveEventSettings } from '../domain/types'
 import { computeRemainingSec } from '../domain/time'
+import { isManualFlashActive } from '../domain/stageOutput'
 import { getStageTheme } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
@@ -29,6 +30,8 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
   const [phase, setPhase] = useState<RuntimePhase>('stopped')
   const [baseRemainingSec, setBaseRemainingSec] = useState(() => items[0]?.durationSec ?? 0)
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null)
+  const [blackout, setBlackout] = useState(false)
+  const [manualFlashUntilMs, setManualFlashUntilMs] = useState<number | null>(null)
 
   const nowMs = useNowMs(200)
   const remainingSec = computeRemainingSec({
@@ -39,7 +42,8 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
   })
 
   const settings = resolveEventSettings(eventMeta)
-  const stageTheme = getStageTheme({ remainingSec, settings })
+  const manualFlashActive = isManualFlashActive(manualFlashUntilMs, nowMs)
+  const stageTheme = getStageTheme({ remainingSec, settings, manualFlash: manualFlashActive })
 
   const current = items[currentIndex] ?? null
   const next = currentIndex + 1 < items.length ? items[currentIndex + 1] : null
@@ -64,6 +68,8 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
       setPhase(s.phase)
       setBaseRemainingSec(s.remainingSec)
       setStartedAtMs(s.startedAtMs)
+      setBlackout(s.blackout ?? false)
+      setManualFlashUntilMs(s.manualFlashUntilMs ?? null)
     })
     return () => {
       unsubEvent()
@@ -79,6 +85,8 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
       setPhase(s.phase)
       setBaseRemainingSec(s.remainingSec)
       setStartedAtMs(s.startedAtMs)
+      setBlackout(s.blackout ?? false)
+      setManualFlashUntilMs(s.manualFlashUntilMs ?? null)
     })
   }, [eventId, isLocal])
 
@@ -116,15 +124,19 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
 
       <div className="viewerMain">
         {current ? (
-          <StageCircleDisplay
-            remainingSec={remainingSec}
-            durationSec={current.durationSec}
-            currentName={current.name}
-            currentLeader={current.leaderName}
-            nextName={next?.name ?? null}
-            nextLeader={next?.leaderName ?? null}
-            theme={stageTheme}
-          />
+          <>
+            <StageCircleDisplay
+              remainingSec={remainingSec}
+              durationSec={current.durationSec}
+              currentName={current.name}
+              currentLeader={current.leaderName}
+              nextName={next?.name ?? null}
+              nextLeader={next?.leaderName ?? null}
+              theme={stageTheme}
+              paused={phase === 'paused'}
+            />
+            {blackout ? <div className="viewerBlackout" aria-hidden /> : null}
+          </>
         ) : (
           <div className="stageEmpty muted">ไม่พบรายการโปรแกรม</div>
         )}

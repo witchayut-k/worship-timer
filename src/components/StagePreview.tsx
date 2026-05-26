@@ -13,6 +13,7 @@ type Props = {
   nextName: string | null
   nextLeader: string | null
   theme: StageTheme
+  paused?: boolean
 }
 
 function openStage(eventId: string) {
@@ -28,6 +29,7 @@ export function StagePreview({
   nextName,
   nextLeader,
   theme,
+  paused = false,
 }: Props) {
   const frameRef = useRef<HTMLDivElement>(null)
   const scaleRef = useRef<HTMLDivElement>(null)
@@ -89,6 +91,7 @@ export function StagePreview({
               nextName={nextName}
               nextLeader={nextLeader}
               theme={theme}
+              paused={paused}
             />
           </div>
         </div>
