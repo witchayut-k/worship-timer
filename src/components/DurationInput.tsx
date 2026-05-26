@@ -7,7 +7,7 @@ type Props = {
   label?: string
 }
 
-export function DurationInput({ valueSec, onChangeSec, label = 'เวลา (mm:ss)' }: Props) {
+export function DurationInput({ valueSec, onChangeSec, label }: Props) {
   const [focused, setFocused] = useState(false)
   const [draft, setDraft] = useState(() => formatSecToMmSs(valueSec))
 
@@ -25,11 +25,12 @@ export function DurationInput({ valueSec, onChangeSec, label = 'เวลา (mm
 
   return (
     <label className="field">
-      <div className="label">{label}</div>
+      {label ? <div className="label">{label}</div> : null}
       <input
         value={shown}
         placeholder="05:00"
         inputMode="numeric"
+        aria-label={label ?? 'ระยะเวลา'}
         onFocus={() => {
           setFocused(true)
           setDraft(formatSecToMmSs(valueSec))

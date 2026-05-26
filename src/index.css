@@ -729,15 +729,9 @@ input:focus {
   padding-right: 2px;
 }
 
-.programScheduleRow {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 6px;
-  align-items: start;
-}
-
 .programSchedulePick {
   min-width: 0;
+  width: 100%;
 }
 
 .programScheduleRowTop {
@@ -757,18 +751,6 @@ input:focus {
 .programScheduleTime {
   font-size: 13px;
   font-weight: 700;
-}
-
-.programScheduleEditLink {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  padding: 12px 4px;
-  white-space: nowrap;
-}
-
-.programScheduleEditLink:hover {
-  color: var(--brand);
 }
 
 .scheduleBadge {

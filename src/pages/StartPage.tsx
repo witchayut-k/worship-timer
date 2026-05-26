@@ -270,7 +270,11 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   <h2 className="cardTitle">แก้เวลาโปรแกรมปัจจุบัน</h2>
                   <div className="muted">การแก้ตรงนี้จะตั้งเวลาใหม่และหยุด (กด Start เมื่อพร้อม)</div>
                 </div>
-                <DurationInput valueSec={current.durationSec} onChangeSec={updateCurrentDuration} />
+                <DurationInput
+                  label="เวลา (mm:ss)"
+                  valueSec={current.durationSec}
+                  onChangeSec={updateCurrentDuration}
+                />
               </section>
             </>
           )}

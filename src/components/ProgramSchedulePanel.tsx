@@ -35,46 +35,33 @@ export function ProgramSchedulePanel({
           const isPaused = isCurrent && phase === 'paused'
 
           return (
-            <div
+            <button
               key={`${it.order}-${it.name}-${idx}`}
-              className={`programScheduleRow ${isCurrent ? 'programScheduleRowCurrent' : ''}`}
+              type="button"
+              className={`listPick programSchedulePick ${isCurrent ? 'active' : ''}`}
+              onClick={() => onJumpTo(idx)}
             >
-              <button
-                type="button"
-                className={`listPick programSchedulePick ${isCurrent ? 'active' : ''}`}
-                onClick={() => onJumpTo(idx)}
-              >
-                <div className="programScheduleRowTop">
-                  <div className="listPickTitle">
-                    {it.order}. {it.name}
-                  </div>
-                  {isRunning ? (
-                    <span className="scheduleBadge scheduleBadgeActive">Active</span>
-                  ) : isPaused ? (
-                    <span className="scheduleBadge scheduleBadgePaused">Paused</span>
-                  ) : null}
+              <div className="programScheduleRowTop">
+                <div className="listPickTitle">
+                  {it.order}. {it.name}
                 </div>
-                <div className="programScheduleRowMeta">
-                  <span className="muted">{it.leaderName || '—'}</span>
-                  {isCurrent ? (
-                    <span className="timeMono programScheduleTime">
-                      {formatSignedMMSS(displayRemainingSec)}
-                    </span>
-                  ) : (
-                    <span className="timeMono muted">{formatSecToMmSs(it.durationSec)}</span>
-                  )}
-                </div>
-              </button>
-              <Link
-                className="programScheduleEditLink"
-                to={`/setup/${eventId}`}
-                state={{ focusOrder: it.order }}
-                title="แก้ไขรายการนี้"
-                onClick={(e) => e.stopPropagation()}
-              >
-                แก้ไข
-              </Link>
-            </div>
+                {isRunning ? (
+                  <span className="scheduleBadge scheduleBadgeActive">Active</span>
+                ) : isPaused ? (
+                  <span className="scheduleBadge scheduleBadgePaused">Paused</span>
+                ) : null}
+              </div>
+              <div className="programScheduleRowMeta">
+                <span className="muted">{it.leaderName || '—'}</span>
+                {isCurrent ? (
+                  <span className="timeMono programScheduleTime">
+                    {formatSignedMMSS(displayRemainingSec)}
+                  </span>
+                ) : (
+                  <span className="timeMono muted">{formatSecToMmSs(it.durationSec)}</span>
+                )}
+              </div>
+            </button>
           )
         })}
       </div>

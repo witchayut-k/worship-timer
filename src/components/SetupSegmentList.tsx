@@ -94,18 +94,19 @@ function SortableRow({
       >
         ⋮⋮
       </div>
-      <label className="field segmentColName" onClick={(e) => e.stopPropagation()}>
+      <div className="field segmentColName" onClick={(e) => e.stopPropagation()}>
         <input
           value={item.name}
           onChange={(e) => onUpdate(item.id, { name: e.target.value })}
           aria-label="ชื่อรายการ"
         />
-      </label>
+      </div>
       <div className="segmentColLeader" onClick={(e) => e.stopPropagation()}>
         <LeaderPicker
           listId={`leaders-${item.id}`}
           value={item.leaderName}
           leaderNames={leaderNames}
+          hideLabel
           onChange={(name) => onUpdate(item.id, { leaderName: name })}
           onCommit={onLeaderCommit}
         />
@@ -116,22 +117,22 @@ function SortableRow({
           onChangeSec={(durationSec) => onUpdate(item.id, { durationSec })}
         />
       </div>
-      <label className="field segmentColLights" onClick={(e) => e.stopPropagation()}>
+      <div className="field segmentColLights" onClick={(e) => e.stopPropagation()}>
         <input
           value={item.roomLights ?? ''}
           onChange={(e) => onUpdate(item.id, { roomLights: e.target.value })}
           placeholder="ไฟในห้อง"
           aria-label="ไฟในห้องประชุม"
         />
-      </label>
-      <label className="field segmentColMedia" onClick={(e) => e.stopPropagation()}>
+      </div>
+      <div className="field segmentColMedia" onClick={(e) => e.stopPropagation()}>
         <input
           value={item.mediaNote ?? ''}
           onChange={(e) => onUpdate(item.id, { mediaNote: e.target.value })}
           placeholder="มีเดีย"
           aria-label="มีเดีย"
         />
-      </label>
+      </div>
       <button
         className="btnDanger segmentRowDelete segmentColDelete"
         type="button"
