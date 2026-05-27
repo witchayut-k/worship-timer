@@ -109,7 +109,7 @@ export const en = {
     cloudEnvHint:
       'Cloud: create {envFile} from {envExample} to save and sync in realtime',
     outputLinks: 'Output links',
-    newSegment: 'New item',
+    newSegment: 'New Segment',
     loadLocalNotFound: 'Service not found on this device',
     loadLegacyLocal: 'Legacy local link — create a new service and save it to the library',
     loadCloudNotFound: 'Service not found in Cloud',
@@ -118,7 +118,7 @@ export const en = {
   },
   setupSegment: {
     dragHandle: 'Drag to reorder',
-    itemName: 'Item Name',
+    itemName: 'Segment Name',
     leaderSpeaker: 'Leader / speaker',
     duration: 'Duration',
     lights: 'Lights',
@@ -127,7 +127,7 @@ export const en = {
     roomLightsAria: 'Room Lights',
     mediaPlaceholder: 'Media',
     mediaAria: 'Media',
-    colName: 'Item Name',
+    colName: 'Segment',
     colLeader: 'Leader / speaker',
     colDuration: 'Duration',
     colLights: 'Lights',

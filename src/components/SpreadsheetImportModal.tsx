@@ -29,7 +29,7 @@ function SpreadsheetImportModalInner({
 }) {
   const { t, locale } = useLocale()
   const [text, setText] = useState('')
-  const [mode, setMode] = useState<SpreadsheetImportMode>('replace')
+  const [mode, setMode] = useState<SpreadsheetImportMode>('append')
   const [clipboardError, setClipboardError] = useState<string | null>(null)
 
   const parsed = useMemo(() => parseSpreadsheetTsv(text), [text])
@@ -151,21 +151,21 @@ function SpreadsheetImportModalInner({
               <input
                 type="radio"
                 name="importMode"
-                value="replace"
-                checked={mode === 'replace'}
-                onChange={() => setMode('replace')}
-              />
-              {t('import.replaceAll')}
-            </label>
-            <label className="importModeOption">
-              <input
-                type="radio"
-                name="importMode"
                 value="append"
                 checked={mode === 'append'}
                 onChange={() => setMode('append')}
               />
               {t('import.append')}
+            </label>
+            <label className="importModeOption">
+              <input
+                type="radio"
+                name="importMode"
+                value="replace"
+                checked={mode === 'replace'}
+                onChange={() => setMode('replace')}
+              />
+              {t('import.replaceAll')}
             </label>
           </fieldset>
         </div>

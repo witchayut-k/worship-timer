@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -25,6 +26,8 @@ export type DraftItem = ProgramItem & { id: string }
 type SetupSegmentListProps = {
   items: DraftItem[]
   selectedId: string | null
+  autoFocusId: string | null
+  onAutoFocusDone: () => void
   liveIndex?: number | null
   leaderNames: string[]
   onSelect: (id: string) => void
@@ -44,25 +47,30 @@ function reorderItems(items: DraftItem[], activeId: string, overId: string): Dra
 type SortableRowProps = {
   item: DraftItem
   selected: boolean
+  autoFocus: boolean
   isLive: boolean
   leaderNames: string[]
   onSelect: (id: string) => void
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
   onRemove: (id: string) => void
   onLeaderCommit: (name: string) => void
+  onAutoFocusDone: () => void
 }
 
 function SortableRow({
   item,
   selected,
+  autoFocus,
   isLive,
   leaderNames,
   onSelect,
   onUpdate,
   onRemove,
   onLeaderCommit,
+  onAutoFocusDone,
 }: SortableRowProps) {
   const { t } = useLocale()
+  const nameInputRef = useRef<HTMLInputElement | null>(null)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -71,6 +79,16 @@ function SortableRow({
     transform: CSS.Transform.toString(transform),
     transition,
   }
+
+  useEffect(() => {
+    if (!autoFocus) return
+    const el = nameInputRef.current
+    if (!el) return
+    // Focus + select so user can immediately type over the default name.
+    el.focus()
+    el.select()
+    onAutoFocusDone()
+  }, [autoFocus, onAutoFocusDone])
 
   return (
     <div
@@ -98,6 +116,7 @@ function SortableRow({
       </div>
       <div className="field segmentColName" onClick={(e) => e.stopPropagation()}>
         <input
+          ref={nameInputRef}
           value={item.name}
           onChange={(e) => onUpdate(item.id, { name: e.target.value })}
           aria-label={t('setupSegment.itemName')}
@@ -152,6 +171,8 @@ function SortableRow({
 export function SetupSegmentList({
   items,
   selectedId,
+  autoFocusId,
+  onAutoFocusDone,
   liveIndex = null,
   leaderNames,
   onSelect,
@@ -194,12 +215,14 @@ export function SetupSegmentList({
               key={it.id}
               item={it}
               selected={selectedId === it.id}
+              autoFocus={it.id === autoFocusId}
               isLive={liveIndex != null && idx === liveIndex}
               leaderNames={leaderNames}
               onSelect={onSelect}
               onUpdate={onUpdate}
               onRemove={onRemove}
               onLeaderCommit={onLeaderCommit}
+              onAutoFocusDone={onAutoFocusDone}
             />
           ))}
         </SortableContext>

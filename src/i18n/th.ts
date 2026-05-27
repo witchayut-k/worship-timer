@@ -109,7 +109,7 @@ export const th: Messages = {
     cloudEnvHint:
       'Cloud: สร้าง {envFile} จาก {envExample} เพื่อบันทึกและ sync realtime',
     outputLinks: 'ลิงก์แยกจอ',
-    newSegment: 'รายการใหม่',
+    newSegment: 'ช่วงใหม่',
     loadLocalNotFound: 'ไม่พบรอบในเครื่อง',
     loadLegacyLocal: 'ลิงก์ Local แบบเก่า — สร้างรอบใหม่แล้วบันทึกในไลบรารี',
     loadCloudNotFound: 'ไม่พบรอบใน Cloud',
@@ -118,7 +118,7 @@ export const th: Messages = {
   },
   setupSegment: {
     dragHandle: 'ลากเพื่อเรียงลำดับ',
-    itemName: 'ชื่อรายการ',
+    itemName: 'ชื่อช่วง',
     leaderSpeaker: 'ผู้นำ / ผู้พูด',
     duration: 'ระยะเวลา',
     lights: 'ไฟ',
@@ -127,7 +127,7 @@ export const th: Messages = {
     roomLightsAria: 'ไฟในห้องประชุม',
     mediaPlaceholder: 'มีเดีย',
     mediaAria: 'มีเดีย',
-    colName: 'ชื่อรายการ',
+    colName: 'ช่วง',
     colLeader: 'ผู้นำ / ผู้พูด',
     colDuration: 'ระยะเวลา',
     colLights: 'ไฟ',

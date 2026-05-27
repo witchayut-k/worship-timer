@@ -75,6 +75,10 @@ function parsedRowsToDraftItems(rows: ParsedProgramRow[]): DraftItem[] {
   }))
 }
 
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 type SetupPageProps = {
   mode: 'new' | 'edit'
 }
@@ -109,6 +113,7 @@ function SetupPageInner({
   const [leaderNames, setLeaderNames] = useState<string[]>([])
   const [items, setItems] = useState<DraftItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(isEdit)
@@ -242,12 +247,30 @@ function SetupPageInner({
 
   const onAdd = () => {
     const id = newId()
+    const baseName = t('setup.newSegment').trim()
+    const baseRe = escapeRegExp(baseName)
+    const matchRe = new RegExp(`^${baseRe}(?: \\((\\d+)\\))?$`)
     setItems((prev) => [
       ...prev,
       {
         id,
         order: prev.length + 1,
-        name: t('setup.newSegment'),
+        name: (() => {
+          // Generate the smallest available index:
+          // baseName = (1), baseName (2), baseName (3), ...
+          const used = new Set<number>()
+          for (const it of prev) {
+            const name = it.name?.trim()
+            if (!name) continue
+            const m = name.match(matchRe)
+            if (!m) continue
+            const n = m[1] ? Number(m[1]) : 1
+            if (Number.isFinite(n) && n > 0) used.add(n)
+          }
+          let next = 1
+          while (used.has(next)) next += 1
+          return next === 1 ? baseName : `${baseName} (${next})`
+        })(),
         leaderName: '',
         durationSec: 300,
         roomLights: '',
@@ -255,6 +278,7 @@ function SetupPageInner({
       },
     ])
     setSelectedId(id)
+    setNewlyAddedId(id)
   }
 
   const onResetClick = () => {
@@ -271,6 +295,7 @@ function SetupPageInner({
   const onRemove = (id: string) => {
     setItems((prev) => prev.filter((x) => x.id !== id).map((x, i) => ({ ...x, order: i + 1 })))
     setSelectedId((cur) => (cur === id ? null : cur))
+    setNewlyAddedId((cur) => (cur === id ? null : cur))
   }
 
   const onUpdate = (id: string, patch: Partial<DraftItem>) => {
@@ -563,6 +588,8 @@ function SetupPageInner({
           <SetupSegmentList
             items={items}
             selectedId={selectedId}
+            autoFocusId={newlyAddedId}
+            onAutoFocusDone={() => setNewlyAddedId(null)}
             liveIndex={liveIndex}
             leaderNames={leaderNames}
             onSelect={setSelectedId}
