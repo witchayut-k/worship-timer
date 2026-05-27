@@ -46,7 +46,11 @@ export function initialRuntimeState(params: { items: ProgramItem[]; uid?: string
 }
 
 export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): RuntimeState {
-  if (action.type === 'hydrate') return normalizeRuntimeState(action.state)
+  if (action.type === 'hydrate') {
+    const incoming = normalizeRuntimeState(action.state)
+    if (incoming.version < prev.version) return prev
+    return incoming
+  }
 
   const base: RuntimeState = {
     ...prev,

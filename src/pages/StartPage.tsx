@@ -15,6 +15,7 @@ import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
 import { formatSignedMMSS } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
+import { useAuth } from '../hooks/useAuth'
 import { useControlRailWidth } from '../hooks/useControlRailWidth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
 import { useLocale } from '../i18n/useLocale'
@@ -44,6 +45,7 @@ export function StartPage() {
 function StartPageInner({ eventId }: { eventId: string }) {
   const { t, locale } = useLocale()
   const { isFree } = usePlan()
+  const { uid, ready: authReady } = useAuth()
   const { setActiveControl, isProductionForEvent } = useActiveControl()
   const local = useMemo(() => resolveEventPayload(eventId), [eventId])
 
@@ -126,6 +128,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     if (!cloudReady) return
+    if (!authReady || !uid) return
     if (!items.length) return
     let cancelled = false
     void (async () => {
@@ -142,14 +145,15 @@ function StartPageInner({ eventId }: { eventId: string }) {
     return () => {
       cancelled = true
     }
-  }, [eventId, cloudReady, items])
+  }, [eventId, cloudReady, authReady, uid, items])
 
   useEffect(() => {
     if (!cloudReady) return
+    if (!authReady || !uid) return
     if (!runtimeSyncedRef.current) return
     if (hydratingRef.current) return
     void writeRuntimeState(eventId, state).catch(() => {})
-  }, [eventId, cloudReady, state])
+  }, [eventId, cloudReady, authReady, uid, state])
 
   useEffect(() => {
     if (!isLocal) return
