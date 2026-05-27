@@ -864,6 +864,10 @@ textarea:focus {
   gap: 2px;
 }
 
+.sidebarNavItemContent {
+  width: 100%;
+}
+
 .sidebarNavItem {
   display: block;
   padding: 10px 18px 10px 16px;
@@ -1328,6 +1332,18 @@ textarea:focus {
   width: 1px;
   height: 28px;
   background: var(--border);
+  flex-shrink: 0;
+}
+
+.btnWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btnWithIcon svg,
+.btnWithIcon .setupIcon,
+.btnWithIcon .transportBtnIcon {
   flex-shrink: 0;
 }
 

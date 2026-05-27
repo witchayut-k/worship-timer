@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { ControlShell } from '../components/ControlShell'
 import { LeaveControlModal } from '../components/LeaveControlModal'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
@@ -8,6 +9,7 @@ import {
   type SpreadsheetImportMode,
 } from '../components/SpreadsheetImportModal'
 import { SetupSegmentList, type DraftItem } from '../components/SetupSegmentList'
+import { BookIcon, PlusIcon, RotateCcwIcon, SlidersIcon } from '../components/SetupIcons'
 import type { ParsedProgramRow } from '../domain/spreadsheetImport'
 import {
   DEFAULT_EVENT_DISPLAY_SETTINGS,
@@ -30,7 +32,6 @@ import {
   newLocalLibraryId,
   upsertLocalEvent,
 } from '../lib/localLibrary'
-import { encodeLocalEventId } from '../lib/localPayload'
 import {
   loadEvent,
   loadProgramItems,
@@ -111,6 +112,7 @@ function SetupPageInner({
   const [saveNotice, setSaveNotice] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [importOpen, setImportOpen] = useState(false)
+  const [resetModalOpen, setResetModalOpen] = useState(false)
   const [liveIndex, setLiveIndex] = useState<number | null>(null)
 
   const canStart = useMemo(() => items.length > 0, [items.length])
@@ -245,11 +247,15 @@ function SetupPageInner({
     setSelectedId(id)
   }
 
-  const onClearAll = () => {
+  const onResetClick = () => {
     if (!items.length) return
-    if (!confirm(t('setup.clearAllConfirm'))) return
+    setResetModalOpen(true)
+  }
+
+  const onResetConfirm = () => {
     setItems([])
     setSelectedId(null)
+    setResetModalOpen(false)
   }
 
   const onRemove = (id: string) => {
@@ -265,10 +271,10 @@ function SetupPageInner({
     setLeaderNames((prev) => addLeaderToRoster(prev, name))
   }
 
-  const onSpreadsheetImport = (rows: ParsedProgramRow[], mode: SpreadsheetImportMode) => {
+  const onSpreadsheetImport = (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
     const imported = parsedRowsToDraftItems(rows)
     setItems((prev) => {
-      const merged = mode === 'replace' ? imported : [...prev, ...imported]
+      const merged = importMode === 'replace' ? imported : [...prev, ...imported]
       return merged.map((x, i) => ({ ...x, order: i + 1 }))
     })
     setLeaderNames((prev) =>
@@ -341,40 +347,33 @@ function SetupPageInner({
     setSaving(true)
     setSaveNotice(null)
     try {
+      let cloudEventId: string | null = null
       if (cloudMode) {
-        const eventId = await persistCloud(!isEdit)
-        if (eventId) {
-          setSaveNotice(t('setup.savedCloud'))
-          if (!isEdit) nav(`/setup/${eventId}`, { replace: true })
-        }
+        cloudEventId = await persistCloud(!isEdit)
+      }
+      const localId = persistLocal()
+      if (cloudEventId) {
+        setSaveNotice(t('setup.savedSynced'))
+        if (!isEdit) nav(`/setup/${cloudEventId}`, { replace: true })
       } else {
-        const id = persistLocal()
-        setSaveNotice(t('setup.savedLocal'))
-        if (!isEdit) nav(`/setup/${id}`, { replace: true })
+        setSaveNotice(t('setup.saved'))
+        if (!isEdit) nav(`/setup/${localId}`, { replace: true })
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('setup.saveFailed')
-      setSaveNotice(
+      const isPermission =
         msg.includes('permission') || msg.includes('PERMISSION')
-          ? t('setup.saveCloudPermission')
-          : msg,
-      )
+      try {
+        persistLocal()
+        setSaveNotice(
+          isPermission ? t('setup.savedLocalCloudFailed') : t('setup.saved'),
+        )
+      } catch {
+        setSaveNotice(isPermission ? t('setup.saveCloudPermission') : msg)
+      }
     } finally {
       setSaving(false)
     }
-  }
-
-  const onStartLocalDemo = () => {
-    if (!validateTitle()) return
-    const roster = collectLeadersFromItems(
-      leaderNames,
-      items.map((it) => it.leaderName),
-    )
-    const eventId = encodeLocalEventId({
-      event: buildEvent(roster),
-      items: buildProgramItems(),
-    })
-    startWithEventId(eventId)
   }
 
   const onStartControl = async () => {
@@ -396,9 +395,9 @@ function SetupPageInner({
   }
 
   const shellEventId = lastEventId
-  const saveLabel = cloudMode ? t('setup.saveCloud') : t('setup.saveLocal')
   const displayTitle = title.trim() || t('event.untitled')
   const productionMode = isProductionForEvent(shellEventId)
+  const controlEventId = productionMode ? shellEventId : null
   const {
     leaveModalOpen,
     leaveModalTitle,
@@ -430,49 +429,51 @@ function SetupPageInner({
           onOpenSpreadsheetImport={() => setImportOpen(true)}
           canStart={canStart}
           saving={saving}
-          saveLabel={saveLabel}
           saveNotice={saveNotice}
-          cloudMode={cloudMode}
+          productionMode={productionMode}
           cloudReady={cloudReady}
           hasUid={Boolean(uid)}
           onSave={() => void onSave()}
           onStartControl={() => void onStartControl()}
-          onStartLocalDemo={onStartLocalDemo}
         />
       }
     >
       <div className="setupPage">
         <header className="setupPageHeader">
           <div className="setupPageHeaderText">
-            <h1 className="setupPageTitle">{isEdit ? t('setup.editTitle') : t('setup.newTitle')}</h1>
+            <h1 className="setupPageTitle">{t('setup.pageTitle')}</h1>
             <p className="setupPageDesc">{t('setup.desc', { title: displayTitle })}</p>
           </div>
           <div className="setupToolbar" role="toolbar" aria-label={t('nav.programSetup')}>
             <div className="setupToolbarGroup">
-              {lastEventId ? (
-                <Link className="btnGhost setupToolbarBtn" to={`/start/${lastEventId}`}>
-                  {t('setup.backToControl')}
+              {controlEventId ? (
+                <Link className="btnGhost setupToolbarBtn btnWithIcon" to={`/start/${controlEventId}`}>
+                  <SlidersIcon />
+                  <span>{t('setup.openControl')}</span>
                 </Link>
               ) : null}
               {productionMode ? (
-                <button className="btnGhost setupToolbarBtn" type="button" onClick={requestLeave}>
-                  {t('nav.goToServices')}
+                <button className="btnGhost setupToolbarBtn btnWithIcon" type="button" onClick={requestLeave}>
+                  <BookIcon />
+                  <span>{t('nav.library')}</span>
                 </button>
               ) : (
-                <Link className="btnGhost setupToolbarBtn" to="/services">
-                  {t('nav.services')}
+                <Link className="btnGhost setupToolbarBtn btnWithIcon" to="/services">
+                  <BookIcon />
+                  <span>{t('nav.library')}</span>
                 </Link>
               )}
             </div>
             <span className="setupToolbarDivider" aria-hidden />
             <div className="setupToolbarGroup">
               <button
-                className="btnGhost setupToolbarBtn setupToolbarBtnDanger"
+                className="btnGhost setupToolbarBtn setupToolbarBtnDanger btnWithIcon"
                 type="button"
-                onClick={onClearAll}
+                onClick={onResetClick}
                 disabled={!items.length}
               >
-                {t('setup.clearAll')}
+                <RotateCcwIcon />
+                <span>{t('setup.reset')}</span>
               </button>
             </div>
           </div>
@@ -527,8 +528,9 @@ function SetupPageInner({
                 <span className="setupDurationChipLabel">{t('setup.totalDuration')}</span>
                 <span className="setupDurationChipValue timeMono">{totalLabel}</span>
               </div>
-              <button className="btnPrimary" type="button" onClick={onAdd}>
-                {t('setup.addItem')}
+              <button className="btnPrimary btnWithIcon" type="button" onClick={onAdd}>
+                <PlusIcon />
+                <span>{t('setup.addItem')}</span>
               </button>
             </div>
           </div>
@@ -550,6 +552,16 @@ function SetupPageInner({
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImport={onSpreadsheetImport}
+      />
+
+      <ConfirmModal
+        open={resetModalOpen}
+        title={t('setup.resetTitle')}
+        body={t('setup.resetBody')}
+        confirmLabel={t('setup.resetConfirm')}
+        variant="danger"
+        onConfirm={onResetConfirm}
+        onCancel={() => setResetModalOpen(false)}
       />
 
       <LeaveControlModal

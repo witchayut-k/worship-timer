@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { BookIcon, ListIcon, SlidersIcon } from './SetupIcons'
 import { LanguageToggle } from './LanguageToggle'
 import { useLocale } from '../i18n/useLocale'
 
@@ -17,6 +18,15 @@ type ControlShellProps = {
 
 function openStage(eventId: string) {
   window.open(`/view/${eventId}?kiosk=1`, '_blank', 'noopener,noreferrer')
+}
+
+function NavItemContent({ icon, label }: { icon: ReactNode; label: string }) {
+  return (
+    <span className="btnWithIcon sidebarNavItemContent">
+      {icon}
+      <span>{label}</span>
+    </span>
+  )
 }
 
 export function ControlShell({
@@ -41,14 +51,14 @@ export function ControlShell({
       className={`sidebarNavItem ${activeNav === 'control' ? 'sidebarNavItemActive' : ''}`}
       to={`/start/${eventId}`}
     >
-      {t('nav.controlRoom')}
+      <NavItemContent icon={<SlidersIcon />} label={t('nav.controlRoom')} />
     </Link>
   ) : (
     <span
       className="sidebarNavItem sidebarNavItemDisabled"
       title={t('nav.controlRoomDisabled')}
     >
-      {t('nav.controlRoom')}
+      <NavItemContent icon={<SlidersIcon />} label={t('nav.controlRoom')} />
     </span>
   )
 
@@ -57,7 +67,7 @@ export function ControlShell({
       className={`sidebarNavItem ${activeNav === 'setup' ? 'sidebarNavItemActive' : ''}`}
       to={eventId ? `/setup/${eventId}` : '/setup'}
     >
-      {t('nav.programSetup')}
+      <NavItemContent icon={<ListIcon />} label={t('nav.programSetup')} />
     </Link>
   )
 
@@ -78,20 +88,22 @@ export function ControlShell({
     </span>
   )
 
+  const libraryLabel = t('nav.library')
+
   const servicesLink = productionMode ? (
     <button
       className="sidebarNavItem sidebarNavItemButton sidebarNavItemMuted"
       type="button"
       onClick={onLeaveToServices}
     >
-      {t('nav.goToServices')}
+      <NavItemContent icon={<BookIcon />} label={libraryLabel} />
     </button>
   ) : (
     <Link
       className={`sidebarNavItem ${activeNav === 'services' ? 'sidebarNavItemActive' : ''}`}
       to="/services"
     >
-      {t('nav.services')}
+      <NavItemContent icon={<BookIcon />} label={libraryLabel} />
     </Link>
   )
 
@@ -118,7 +130,7 @@ export function ControlShell({
               {setupLink}
               {stageButton}
               <div className="sidebarNavDivider" role="separator" />
-              <div className="sidebarNavSectionLabel">{t('nav.library')}</div>
+              <div className="sidebarNavSectionLabel">{libraryLabel}</div>
               {servicesLink}
             </>
           ) : (

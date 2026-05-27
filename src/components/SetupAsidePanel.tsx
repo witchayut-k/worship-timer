@@ -1,4 +1,5 @@
 import type { EventDisplaySettings } from '../domain/types'
+import { PlayIcon, SaveIcon, TableIcon } from './SetupIcons'
 import { useLocale } from '../i18n/useLocale'
 
 type SetupAsidePanelProps = {
@@ -7,14 +8,12 @@ type SetupAsidePanelProps = {
   onOpenSpreadsheetImport: () => void
   canStart: boolean
   saving: boolean
-  saveLabel: string
   saveNotice: string | null
-  cloudMode: boolean
+  productionMode: boolean
   cloudReady: boolean
   hasUid: boolean
   onSave: () => void
   onStartControl: () => void
-  onStartLocalDemo: () => void
 }
 
 export function SetupAsidePanel({
@@ -23,14 +22,12 @@ export function SetupAsidePanel({
   onOpenSpreadsheetImport,
   canStart,
   saving,
-  saveLabel,
   saveNotice,
-  cloudMode,
+  productionMode,
   cloudReady,
   hasUid,
   onSave,
   onStartControl,
-  onStartLocalDemo,
 }: SetupAsidePanelProps) {
   const { t } = useLocale()
 
@@ -39,35 +36,29 @@ export function SetupAsidePanel({
       <section className="asideCard setupActionsCard">
         <h2 className="asideCardTitle">{t('setup.startSection')}</h2>
         <div className="setupAsideActions">
+          {!productionMode ? (
+            <button
+              className="btnStart btnWithIcon"
+              type="button"
+              disabled={!canStart || saving}
+              onClick={onStartControl}
+            >
+              <PlayIcon />
+              <span>{saving ? t('setup.preparing') : t('setup.start')}</span>
+            </button>
+          ) : null}
           <button
-            className="btnStart"
-            type="button"
-            disabled={!canStart || saving}
-            onClick={onStartControl}
-          >
-            {saving ? t('setup.preparing') : t('setup.startControl')}
-          </button>
-          <button
-            className="btn setupAsideSave"
+            className="btn setupAsideSave btnWithIcon"
             type="button"
             disabled={!canStart || saving}
             onClick={onSave}
           >
-            {saving ? t('setup.saving') : saveLabel}
+            <SaveIcon />
+            <span>{saving ? t('setup.saving') : t('setup.save')}</span>
           </button>
         </div>
         <div className="setupAsideMeta">
           {saveNotice ? <p className="saveNotice">{saveNotice}</p> : null}
-          {!cloudMode && cloudReady ? (
-            <button
-              className="btnGhost setupAsideSecondary"
-              type="button"
-              disabled={!canStart}
-              onClick={onStartLocalDemo}
-            >
-              {t('setup.startLocalLegacy')}
-            </button>
-          ) : null}
           {cloudReady && !hasUid ? <p className="muted">{t('setup.signInForCloud')}</p> : null}
           {!cloudReady ? (
             <p className="muted">
@@ -82,7 +73,7 @@ export function SetupAsidePanel({
         <div className="toolGrid">
           <button className="toolTile" type="button" onClick={onOpenSpreadsheetImport}>
             <span className="toolTileIcon" aria-hidden>
-              📋
+              <TableIcon />
             </span>
             {t('setupAside.importSpreadsheet')}
           </button>
@@ -93,7 +84,7 @@ export function SetupAsidePanel({
             title={t('setupAside.comingSoon')}
           >
             <span className="toolTileIcon" aria-hidden>
-              ▶
+              <PlayIcon />
             </span>
             {t('setupAside.autoAdvance')}
           </button>
