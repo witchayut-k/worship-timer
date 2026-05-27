@@ -160,7 +160,7 @@ export function OutputLinksModal({
   paused = false,
 }: Props) {
   const { t } = useLocale()
-  const [activeTab, setActiveTab] = useState<OutputLinkKind>('controller')
+  const [activeTab, setActiveTab] = useState<OutputLinkKind>('stage')
   const [copied, setCopied] = useState(false)
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -169,6 +169,8 @@ export function OutputLinksModal({
 
   useEffect(() => {
     if (!open) return
+    setActiveTab('stage')
+    setCopied(false)
     closeRef.current?.focus()
   }, [open])
 
