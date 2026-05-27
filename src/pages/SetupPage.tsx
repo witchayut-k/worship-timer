@@ -26,6 +26,7 @@ import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
 import { useOptionalEventSession } from '../hooks/useEventSession'
+import type { EventSessionContextValue } from '../context/eventSessionContext'
 import {
   serializeSetupSnapshot,
   useSetupAutoSave,
@@ -93,6 +94,12 @@ export function SetupPage({ mode }: SetupPageProps) {
   return <SetupPageInner mode={mode} routeEventId={routeEventId} />
 }
 
+function readInitialSetupTitle(session: EventSessionContextValue | null): string {
+  if (!session) return ''
+  if (session.hasSetupDraft()) return session.ensureSetupDraft().title
+  return session.event?.title ?? ''
+}
+
 function SetupPageInner({
   mode,
   routeEventId,
@@ -112,7 +119,7 @@ function SetupPageInner({
   const cloudMode = hasFirebaseConfig() && Boolean(uid)
   const cloudReady = hasFirebaseConfig()
 
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState(() => readInitialSetupTitle(session))
   const [titleError, setTitleError] = useState<string | null>(null)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [plannedStartTime, setPlannedStartTime] = useState('')

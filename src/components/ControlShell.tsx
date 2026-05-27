@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useOptionalEventWorkspaceRuntime } from '../context/EventWorkspaceRuntimeContext'
 import { usePlan } from '../context/PlanProvider'
 import { useResizableAside } from '../hooks/useResizableAside'
 import { useRuntimePhase } from '../hooks/useRuntimePhase'
+import { useWorkspaceSessionTitle } from '../hooks/useWorkspaceSessionTitle'
 import { AppHeaderClock } from './AppHeaderClock'
 import { LanguageToggle } from './LanguageToggle'
 import { SessionStatusBadge } from './SessionStatusBadge'
@@ -73,10 +75,12 @@ export function ControlShell({
 
   const statusEventId = sessionStatus?.eventId ?? null
   const statusProduction = sessionStatus?.productionMode ?? productionMode
-  const statusTitle =
-    sessionStatus?.eventTitle?.trim() || eventTitle?.trim() || t('event.untitled')
+  const explicitSessionTitle = sessionStatus?.eventTitle ?? eventTitle
+  const statusTitle = useWorkspaceSessionTitle(explicitSessionTitle, t('event.untitled'))
 
-  const { phase, ready } = useRuntimePhase(statusEventId)
+  const workspaceRuntime = useOptionalEventWorkspaceRuntime()
+  const fallbackRuntime = useRuntimePhase(workspaceRuntime ? null : statusEventId)
+  const { phase, ready } = workspaceRuntime ?? fallbackRuntime
   const showSessionBar = Boolean(statusEventId || eventId || eventTitle)
 
   const setupTo = eventId ? `/setup/${eventId}` : isFree ? homePath : '/setup'

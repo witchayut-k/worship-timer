@@ -1,5 +1,6 @@
 import { Outlet, useMatch } from 'react-router-dom'
 import { EventSessionProvider } from '../context/EventSessionProvider'
+import { EventWorkspaceRuntimeProvider } from '../context/EventWorkspaceRuntimeContext'
 
 export function EventWorkspaceLayout() {
   const setupMatch = useMatch('/setup/:eventId')
@@ -12,7 +13,9 @@ export function EventWorkspaceLayout() {
 
   return (
     <EventSessionProvider eventId={eventId}>
-      <Outlet />
+      <EventWorkspaceRuntimeProvider eventId={eventId}>
+        <Outlet />
+      </EventWorkspaceRuntimeProvider>
     </EventSessionProvider>
   )
 }

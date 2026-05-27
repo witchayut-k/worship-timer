@@ -2,12 +2,18 @@ import { useEffect, useState } from 'react'
 import type { RuntimePhase } from '../domain/types'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId } from '../lib/eventSource'
-import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
+import { subscribeLocalRuntime } from '../lib/localSync'
+import {
+  readRuntimePhaseSnapshot,
+  writeRuntimePhaseCache,
+} from '../lib/runtimePhaseCache'
 import { watchRuntimeState } from '../lib/firestoreRepo'
 
 export function useRuntimePhase(eventId: string | null | undefined) {
-  const [phase, setPhase] = useState<RuntimePhase | null>(null)
-  const [ready, setReady] = useState(false)
+  const [phase, setPhase] = useState<RuntimePhase | null>(
+    () => readRuntimePhaseSnapshot(eventId).phase,
+  )
+  const [ready, setReady] = useState(() => readRuntimePhaseSnapshot(eventId).ready)
 
   useEffect(() => {
     if (!eventId) {
@@ -16,23 +22,33 @@ export function useRuntimePhase(eventId: string | null | undefined) {
       return
     }
 
-    setReady(false)
+    const snapshot = readRuntimePhaseSnapshot(eventId)
+    setPhase(snapshot.phase)
+    setReady(snapshot.ready)
 
     if (isOfflineEventId(eventId)) {
-      const stored = loadStoredLocalRuntime(eventId)
-      setPhase(stored?.phase ?? 'stopped')
-      setReady(true)
-      return subscribeLocalRuntime(eventId, (s) => setPhase(s.phase))
+      return subscribeLocalRuntime(eventId, (s) => {
+        writeRuntimePhaseCache(eventId, s.phase)
+        setPhase(s.phase)
+        setReady(true)
+      })
     }
 
     if (!hasFirebaseConfig()) {
+      writeRuntimePhaseCache(eventId, 'stopped')
       setPhase('stopped')
       setReady(true)
       return
     }
 
+    if (!snapshot.ready) {
+      setReady(false)
+    }
+
     return watchRuntimeState(eventId, (s) => {
-      setPhase(s?.phase ?? 'stopped')
+      const next = s?.phase ?? 'stopped'
+      writeRuntimePhaseCache(eventId, next)
+      setPhase(next)
       setReady(true)
     })
   }, [eventId])
