@@ -253,11 +253,6 @@ export const en = {
       noRowsWithName: 'No rows with item names — check that the «Item» column was copied',
     },
   },
-  leaderPicker: {
-    label: 'Segment Leader',
-    placeholder: 'Pick or type a name',
-    ariaLeader: 'Leader / speaker',
-  },
   duration: {
     aria: 'Duration',
   },

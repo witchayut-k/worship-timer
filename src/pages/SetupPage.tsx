@@ -34,7 +34,7 @@ import { useLocale } from '../i18n/useLocale'
 import { isOfflineEventId } from '../lib/eventSource'
 import { subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
-import { addLeaderToRoster, collectLeadersFromItems } from '../lib/leaders'
+import { collectLeadersFromItems } from '../lib/leaders'
 import {
   getLocalEvent,
   isLibraryEventId,
@@ -272,6 +272,8 @@ function SetupPageInner({
       name: it.name,
       leaderName: it.leaderName,
       durationSec: it.durationSec,
+      roomLights: it.roomLights ?? '',
+      mediaNote: it.mediaNote ?? '',
     }))
 
   const onAdd = () => {
@@ -317,6 +319,9 @@ function SetupPageInner({
   const persistSetupRef = useRef<
     (options: { touchRuntime: boolean }) => Promise<PersistSetupOutcome>
   >(async () => ({ localId: '', cloudEventId: null, notice: null, isError: true }))
+  const flushRef = useRef<(touchRuntime?: boolean) => Promise<PersistSetupOutcome | null>>(
+    async () => null,
+  )
 
   const onRemove = (id: string) => {
     setItems((prev) => prev.filter((x) => x.id !== id).map((x, i) => ({ ...x, order: i + 1 })))
@@ -325,25 +330,6 @@ function SetupPageInner({
 
   const onUpdate = (id: string, patch: Partial<DraftItem>) => {
     setItems((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x)))
-  }
-
-  const onLeaderCommit = (name: string) => {
-    setLeaderNames((prev) => addLeaderToRoster(prev, name))
-  }
-
-  const onSpreadsheetImport = (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
-    const imported = parsedRowsToDraftItems(rows)
-    setItems((prev) => {
-      const merged = importMode === 'replace' ? imported : [...prev, ...imported]
-      return merged.map((x, i) => ({ ...x, order: i + 1 }))
-    })
-    setLeaderNames((prev) =>
-      collectLeadersFromItems(
-        prev,
-        imported.map((it) => it.leaderName),
-      ),
-    )
-    if (imported[0]) setNewlyAddedId(imported[0].id)
   }
 
   const startWithEventId = (eventId: string) => {
@@ -459,7 +445,30 @@ function SetupPageInner({
 
   useEffect(() => {
     persistSetupRef.current = persistSetup
-  }, [persistSetup])
+    flushRef.current = flush
+  }, [persistSetup, flush])
+
+  const onSpreadsheetImport = useCallback(
+    (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
+      const imported = parsedRowsToDraftItems(rows)
+      setItems((prev) => {
+        const merged = importMode === 'replace' ? imported : [...prev, ...imported]
+        return merged.map((x, i) => ({ ...x, order: i + 1 }))
+      })
+      setLeaderNames((prev) =>
+        collectLeadersFromItems(
+          prev,
+          imported.map((it) => it.leaderName),
+        ),
+      )
+      if (imported[0]) setNewlyAddedId(imported[0].id)
+      cancelScheduled()
+      window.setTimeout(() => {
+        void flushRef.current(false)
+      }, 0)
+    },
+    [cancelScheduled],
+  )
 
   const onResetConfirm = () => {
     setItems([])
@@ -709,11 +718,9 @@ function SetupPageInner({
             liveIndex={productionMode ? liveIndex : null}
             livePhase={productionMode ? livePhase : null}
             liveDotTheme={productionMode ? liveDotTheme : null}
-            leaderNames={leaderNames}
             onReorder={setItems}
             onUpdate={onUpdate}
             onRemove={onRemove}
-            onLeaderCommit={onLeaderCommit}
           />
         </section>
       </div>

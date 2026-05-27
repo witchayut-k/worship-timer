@@ -17,7 +17,6 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { DurationInput } from './DurationInput'
-import { LeaderPicker } from './LeaderPicker'
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { useLocale } from '../i18n/useLocale'
 import type { StageTheme } from '../lib/displayTheme'
@@ -31,11 +30,9 @@ type SetupSegmentListProps = {
   liveIndex?: number | null
   livePhase?: RuntimePhase | null
   liveDotTheme?: StageTheme | null
-  leaderNames: string[]
   onReorder: (items: DraftItem[]) => void
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
   onRemove: (id: string) => void
-  onLeaderCommit: (name: string) => void
 }
 
 function reorderItems(items: DraftItem[], activeId: string, overId: string): DraftItem[] {
@@ -51,10 +48,8 @@ type SortableRowProps = {
   isLive: boolean
   livePhase: RuntimePhase | null
   liveDotTheme: StageTheme | null
-  leaderNames: string[]
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
   onRemove: (id: string) => void
-  onLeaderCommit: (name: string) => void
   onAutoFocusDone: () => void
 }
 
@@ -64,10 +59,8 @@ function SortableRow({
   isLive,
   livePhase,
   liveDotTheme,
-  leaderNames,
   onUpdate,
   onRemove,
-  onLeaderCommit,
   onAutoFocusDone,
 }: SortableRowProps) {
   const { t } = useLocale()
@@ -132,14 +125,11 @@ function SortableRow({
           aria-label={t('setupSegment.itemName')}
         />
       </div>
-      <div className="segmentColLeader" onClick={(e) => e.stopPropagation()}>
-        <LeaderPicker
-          listId={`leaders-${item.id}`}
+      <div className="field segmentColLeader" onClick={(e) => e.stopPropagation()}>
+        <input
           value={item.leaderName}
-          leaderNames={leaderNames}
-          hideLabel
-          onChange={(name) => onUpdate(item.id, { leaderName: name })}
-          onCommit={onLeaderCommit}
+          onChange={(e) => onUpdate(item.id, { leaderName: e.target.value })}
+          aria-label={t('setupSegment.leaderSpeaker')}
         />
       </div>
       <div className="segmentColDuration" onClick={(e) => e.stopPropagation()}>
@@ -185,11 +175,9 @@ export function SetupSegmentList({
   liveIndex = null,
   livePhase = null,
   liveDotTheme = null,
-  leaderNames,
   onReorder,
   onUpdate,
   onRemove,
-  onLeaderCommit,
 }: SetupSegmentListProps) {
   const { t } = useLocale()
   const sensors = useSensors(
@@ -228,10 +216,8 @@ export function SetupSegmentList({
               isLive={liveIndex != null && idx === liveIndex}
               livePhase={livePhase}
               liveDotTheme={liveDotTheme}
-              leaderNames={leaderNames}
               onUpdate={onUpdate}
               onRemove={onRemove}
-              onLeaderCommit={onLeaderCommit}
               onAutoFocusDone={onAutoFocusDone}
             />
           ))}

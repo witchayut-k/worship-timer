@@ -914,7 +914,6 @@ textarea:focus {
   appearance: none;
   border: none;
   background: transparent;
-  font: inherit;
   cursor: pointer;
   font-family: inherit;
 }
@@ -1527,6 +1526,46 @@ textarea:focus {
   min-width: 0;
 }
 
+/* Native picker icons ignore filter when color-scheme is dark — replace via mask */
+.setupEventCard input[type='date']::-webkit-calendar-picker-indicator,
+.setupEventCard input[type='time']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  margin-inline-end: 4px;
+  opacity: 1;
+  filter: none;
+  background-image: none;
+  background-color: rgba(255, 255, 255, 0.88);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.setupEventCard input[type='date']::-webkit-calendar-picker-indicator {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z'/%3E%3C/svg%3E");
+}
+
+.setupEventCard input[type='time']::-webkit-calendar-picker-indicator {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm.5 3v5.25l4.5 2.67.75-1.23-3.75-2.22V7z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm.5 3v5.25l4.5 2.67.75-1.23-3.75-2.22V7z'/%3E%3C/svg%3E");
+}
+
+.setupEventCard input[type='date']::-webkit-calendar-picker-indicator:hover,
+.setupEventCard input[type='time']::-webkit-calendar-picker-indicator:hover {
+  background-color: var(--brand);
+}
+
+/* Dark popup without forcing low-contrast native icons */
+.setupEventCard input[type='date'],
+.setupEventCard input[type='time'] {
+  color-scheme: dark;
+}
+
 .setupProgramCard {
   padding-bottom: 16px;
 }
@@ -1752,9 +1791,9 @@ textarea:focus {
   font-size: 12px;
 }
 
-.segmentColLights input,
-.segmentColMedia input {
-  font-size: 13px;
+.segmentTable input:not([type='checkbox']):not([type='radio']) {
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .modalOverlay {

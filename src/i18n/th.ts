@@ -253,11 +253,6 @@ export const th: Messages = {
       noRowsWithName: 'ไม่พบแถวที่มีชื่อรายการ — ตรวจสอบว่า copy ครบคอลัมน์ «รายการ»',
     },
   },
-  leaderPicker: {
-    label: 'ผู้ดำเนินรายการ',
-    placeholder: 'เลือกหรือพิมพ์ชื่อใหม่',
-    ariaLeader: 'ผู้นำ / ผู้พูด',
-  },
   duration: {
     aria: 'ระยะเวลา',
   },
