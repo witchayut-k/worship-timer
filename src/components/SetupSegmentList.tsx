@@ -30,16 +30,24 @@ type SetupSegmentListProps = {
   liveIndex?: number | null
   livePhase?: RuntimePhase | null
   liveDotTheme?: StageTheme | null
-  onReorder: (items: DraftItem[]) => void
+  reorderDisabled?: boolean
+  reorderDisabledTitle?: string
+  onReorder: (params: { items: DraftItem[]; fromIndex: number; toIndex: number }) => void
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
-  onRemove: (id: string) => void
+  onRemove: (id: string, index: number) => void
 }
 
-function reorderItems(items: DraftItem[], activeId: string, overId: string): DraftItem[] {
-  const oldIndex = items.findIndex((x) => x.id === activeId)
-  const newIndex = items.findIndex((x) => x.id === overId)
-  if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return items
-  return arrayMove(items, oldIndex, newIndex).map((x, i) => ({ ...x, order: i + 1 }))
+function reorderItems(items: DraftItem[], activeId: string, overId: string) {
+  const fromIndex = items.findIndex((x) => x.id === activeId)
+  const toIndex = items.findIndex((x) => x.id === overId)
+  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+    return null
+  }
+  return {
+    items: arrayMove(items, fromIndex, toIndex).map((x, i) => ({ ...x, order: i + 1 })),
+    fromIndex,
+    toIndex,
+  }
 }
 
 type SortableRowProps = {
@@ -48,8 +56,11 @@ type SortableRowProps = {
   isLive: boolean
   livePhase: RuntimePhase | null
   liveDotTheme: StageTheme | null
+  rowIndex: number
+  reorderDisabled: boolean
+  reorderDisabledTitle: string | undefined
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
-  onRemove: (id: string) => void
+  onRemove: (id: string, index: number) => void
   onAutoFocusDone: () => void
 }
 
@@ -59,6 +70,9 @@ function SortableRow({
   isLive,
   livePhase,
   liveDotTheme,
+  rowIndex,
+  reorderDisabled,
+  reorderDisabledTitle,
   onUpdate,
   onRemove,
   onAutoFocusDone,
@@ -67,6 +81,7 @@ function SortableRow({
   const nameInputRef = useRef<HTMLInputElement | null>(null)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
+    disabled: reorderDisabled,
   })
 
   const style = {
@@ -106,6 +121,7 @@ function SortableRow({
         {...listeners}
         onClick={(e) => e.stopPropagation()}
         aria-label={t('setupSegment.dragHandle')}
+        title={reorderDisabled ? reorderDisabledTitle : undefined}
       >
         {isLive ? (
           <span
@@ -157,9 +173,11 @@ function SortableRow({
       <button
         className="btnDanger segmentRowDelete segmentColDelete"
         type="button"
+        disabled={isLive && livePhase === 'running'}
+        title={isLive && livePhase === 'running' ? t('setupSegment.deleteBlockedRunning') : undefined}
         onClick={(e) => {
           e.stopPropagation()
-          onRemove(item.id)
+          onRemove(item.id, rowIndex)
         }}
       >
         {t('common.delete')}
@@ -175,6 +193,8 @@ export function SetupSegmentList({
   liveIndex = null,
   livePhase = null,
   liveDotTheme = null,
+  reorderDisabled = false,
+  reorderDisabledTitle,
   onReorder,
   onUpdate,
   onRemove,
@@ -186,9 +206,12 @@ export function SetupSegmentList({
   )
 
   const onDragEnd = (event: DragEndEvent) => {
+    if (reorderDisabled) return
     const { active, over } = event
     if (!over || active.id === over.id) return
-    onReorder(reorderItems(items, String(active.id), String(over.id)))
+    const reordered = reorderItems(items, String(active.id), String(over.id))
+    if (!reordered) return
+    onReorder(reordered)
   }
 
   if (!items.length) {
@@ -216,6 +239,9 @@ export function SetupSegmentList({
               isLive={liveIndex != null && idx === liveIndex}
               livePhase={livePhase}
               liveDotTheme={liveDotTheme}
+              rowIndex={idx}
+              reorderDisabled={reorderDisabled}
+              reorderDisabledTitle={reorderDisabledTitle}
               onUpdate={onUpdate}
               onRemove={onRemove}
               onAutoFocusDone={onAutoFocusDone}

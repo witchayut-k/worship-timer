@@ -84,6 +84,7 @@ export const en = {
     resetBody:
       'All program items will be removed. Event title, date, and settings are kept.',
     resetConfirm: 'Reset',
+    resetBlockedRunning: 'Pause in Control Room before resetting program items',
     saving: 'Saving…',
     saved: 'Saved',
     savedSynced: 'Saved and synced',
@@ -116,6 +117,7 @@ export const en = {
     loadCloudNotFound: 'Service not found in Cloud',
     loadSignInRequired: 'Sign in to edit Cloud services',
     loadFailed: 'Failed to load',
+    reorderBlockedRunning: 'Pause in Control Room before reordering segments',
   },
   setupSegment: {
     liveNow: 'On stage now',
@@ -134,6 +136,7 @@ export const en = {
     colDuration: 'Duration',
     colLights: 'Lights',
     colMedia: 'Media',
+    deleteBlockedRunning: 'Pause in Control Room before deleting the live segment',
   },
   setupAside: {
     tools: 'Tools',

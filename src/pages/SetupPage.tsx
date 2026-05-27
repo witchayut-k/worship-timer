@@ -33,7 +33,7 @@ import {
 } from '../hooks/useSetupAutoSave'
 import { useLocale } from '../i18n/useLocale'
 import { isOfflineEventId } from '../lib/eventSource'
-import { subscribeLocalRuntime } from '../lib/localSync'
+import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { collectLeadersFromItems } from '../lib/leaders'
 import {
@@ -45,12 +45,15 @@ import {
 import {
   loadEvent,
   loadProgramItems,
+  loadRuntimeState,
   upsertEventProgram,
   upsertEventWithItems,
   watchRuntimeState,
 } from '../lib/firestoreRepo'
 import { getStageTheme } from '../lib/displayTheme'
 import { deriveLocalDisplay, initialRuntimeState } from '../lib/runtimeEngine'
+import { reconcileRuntimeAfterProgramChange, type ProgramChange } from '../lib/reconcileRuntime'
+import { syncRuntimeState } from '../lib/syncRuntimeState'
 
 function newId(): string {
   return Math.random().toString(36).slice(2, 10)
@@ -81,6 +84,17 @@ function parsedRowsToDraftItems(rows: ParsedProgramRow[]): DraftItem[] {
     durationSec: row.durationSec,
     roomLights: row.roomLights,
     mediaNote: row.mediaNote,
+  }))
+}
+
+function draftItemsToProgramItems(items: DraftItem[]): ProgramItem[] {
+  return items.map((it) => ({
+    order: it.order,
+    name: it.name,
+    leaderName: it.leaderName,
+    durationSec: it.durationSec,
+    roomLights: it.roomLights ?? '',
+    mediaNote: it.mediaNote ?? '',
   }))
 }
 
@@ -267,15 +281,7 @@ function SetupPageInner({
     ...(uid ? { ownerUid: uid } : {}),
   })
 
-  const buildProgramItems = (): ProgramItem[] =>
-    items.map((it) => ({
-      order: it.order,
-      name: it.name,
-      leaderName: it.leaderName,
-      durationSec: it.durationSec,
-      roomLights: it.roomLights ?? '',
-      mediaNote: it.mediaNote ?? '',
-    }))
+  const buildProgramItems = (sourceItems: DraftItem[] = items): ProgramItem[] => draftItemsToProgramItems(sourceItems)
 
   const onAdd = () => {
     const id = newId()
@@ -314,6 +320,7 @@ function SetupPageInner({
 
   const onResetClick = () => {
     if (!items.length) return
+    if (productionMode && livePhase === 'running') return
     setResetModalOpen(true)
   }
 
@@ -324,13 +331,50 @@ function SetupPageInner({
     async () => null,
   )
 
-  const onRemove = (id: string) => {
-    setItems((prev) => prev.filter((x) => x.id !== id).map((x, i) => ({ ...x, order: i + 1 })))
+  const reconcileRuntime = useCallback(
+    async (nextItems: DraftItem[], change: ProgramChange) => {
+      if (!liveEventId) return
+      const currentRuntime =
+        liveRuntime ??
+        (isOfflineEventId(liveEventId) ? loadStoredLocalRuntime(liveEventId) : await loadRuntimeState(liveEventId))
+      if (!currentRuntime) return
+
+      const reconciled = reconcileRuntimeAfterProgramChange({
+        prev: currentRuntime,
+        nextItems: draftItemsToProgramItems(nextItems),
+        change,
+      })
+      if (reconciled === currentRuntime) return
+      const synced = await syncRuntimeState(liveEventId, reconciled)
+      setLiveRuntime(synced)
+    },
+    [liveEventId, liveRuntime],
+  )
+
+  const onRemove = (id: string, removedIndex: number) => {
+    if (productionMode && livePhase === 'running' && liveIndex === removedIndex) return
+    const nextItems = items.filter((x) => x.id !== id).map((x, i) => ({ ...x, order: i + 1 }))
+    setItems(nextItems)
     setNewlyAddedId((cur) => (cur === id ? null : cur))
+    if (productionMode) {
+      void reconcileRuntime(nextItems, { type: 'delete', removedIndex })
+    }
   }
 
   const onUpdate = (id: string, patch: Partial<DraftItem>) => {
     setItems((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x)))
+  }
+
+  const onReorder = (params: { items: DraftItem[]; fromIndex: number; toIndex: number }) => {
+    if (productionMode && livePhase === 'running') return
+    setItems(params.items)
+    if (productionMode) {
+      void reconcileRuntime(params.items, {
+        type: 'reorder',
+        fromIndex: params.fromIndex,
+        toIndex: params.toIndex,
+      })
+    }
   }
 
   const startWithEventId = (eventId: string) => {
@@ -451,11 +495,11 @@ function SetupPageInner({
 
   const onSpreadsheetImport = useCallback(
     (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
+      if (productionMode && livePhase === 'running' && importMode === 'replace') return
       const imported = parsedRowsToDraftItems(rows)
-      setItems((prev) => {
-        const merged = importMode === 'replace' ? imported : [...prev, ...imported]
-        return merged.map((x, i) => ({ ...x, order: i + 1 }))
-      })
+      const merged = importMode === 'replace' ? imported : [...items, ...imported]
+      const nextItems = merged.map((x, i) => ({ ...x, order: i + 1 }))
+      setItems(nextItems)
       setLeaderNames((prev) =>
         collectLeadersFromItems(
           prev,
@@ -467,11 +511,19 @@ function SetupPageInner({
       window.setTimeout(() => {
         void flushRef.current(false)
       }, 0)
+      if (productionMode) {
+        void reconcileRuntime(nextItems, { type: 'import', mode: importMode })
+      }
     },
-    [cancelScheduled],
+    [cancelScheduled, items, livePhase, productionMode, reconcileRuntime],
   )
 
   const onResetConfirm = () => {
+    if (productionMode && livePhase === 'running') {
+      setResetModalOpen(false)
+      return
+    }
+    const nextItems: DraftItem[] = []
     setItems([])
     setNewlyAddedId(null)
     setResetModalOpen(false)
@@ -489,6 +541,9 @@ function SetupPageInner({
         if (result && !result.isError) markSnapshotSaved(emptySnapshot)
       })
     }, 0)
+    if (productionMode) {
+      void reconcileRuntime(nextItems, { type: 'reset' })
+    }
   }
 
   const saving = autoSaving || startSaving || navSaving
@@ -662,7 +717,8 @@ function SetupPageInner({
                 className="btnGhost setupToolbarBtn setupToolbarBtnDanger btnWithIcon"
                 type="button"
                 onClick={onResetClick}
-                disabled={!items.length}
+                disabled={!items.length || (productionMode && livePhase === 'running')}
+                title={productionMode && livePhase === 'running' ? t('setup.resetBlockedRunning') : undefined}
               >
                 <RotateCcwIcon />
                 <span>{t('setup.reset')}</span>
@@ -697,7 +753,9 @@ function SetupPageInner({
             liveIndex={productionMode ? liveIndex : null}
             livePhase={productionMode ? livePhase : null}
             liveDotTheme={productionMode ? liveDotTheme : null}
-            onReorder={setItems}
+            reorderDisabled={productionMode && livePhase === 'running'}
+            reorderDisabledTitle={t('setup.reorderBlockedRunning')}
+            onReorder={onReorder}
             onUpdate={onUpdate}
             onRemove={onRemove}
           />

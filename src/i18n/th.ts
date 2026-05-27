@@ -85,6 +85,7 @@ export const th: Messages = {
     resetTitle: 'รีเซ็ตโปรแกรม?',
     resetBody: 'รายการโปรแกรมจะถูกลบทั้งหมด ชื่องาน วันที่ และการตั้งค่ายังคงอยู่',
     resetConfirm: 'รีเซ็ต',
+    resetBlockedRunning: 'พักเวลาในห้องควบคุมก่อนรีเซ็ตรายการโปรแกรม',
     saving: 'กำลังบันทึก…',
     saved: 'บันทึกแล้ว',
     savedSynced: 'บันทึกและซิงก์แล้ว',
@@ -116,6 +117,7 @@ export const th: Messages = {
     loadCloudNotFound: 'ไม่พบรอบใน Cloud',
     loadSignInRequired: 'เข้าสู่ระบบเพื่อแก้ไขรอบ Cloud',
     loadFailed: 'โหลดไม่สำเร็จ',
+    reorderBlockedRunning: 'พักเวลาในห้องควบคุมก่อนจัดลำดับช่วง',
   },
   setupSegment: {
     liveNow: 'กำลังแสดงบนเวที',
@@ -134,6 +136,7 @@ export const th: Messages = {
     colDuration: 'ระยะเวลา',
     colLights: 'ไฟ',
     colMedia: 'มีเดีย',
+    deleteBlockedRunning: 'พักเวลาในห้องควบคุมก่อนลบช่วงที่กำลังใช้งาน',
   },
   setupAside: {
     tools: 'เครื่องมือ',
