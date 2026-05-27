@@ -810,13 +810,6 @@ textarea:focus {
   margin-left: auto;
 }
 
-.appHeaderSession {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
 .sessionStatusBadge {
   display: inline-flex;
   align-items: center;
@@ -874,45 +867,6 @@ textarea:focus {
     opacity: 0.55;
     transform: scale(0.85);
   }
-}
-
-.btnHeaderTransport {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  color: var(--text);
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.btnHeaderTransport:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btnHeaderTransportStart {
-  background: linear-gradient(180deg, rgba(52, 211, 168, 0.42), rgba(16, 185, 129, 0.2));
-  border-color: rgba(52, 211, 168, 0.55);
-}
-
-.btnHeaderTransportStart:hover:not(:disabled) {
-  border-color: rgba(94, 234, 180, 0.75);
-}
-
-.btnHeaderTransportPause {
-  background: linear-gradient(180deg, rgba(245, 166, 35, 0.48), rgba(245, 166, 35, 0.18));
-  border-color: rgba(245, 166, 35, 0.62);
-}
-
-.btnHeaderTransportPause:hover:not(:disabled) {
-  border-color: rgba(245, 166, 35, 0.85);
 }
 
 .appTopNav {

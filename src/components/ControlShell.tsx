@@ -5,7 +5,6 @@ import { useRuntimePhase } from '../hooks/useRuntimePhase'
 import { resolveSessionStatus } from '../lib/sessionStatus'
 import { LanguageToggle } from './LanguageToggle'
 import { SessionStatusBadge } from './SessionStatusBadge'
-import { SessionTransportButton } from './SessionTransportButton'
 import { BookIcon, ListIcon, SlidersIcon } from './SetupIcons'
 import { useLocale } from '../i18n/useLocale'
 
@@ -130,16 +129,7 @@ export function ControlShell({
   )
 
   const sessionHeaderUi = statusEventId ? (
-    <div className="appHeaderSession">
-      <SessionStatusBadge productionMode={statusProduction} phase={phase} ready={ready} />
-      {statusProduction ? (
-        <SessionTransportButton
-          eventId={statusEventId}
-          eventTitle={statusTitle}
-          phase={phase}
-        />
-      ) : null}
-    </div>
+    <SessionStatusBadge productionMode={statusProduction} phase={phase} ready={ready} />
   ) : null
 
   return (
