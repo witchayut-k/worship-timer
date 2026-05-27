@@ -3,7 +3,6 @@ export const en = {
     name: 'ControlStage',
   },
   plan: {
-    freeBanner: 'Local only · 1 session · Data stays on this device',
     freeStorageHint: 'Saved on this device only — no account required',
     upgradeCta: 'Upgrade',
     proBadge: 'Pro',
@@ -24,6 +23,7 @@ export const en = {
     inProduction: 'In Production',
     setupBeforeStart: 'Set up the program before starting',
     sessionReady: 'Ready',
+    sessionBar: 'Current session',
     live: 'Live',
   },
   common: {

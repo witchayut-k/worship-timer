@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { AppLayout } from './AppLayout'
 import { PaidOnlyRoute } from './components/PaidOnlyRoute'
 import { usePlan } from './context/PlanProvider'
+import { EventWorkspaceLayout } from './layout/EventWorkspaceLayout'
 import { ServicesPage } from './pages/ServicesPage'
 import { SetupPage } from './pages/SetupPage'
 import { StartPage } from './pages/StartPage'
@@ -33,8 +34,13 @@ export const appRoutes = [
         path: '/setup',
         element: freeSetupOnly ? <FreeSetupRedirect /> : <SetupPage mode="new" />,
       },
-      { path: '/setup/:eventId', element: <SetupPage mode="edit" /> },
-      { path: '/start/:eventId', element: <StartPage /> },
+      {
+        element: <EventWorkspaceLayout />,
+        children: [
+          { path: '/setup/:eventId', element: <SetupPage mode="edit" /> },
+          { path: '/start/:eventId', element: <StartPage /> },
+        ],
+      },
       { path: '/view/:eventId', element: <ViewerPage /> },
       { path: '*', element: <HomeRedirect /> },
     ],

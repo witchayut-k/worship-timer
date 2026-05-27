@@ -5,7 +5,6 @@ export const th: Messages = {
     name: 'ControlStage',
   },
   plan: {
-    freeBanner: 'ใช้ในเครื่องเท่านั้น · 1 รอบ · ข้อมูลอยู่บนอุปกรณ์นี้',
     freeStorageHint: 'บันทึกในเครื่องเท่านั้น — ไม่ต้องสมัครสมาชิก',
     upgradeCta: 'อัพเกรด',
     proBadge: 'Pro',
@@ -26,6 +25,7 @@ export const th: Messages = {
     inProduction: 'กำลังผลิตรายการ',
     setupBeforeStart: 'ตั้งค่าโปรแกรมก่อนเริ่ม',
     sessionReady: 'พร้อม',
+    sessionBar: 'รอบปัจจุบัน',
     live: 'Live',
   },
   common: {

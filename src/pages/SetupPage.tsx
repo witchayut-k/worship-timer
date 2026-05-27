@@ -25,26 +25,20 @@ import { formatSecToHhMmSs } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
+import { useOptionalEventSession } from '../hooks/useEventSession'
 import {
   serializeSetupSnapshot,
   useSetupAutoSave,
   type PersistSetupOutcome,
 } from '../hooks/useSetupAutoSave'
 import { useLocale } from '../i18n/useLocale'
+import { newDraftItemId, snapshotFromDraftBundle } from '../lib/eventSessionDraft'
 import { isOfflineEventId } from '../lib/eventSource'
-import { isSessionRoomId } from '../lib/freeSession'
 import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { collectLeadersFromItems } from '../lib/leaders'
+import { isLibraryEventId, newLocalLibraryId, upsertLocalEvent } from '../lib/localLibrary'
 import {
-  getLocalEvent,
-  isLibraryEventId,
-  newLocalLibraryId,
-  upsertLocalEvent,
-} from '../lib/localLibrary'
-import {
-  loadEvent,
-  loadProgramItems,
   loadRuntimeState,
   upsertEventProgram,
   upsertEventWithItems,
@@ -56,23 +50,11 @@ import { reconcileRuntimeAfterProgramChange, type ProgramChange } from '../lib/r
 import { syncRuntimeState } from '../lib/syncRuntimeState'
 
 function newId(): string {
-  return Math.random().toString(36).slice(2, 10)
+  return newDraftItemId()
 }
 
 function newCloudEventId(): string {
   return `evt-${Date.now().toString(36)}`
-}
-
-function programToDraftItems(items: ProgramItem[]): DraftItem[] {
-  return items.map((it) => ({
-    id: newId(),
-    order: it.order,
-    name: it.name,
-    leaderName: it.leaderName,
-    durationSec: it.durationSec,
-    roomLights: it.roomLights ?? '',
-    mediaNote: it.mediaNote ?? '',
-  }))
 }
 
 function parsedRowsToDraftItems(rows: ParsedProgramRow[]): DraftItem[] {
@@ -108,7 +90,7 @@ type SetupPageProps = {
 
 export function SetupPage({ mode }: SetupPageProps) {
   const { eventId: routeEventId } = useParams()
-  return <SetupPageInner key={mode === 'new' ? 'new' : routeEventId} mode={mode} routeEventId={routeEventId} />
+  return <SetupPageInner mode={mode} routeEventId={routeEventId} />
 }
 
 function SetupPageInner({
@@ -125,6 +107,7 @@ function SetupPageInner({
   const focusOrder = (location.state as { focusOrder?: number } | null)?.focusOrder
   const { uid, ready: authReady } = useAuth()
   const { isFree, isPaid } = usePlan()
+  const session = useOptionalEventSession()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
   const cloudMode = hasFirebaseConfig() && Boolean(uid)
   const cloudReady = hasFirebaseConfig()
@@ -141,17 +124,12 @@ function SetupPageInner({
   const [lastEventId, setLastEventId] = useState<string | null>(null)
   const [startSaving, setStartSaving] = useState(false)
   const [navSaving, setNavSaving] = useState(false)
-  const [loadedForEventId, setLoadedForEventId] = useState<string | null>(null)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const programLoadKey = `${routeEventId ?? ''}|${String(authReady)}|${String(cloudReady)}|${uid ?? ''}|${String(isFree)}`
-  const [prevProgramLoadKey, setPrevProgramLoadKey] = useState(programLoadKey)
-  if (programLoadKey !== prevProgramLoadKey) {
-    setPrevProgramLoadKey(programLoadKey)
-    setLoadedForEventId(null)
-    setLoadError(null)
-  }
-  const isProgramLoading = Boolean(routeEventId) && (!authReady || loadedForEventId !== routeEventId)
-  const hydrated = !isProgramLoading
+  const [formHydrated, setFormHydrated] = useState(false)
+  const isProgramLoading = Boolean(routeEventId) && session
+    ? !authReady || (session.status === 'loading' && !session.hasSetupDraft())
+    : false
+  const loadError = session?.error ?? null
+  const hydrated = !isProgramLoading && (!routeEventId || formHydrated)
   const [importOpen, setImportOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [liveRuntime, setLiveRuntime] = useState<RuntimeState | null>(null)
@@ -191,83 +169,36 @@ function SetupPageInner({
   }, [productionMode, liveRuntime, nowMs, settings])
 
   useEffect(() => {
-    if (!routeEventId || !authReady) return
-    if (cloudReady && !uid) return
+    setFormHydrated(false)
+  }, [routeEventId])
 
-    let cancelled = false
+  useEffect(() => {
+    if (!session || !routeEventId || formHydrated) return
+    if (session.status === 'error') return
+    if (session.status === 'loading' && !session.hasSetupDraft()) return
 
-    const load = async () => {
-      try {
-        if (isLibraryEventId(routeEventId)) {
-          const entry = getLocalEvent(routeEventId)
-          if (!entry) throw new Error(t('setup.loadLocalNotFound'))
-          if (cancelled) return
-          setTitle(entry.event.title)
-          setDate(entry.event.date)
-          setPlannedStartTime(entry.event.plannedStartTime ?? '')
-          setSettings({ ...DEFAULT_EVENT_DISPLAY_SETTINGS, ...entry.event.settings })
-          setLeaderNames(entry.event.leaderNames ?? [])
-          setItems(programToDraftItems(entry.items))
-          setLastEventId(routeEventId)
-          return
-        }
+    const draft = session.ensureSetupDraft()
+    setTitle(draft.title)
+    setDate(draft.date)
+    setPlannedStartTime(draft.plannedStartTime)
+    setSettings(draft.settings)
+    setLeaderNames(draft.leaderNames)
+    setItems(draft.items)
+    setLastEventId(routeEventId)
+    setFormHydrated(true)
+  }, [session, routeEventId, formHydrated, session?.status])
 
-        if (routeEventId.startsWith('local-')) {
-          setLoadError(t('setup.loadLegacyLocal'))
-          return
-        }
-
-        if (cloudReady && uid) {
-          const ev = await loadEvent(routeEventId)
-          if (!ev) {
-            if (isSessionRoomId(routeEventId)) {
-              const emptyEvent: WorshipEvent = {
-                title: '',
-                date: new Date().toISOString().slice(0, 10),
-                status: 'active',
-                updatedAtMs: Date.now(),
-                settings: { ...DEFAULT_EVENT_DISPLAY_SETTINGS },
-                leaderNames: [],
-                ownerUid: uid,
-              }
-              await upsertEventProgram({
-                eventId: routeEventId,
-                event: emptyEvent,
-                items: [],
-              })
-              if (cancelled) return
-              setLastEventId(routeEventId)
-              return
-            }
-            throw new Error(t('setup.loadCloudNotFound'))
-          }
-          const programItems = await loadProgramItems(routeEventId)
-          if (cancelled) return
-          setTitle(ev.data.title)
-          setDate(ev.data.date)
-          setPlannedStartTime(ev.data.plannedStartTime ?? '')
-          setSettings({ ...DEFAULT_EVENT_DISPLAY_SETTINGS, ...ev.data.settings })
-          setLeaderNames(ev.data.leaderNames ?? [])
-          setItems(programToDraftItems(programItems))
-          setLastEventId(routeEventId)
-          return
-        }
-
-        throw new Error(t('setup.loadSignInRequired'))
-      } catch (e) {
-        if (!cancelled) {
-          setLoadError(e instanceof Error ? e.message : t('setup.loadFailed'))
-        }
-      } finally {
-        if (!cancelled) setLoadedForEventId(routeEventId)
-      }
-    }
-
-    void load()
-    return () => {
-      cancelled = true
-    }
-  }, [routeEventId, authReady, cloudReady, t, uid, isFree])
+  useEffect(() => {
+    if (!session || !formHydrated) return
+    session.replaceSetupDraft({
+      title,
+      date,
+      plannedStartTime,
+      settings,
+      leaderNames,
+      items,
+    })
+  }, [session, formHydrated, title, date, plannedStartTime, settings, leaderNames, items])
 
   useEffect(() => {
     if (!liveEventId) return
@@ -445,11 +376,31 @@ function SetupPageInner({
   const persistSetup = useCallback(
     async ({ touchRuntime }: { touchRuntime: boolean }): Promise<PersistSetupOutcome> => {
       try {
+        const roster = collectLeadersFromItems(
+          leaderNames,
+          items.map((it) => it.leaderName),
+        )
+        const programItems = buildProgramItems()
+        const savedEvent = buildEvent(roster)
+
         let cloudEventId: string | null = null
         if (cloudMode) {
           cloudEventId = await persistCloud(touchRuntime)
         }
         const localId = persistLocal() ?? ''
+        if (session) {
+          session.notifyProgramPersisted(savedEvent, programItems)
+          session.markSetupDraftSaved(
+            snapshotFromDraftBundle({
+              title,
+              date,
+              plannedStartTime,
+              settings,
+              leaderNames,
+              items,
+            }),
+          )
+        }
         const notice = cloudEventId ? t('setup.savedSynced') : t('setup.saved')
         return { localId, cloudEventId, notice, isError: false }
       } catch (e) {
@@ -468,7 +419,7 @@ function SetupPageInner({
         }
       }
     },
-    [cloudMode, persistCloud, persistLocal, t],
+    [cloudMode, persistCloud, persistLocal, t, session, title, date, plannedStartTime, settings, leaderNames, items],
   )
 
   const setupSnapshot = useMemo(
@@ -599,7 +550,11 @@ function SetupPageInner({
     setNavSaving(true)
     cancelScheduled()
     try {
-      await flush(false)
+      const skipFlush =
+        saveStatus === 'saved' && session !== null && !session.isSetupDraftDirty()
+      if (!skipFlush) {
+        await flush(false)
+      }
       nav(`/start/${controlEventId}`)
     } finally {
       setNavSaving(false)

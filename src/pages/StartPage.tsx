@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
 import { isSessionRoomId, sessionRoomControlPath } from '../lib/freeSession'
@@ -10,26 +10,20 @@ import { LeaveControlModal } from '../components/LeaveControlModal'
 import { MonitorIcon, OutputLinksModal } from '../components/OutputLinksModal'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
 import { PauseIcon, PlayIcon } from '../components/TransportIcons'
-import type { ProgramItem, WorshipEvent } from '../domain/types'
 import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
 import { formatSignedMMSS } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useControlRailWidth } from '../hooks/useControlRailWidth'
+import { useEventSession } from '../hooks/useEventSession'
 import { useLeaveControl } from '../hooks/useLeaveControl'
 import { useLocale } from '../i18n/useLocale'
 import { getStageTheme, getTimerThemeClasses } from '../lib/displayTheme'
 import { hasFirebaseConfig } from '../lib/firebase'
-import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
+import { isOfflineEventId } from '../lib/eventSource'
 import { loadStoredLocalRuntime, publishLocalRuntime } from '../lib/localSync'
-import {
-  loadRuntimeState,
-  watchEvent,
-  watchProgramItems,
-  watchRuntimeState,
-  writeRuntimeState,
-} from '../lib/firestoreRepo'
+import { loadRuntimeState, watchRuntimeState, writeRuntimeState } from '../lib/firestoreRepo'
 import {
   deriveLocalDisplay,
   initialRuntimeState,
@@ -39,7 +33,7 @@ import {
 
 export function StartPage() {
   const { eventId = '' } = useParams()
-  return <StartPageInner key={eventId} eventId={eventId} />
+  return <StartPageInner eventId={eventId} />
 }
 
 function StartPageInner({ eventId }: { eventId: string }) {
@@ -47,16 +41,15 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const { isFree } = usePlan()
   const { uid, ready: authReady } = useAuth()
   const { setActiveControl, isProductionForEvent } = useActiveControl()
-  const local = useMemo(() => resolveEventPayload(eventId), [eventId])
-
-  const [title, setTitle] = useState(() => local?.event.title ?? '')
-  const [eventMeta, setEventMeta] = useState<WorshipEvent | null>(() => local?.event ?? null)
-  const [items, setItems] = useState<ProgramItem[]>(() => local?.items ?? [])
+  const session = useEventSession()
+  const eventMeta = session.event
+  const items = session.programItems
+  const title = session.event?.title ?? ''
   const [outputLinksOpen, setOutputLinksOpen] = useState(false)
 
   const [state, dispatch] = useReducer(
     reduceRuntimeState,
-    { eventId, items },
+    { eventId, items: session.programItems },
     ({ eventId: eid, items: programItems }) => {
       if (isOfflineEventId(eid)) {
         const stored = loadStoredLocalRuntime(eid)
@@ -99,14 +92,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     if (!cloudReady) return
-    const unsubEvent = watchEvent(eventId, (ev) => {
-      if (!ev) return
-      setTitle(ev.title)
-      setEventMeta(ev)
-    })
-    const unsubItems = watchProgramItems(eventId, (it) => {
-      setItems(it)
-    })
     const unsubState = watchRuntimeState(eventId, (s) => {
       if (!s) return
       hydratingRef.current = true
@@ -117,8 +102,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
       })
     })
     return () => {
-      unsubEvent()
-      unsubItems()
       unsubState()
     }
   }, [eventId, cloudReady])

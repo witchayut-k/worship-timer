@@ -1,0 +1,18 @@
+import { Outlet, useMatch } from 'react-router-dom'
+import { EventSessionProvider } from '../context/EventSessionProvider'
+
+export function EventWorkspaceLayout() {
+  const setupMatch = useMatch('/setup/:eventId')
+  const startMatch = useMatch('/start/:eventId')
+  const eventId = setupMatch?.params.eventId ?? startMatch?.params.eventId
+
+  if (!eventId) {
+    return <Outlet />
+  }
+
+  return (
+    <EventSessionProvider eventId={eventId}>
+      <Outlet />
+    </EventSessionProvider>
+  )
+}

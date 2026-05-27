@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
 import { useResizableAside } from '../hooks/useResizableAside'
 import { useRuntimePhase } from '../hooks/useRuntimePhase'
-import { resolveSessionStatus } from '../lib/sessionStatus'
 import { AppHeaderClock } from './AppHeaderClock'
 import { LanguageToggle } from './LanguageToggle'
 import { SessionStatusBadge } from './SessionStatusBadge'
@@ -78,13 +77,7 @@ export function ControlShell({
     sessionStatus?.eventTitle?.trim() || eventTitle?.trim() || t('event.untitled')
 
   const { phase, ready } = useRuntimePhase(statusEventId)
-  const sessionLabel = statusEventId
-    ? resolveSessionStatus({ productionMode: statusProduction, phase, ready }).label(t)
-    : productionMode
-      ? t('nav.controlling')
-      : eventId
-        ? t('nav.inProduction')
-        : t('nav.setupBeforeStart')
+  const showSessionBar = Boolean(statusEventId || eventId || eventTitle)
 
   const setupTo = eventId ? `/setup/${eventId}` : isFree ? homePath : '/setup'
   const controlTo = eventId ? `/start/${eventId}` : null
@@ -147,10 +140,6 @@ export function ControlShell({
     </NavTab>
   )
 
-  const sessionHeaderUi = statusEventId ? (
-    <SessionStatusBadge productionMode={statusProduction} phase={phase} ready={ready} />
-  ) : null
-
   return (
     <div className="appShell">
       <header className="appHeader">
@@ -181,7 +170,6 @@ export function ControlShell({
         </nav>
 
         <div className="appHeaderEnd">
-          {sessionHeaderUi}
           {headerEnd}
           {isFree ? (
             <a className="btnGhost btnSm planUpgradeBtn" href="#upgrade">
@@ -192,21 +180,23 @@ export function ControlShell({
         </div>
       </header>
 
-      {isFree ? (
-        <div className="planBanner planBannerFree" role="status">
-          <span>{t('plan.freeBanner')}</span>
-        </div>
-      ) : null}
-
-      {!isFree && (eventId || eventTitle) && activeNav !== 'services' ? (
-        <div className="appSessionBar">
-          <span className="appSessionBarIcon" aria-hidden>
-            ◉
-          </span>
-          <div className="appSessionBarText">
-            <div className="appSessionBarTitle">{statusTitle}</div>
-            <div className="appSessionBarSub">{sessionLabel}</div>
+      {showSessionBar ? (
+        <div className="appSessionBar" role="region" aria-label={t('nav.sessionBar')}>
+          <div className="appSessionBarMain">
+            <span className="appSessionBarIcon" aria-hidden>
+              ◉
+            </span>
+            <div className="appSessionBarText">
+              <div className="appSessionBarTitle">{statusTitle}</div>
+            </div>
           </div>
+          {statusEventId ? (
+            <SessionStatusBadge
+              productionMode={statusProduction}
+              phase={phase}
+              ready={ready}
+            />
+          ) : null}
         </div>
       ) : null}
 
