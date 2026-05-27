@@ -125,6 +125,7 @@ function SetupPageInner({
   const [navFocusConsumed, setNavFocusConsumed] = useState(false)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
   const [startSaving, setStartSaving] = useState(false)
+  const [navSaving, setNavSaving] = useState(false)
   const [loadedForEventId, setLoadedForEventId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const programLoadKey = `${routeEventId ?? ''}|${String(authReady)}|${String(cloudReady)}|${uid ?? ''}|${String(isFree)}`
@@ -480,7 +481,7 @@ function SetupPageInner({
     }, 0)
   }
 
-  const saving = autoSaving || startSaving
+  const saving = autoSaving || startSaving || navSaving
 
   const validateTitle = (): boolean => {
     if (title.trim()) {
@@ -512,6 +513,26 @@ function SetupPageInner({
 
   const displayTitle = title.trim() || t('event.untitled')
   const controlEventId = productionMode ? setupEventId : null
+
+  const openControlRoom = async () => {
+    if (!controlEventId) return
+    setNavSaving(true)
+    cancelScheduled()
+    try {
+      await flush(false)
+      nav(`/start/${controlEventId}`)
+    } finally {
+      setNavSaving(false)
+    }
+  }
+
+  const controlShellNavProps = controlEventId
+    ? {
+        onControlNavigate: () => openControlRoom(),
+        controlNavigateDisabled: navSaving,
+      }
+    : {}
+
   const {
     leaveModalOpen,
     leaveModalTitle,
@@ -556,6 +577,7 @@ function SetupPageInner({
         eventTitle: title,
       }}
       onLeaveToLibrary={requestLeave}
+      {...controlShellNavProps}
       aside={
         <SetupAsidePanel
           settings={settings}
@@ -582,10 +604,15 @@ function SetupPageInner({
           <div className="setupToolbar" role="toolbar" aria-label={t('nav.programSetup')}>
             <div className="setupToolbarGroup">
               {controlEventId ? (
-                <Link className="btnGhost setupToolbarBtn btnWithIcon" to={`/start/${controlEventId}`}>
+                <button
+                  className="btnGhost setupToolbarBtn btnWithIcon"
+                  type="button"
+                  disabled={navSaving}
+                  onClick={() => void openControlRoom()}
+                >
                   <SlidersIcon />
-                  <span>{t('setup.openControl')}</span>
-                </Link>
+                  <span>{navSaving ? t('setup.preparing') : t('setup.openControl')}</span>
+                </button>
               ) : null}
               {isPaid ? (
                 productionMode ? (

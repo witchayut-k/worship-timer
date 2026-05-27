@@ -23,6 +23,8 @@ type ControlShellProps = {
   productionMode?: boolean
   sessionStatus?: SessionStatusProps
   onLeaveToLibrary?: () => void
+  onControlNavigate?: () => void | Promise<void>
+  controlNavigateDisabled?: boolean
   headerEnd?: ReactNode
   aside?: ReactNode
   children: ReactNode
@@ -58,6 +60,8 @@ export function ControlShell({
   productionMode = false,
   sessionStatus,
   onLeaveToLibrary,
+  onControlNavigate,
+  controlNavigateDisabled = false,
   headerEnd,
   aside,
   children,
@@ -114,13 +118,25 @@ export function ControlShell({
   )
 
   const controlNav = controlTo ? (
-    <Link
-      className={`appTopNavItem appTopNavItemLink${activeNav === 'control' ? ' appTopNavItemActive' : ''}`}
-      to={controlTo}
-    >
-      <SlidersIcon />
-      <span>{t('nav.controlRoom')}</span>
-    </Link>
+    onControlNavigate ? (
+      <button
+        className={`appTopNavItem appTopNavItemLink appTopNavItemButton${activeNav === 'control' ? ' appTopNavItemActive' : ''}`}
+        type="button"
+        disabled={controlNavigateDisabled}
+        onClick={() => void onControlNavigate()}
+      >
+        <SlidersIcon />
+        <span>{t('nav.controlRoom')}</span>
+      </button>
+    ) : (
+      <Link
+        className={`appTopNavItem appTopNavItemLink${activeNav === 'control' ? ' appTopNavItemActive' : ''}`}
+        to={controlTo}
+      >
+        <SlidersIcon />
+        <span>{t('nav.controlRoom')}</span>
+      </Link>
+    )
   ) : (
     <NavTab active={false} disabled title={t('nav.controlRoomDisabled')}>
       <SlidersIcon />
