@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -18,8 +18,9 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { DurationInput } from './DurationInput'
 import { LeaderPicker } from './LeaderPicker'
-import type { ProgramItem } from '../domain/types'
+import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { useLocale } from '../i18n/useLocale'
+import type { StageTheme } from '../lib/displayTheme'
 
 export type DraftItem = ProgramItem & { id: string }
 
@@ -28,6 +29,8 @@ type SetupSegmentListProps = {
   autoFocusId: string | null
   onAutoFocusDone: () => void
   liveIndex?: number | null
+  livePhase?: RuntimePhase | null
+  liveDotTheme?: StageTheme | null
   leaderNames: string[]
   onReorder: (items: DraftItem[]) => void
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
@@ -46,6 +49,8 @@ type SortableRowProps = {
   item: DraftItem
   autoFocus: boolean
   isLive: boolean
+  livePhase: RuntimePhase | null
+  liveDotTheme: StageTheme | null
   leaderNames: string[]
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
   onRemove: (id: string) => void
@@ -57,6 +62,8 @@ function SortableRow({
   item,
   autoFocus,
   isLive,
+  livePhase,
+  liveDotTheme,
   leaderNames,
   onUpdate,
   onRemove,
@@ -84,11 +91,21 @@ function SortableRow({
     onAutoFocusDone()
   }, [autoFocus, onAutoFocusDone])
 
+  const pulse = isLive && livePhase === 'running'
+  const liveDotStyle: CSSProperties | undefined =
+    isLive && liveDotTheme
+      ? {
+          ['--live-dot-accent' as string]: liveDotTheme.accent,
+          ['--live-dot-glow' as string]: liveDotTheme.glow,
+        }
+      : undefined
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={`segmentRow ${isLive ? 'segmentRowLive' : ''} ${isDragging ? 'segmentRowDragging' : ''}`}
+      aria-current={isLive ? 'step' : undefined}
     >
       <div
         className="dragHandle segmentColHandle"
@@ -97,6 +114,14 @@ function SortableRow({
         onClick={(e) => e.stopPropagation()}
         aria-label={t('setupSegment.dragHandle')}
       >
+        {isLive ? (
+          <span
+            className={`segmentLiveDot${pulse ? ' segmentLiveDotPulse' : ''}`}
+            style={liveDotStyle}
+            role="img"
+            aria-label={t('setupSegment.liveNow')}
+          />
+        ) : null}
         ⋮⋮
       </div>
       <div className="field segmentColName" onClick={(e) => e.stopPropagation()}>
@@ -158,6 +183,8 @@ export function SetupSegmentList({
   autoFocusId,
   onAutoFocusDone,
   liveIndex = null,
+  livePhase = null,
+  liveDotTheme = null,
   leaderNames,
   onReorder,
   onUpdate,
@@ -199,6 +226,8 @@ export function SetupSegmentList({
               item={it}
               autoFocus={it.id === autoFocusId}
               isLive={liveIndex != null && idx === liveIndex}
+              livePhase={livePhase}
+              liveDotTheme={liveDotTheme}
               leaderNames={leaderNames}
               onUpdate={onUpdate}
               onRemove={onRemove}

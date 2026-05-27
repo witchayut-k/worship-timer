@@ -810,6 +810,111 @@ textarea:focus {
   margin-left: auto;
 }
 
+.appHeaderSession {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sessionStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  user-select: none;
+}
+
+.sessionStatusBadge--ready {
+  color: var(--text);
+  border-color: rgba(122, 162, 255, 0.35);
+  background: rgba(122, 162, 255, 0.1);
+}
+
+.sessionStatusBadge--controlling {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sessionStatusBadge--live {
+  color: #a7f3d0;
+  border-color: rgba(52, 211, 168, 0.45);
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.sessionStatusBadge--paused {
+  color: #fde68a;
+  border-color: rgba(245, 166, 35, 0.45);
+  background: rgba(245, 166, 35, 0.12);
+}
+
+.sessionStatusLiveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 168, 0.8);
+  animation: sessionLivePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes sessionLivePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+}
+
+.btnHeaderTransport {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.btnHeaderTransport:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnHeaderTransportStart {
+  background: linear-gradient(180deg, rgba(52, 211, 168, 0.42), rgba(16, 185, 129, 0.2));
+  border-color: rgba(52, 211, 168, 0.55);
+}
+
+.btnHeaderTransportStart:hover:not(:disabled) {
+  border-color: rgba(94, 234, 180, 0.75);
+}
+
+.btnHeaderTransportPause {
+  background: linear-gradient(180deg, rgba(245, 166, 35, 0.48), rgba(245, 166, 35, 0.18));
+  border-color: rgba(245, 166, 35, 0.62);
+}
+
+.btnHeaderTransportPause:hover:not(:disabled) {
+  border-color: rgba(245, 166, 35, 0.85);
+}
+
 .appTopNav {
   display: flex;
   align-items: center;
@@ -1627,19 +1732,49 @@ textarea:focus {
   background: rgba(122, 162, 255, 0.1);
 }
 
-.segmentRowLive {
-  border-left-color: var(--brand);
-  box-shadow: inset 3px 0 0 var(--brand);
-}
-
-.segmentRow:focus-within.segmentRowLive {
-  background: rgba(122, 162, 255, 0.1);
-  box-shadow: inset 3px 0 0 var(--brand);
-}
-
 .segmentRowDragging {
   opacity: 0.85;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.segmentColHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.segmentLiveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--live-dot-accent, #2ee6d6);
+  box-shadow: 0 0 8px var(--live-dot-glow, rgba(46, 230, 214, 0.55));
+}
+
+@keyframes segmentLiveDotPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+    box-shadow: 0 0 6px var(--live-dot-glow, rgba(46, 230, 214, 0.4));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 12px var(--live-dot-glow, rgba(46, 230, 214, 0.75));
+  }
+}
+
+.segmentLiveDotPulse {
+  animation: segmentLiveDotPulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segmentLiveDotPulse {
+    animation: none;
+  }
 }
 
 .dragHandle {

@@ -62,15 +62,21 @@ export function useSetupAutoSave({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savingRef = useRef(false)
   const pendingFlushRef = useRef(false)
+  const lastResultRef = useRef<PersistSetupOutcome | null>(null)
   const persistSetupRef = useRef(persistSetup)
   const onNavigateRef = useRef(onNavigateAfterSave)
   const shouldNavigateRef = useRef(shouldNavigateAfterSave)
   const snapshotRef = useRef(snapshot)
+  const runPersistRef = useRef<
+    (touchRuntime: boolean) => Promise<PersistSetupOutcome | null>
+  >(async () => null)
 
-  persistSetupRef.current = persistSetup
-  onNavigateRef.current = onNavigateAfterSave
-  shouldNavigateRef.current = shouldNavigateAfterSave
-  snapshotRef.current = snapshot
+  useEffect(() => {
+    persistSetupRef.current = persistSetup
+    onNavigateRef.current = onNavigateAfterSave
+    shouldNavigateRef.current = shouldNavigateAfterSave
+    snapshotRef.current = snapshot
+  })
 
   const clearDebounce = useCallback(() => {
     if (debounceTimerRef.current != null) {
@@ -79,44 +85,75 @@ export function useSetupAutoSave({
     }
   }, [])
 
-  const runPersist = useCallback(async (touchRuntime: boolean) => {
-    savingRef.current = true
-    setSaveStatus('saving')
-    try {
-      const result = await persistSetupRef.current({ touchRuntime })
-      lastSavedSnapshotRef.current = snapshotRef.current
-      setSaveNotice(result.notice)
-      setSaveStatus(result.isError ? 'error' : 'saved')
+  useEffect(() => {
+    runPersistRef.current = async (touchRuntime: boolean) => {
+      savingRef.current = true
+      setSaveStatus('saving')
+      try {
+        const result = await persistSetupRef.current({ touchRuntime })
+        lastSavedSnapshotRef.current = snapshotRef.current
+        lastResultRef.current = result
+        setSaveNotice(result.notice)
+        setSaveStatus(result.isError ? 'error' : 'saved')
 
-      const navId = result.cloudEventId ?? result.localId
-      if (shouldNavigateRef.current && navId) {
-        onNavigateRef.current(navId)
-      }
+        const navId = result.cloudEventId ?? result.localId
+        if (shouldNavigateRef.current && navId) {
+          onNavigateRef.current(navId)
+        }
 
-      return result
-    } catch {
-      setSaveStatus('error')
-      return null
-    } finally {
-      savingRef.current = false
-      if (pendingFlushRef.current) {
-        pendingFlushRef.current = false
-        void runPersist(false)
+        return result
+      } catch {
+        setSaveStatus('error')
+        return null
+      } finally {
+        savingRef.current = false
+        if (pendingFlushRef.current) {
+          pendingFlushRef.current = false
+          void runPersistRef.current(false)
+        }
       }
     }
   }, [])
 
-  const flush = useCallback(async (touchRuntime = false) => {
-    clearDebounce()
-    if (!enabled && touchRuntime === false) return null
+  const runPersist = useCallback(
+    (touchRuntime: boolean) => runPersistRef.current(touchRuntime),
+    [],
+  )
 
-    if (savingRef.current) {
-      pendingFlushRef.current = true
-      return null
+  const waitForSaveIdle = useCallback(async () => {
+    for (let i = 0; i < 120 && savingRef.current; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
     }
+  }, [])
 
-    return runPersist(touchRuntime)
-  }, [clearDebounce, enabled, runPersist])
+  const flush = useCallback(
+    async (touchRuntime = false) => {
+      clearDebounce()
+      await waitForSaveIdle()
+
+      if (
+        !touchRuntime &&
+        !enabled &&
+        snapshotRef.current === lastSavedSnapshotRef.current &&
+        lastResultRef.current
+      ) {
+        return lastResultRef.current
+      }
+
+      if (!touchRuntime && !enabled) return null
+
+      if (
+        !touchRuntime &&
+        snapshotRef.current === lastSavedSnapshotRef.current &&
+        lastResultRef.current
+      ) {
+        return lastResultRef.current
+      }
+
+      return runPersist(touchRuntime)
+    },
+    [clearDebounce, enabled, runPersist, waitForSaveIdle],
+  )
 
   const scheduleSave = useCallback(() => {
     clearDebounce()
@@ -149,12 +186,9 @@ export function useSetupAutoSave({
   }, [hydrated, snapshot, scheduleSave, clearDebounce])
 
   useEffect(() => {
-    if (!hydrated) {
-      lastSavedSnapshotRef.current = null
-      clearDebounce()
-      setSaveStatus('idle')
-      setSaveNotice(null)
-    }
+    if (hydrated) return
+    lastSavedSnapshotRef.current = null
+    clearDebounce()
   }, [hydrated, clearDebounce])
 
   useEffect(() => () => clearDebounce(), [clearDebounce])

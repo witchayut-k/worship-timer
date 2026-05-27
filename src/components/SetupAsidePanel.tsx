@@ -1,5 +1,6 @@
 import type { EventDisplaySettings } from '../domain/types'
-import { PlayIcon, SaveIcon, TableIcon } from './SetupIcons'
+import type { SetupSaveStatus } from '../hooks/useSetupAutoSave'
+import { PlayIcon, TableIcon } from './SetupIcons'
 import { useLocale } from '../i18n/useLocale'
 
 type SetupAsidePanelProps = {
@@ -8,12 +9,12 @@ type SetupAsidePanelProps = {
   onOpenSpreadsheetImport: () => void
   canStart: boolean
   saving: boolean
+  saveStatus: SetupSaveStatus
   saveNotice: string | null
   productionMode: boolean
   cloudReady: boolean
   hasUid: boolean
   showCloudHints?: boolean
-  onSave: () => void
   onStartControl: () => void
 }
 
@@ -21,17 +22,26 @@ export function SetupAsidePanel({
   settings,
   onSettingsChange,
   onOpenSpreadsheetImport,
-  canStart,
-  saving,
-  productionMode,
-  onSave,
-  onStartControl,
+  // canStart,
+  // saving,
+  // saveStatus,
+  // saveNotice,
+  // productionMode,
+  // onStartControl,
 }: SetupAsidePanelProps) {
   const { t } = useLocale()
 
+  // const showSaveStatus =
+  //   saveStatus === 'pending' || saveStatus === 'saving' || saveStatus === 'saved' || saveStatus === 'error'
+
+  // const statusMessage =
+  //   saveStatus === 'pending' || saveStatus === 'saving'
+  //     ? t('setup.saving')
+  //     : saveNotice ?? (saveStatus === 'saved' ? t('setup.saved') : null)
+
   return (
     <>
-      <section className="asideCard setupActionsCard">
+      {/* <section className="asideCard setupActionsCard">
         <h2 className="asideCardTitle">{t('setup.startSection')}</h2>
         <div className="setupAsideActions">
           {!productionMode ? (
@@ -45,29 +55,19 @@ export function SetupAsidePanel({
               <span>{saving ? t('setup.preparing') : t('setup.start')}</span>
             </button>
           ) : null}
-          <button
-            className="btn setupAsideSave btnWithIcon"
-            type="button"
-            disabled={!canStart || saving}
-            onClick={onSave}
-          >
-            <SaveIcon />
-            <span>{saving ? t('setup.saving') : t('setup.save')}</span>
-          </button>
         </div>
-        {/* <div className="setupAsideMeta">
-          {saveNotice ? <p className="saveNotice">{saveNotice}</p> : null}
-          {showCloudHints && cloudReady && !hasUid ? (
-            <p className="muted">{t('setup.signInForCloud')}</p>
-          ) : null}
-          {showCloudHints && !cloudReady ? (
-            <p className="muted">
-              {t('setup.cloudEnvHint', { envFile: '.env.local', envExample: '.env.example' })}
+        {showSaveStatus && statusMessage ? (
+          <div className="setupAsideMeta">
+            <p
+              className={`saveNotice${saveStatus === 'error' ? ' saveNoticeError' : ''}`}
+              role="status"
+              aria-live="polite"
+            >
+              {statusMessage}
             </p>
-          ) : null}
-          {!showCloudHints ? <p className="muted">{t('plan.freeStorageHint')}</p> : null}
-        </div> */}
-      </section>
+          </div>
+        ) : null}
+      </section> */}
 
       <section className="asideCard">
         <h2 className="asideCardTitle">{t('setupAside.tools')}</h2>

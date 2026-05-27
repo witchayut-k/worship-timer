@@ -111,7 +111,19 @@ export function ServicesPage() {
   ) : null
 
   return (
-    <ControlShell activeNav="services" headerEnd={authHeader}>
+    <ControlShell
+      activeNav="services"
+      headerEnd={authHeader}
+      sessionStatus={
+        activeControl
+          ? {
+              eventId: activeControl.eventId,
+              productionMode: true,
+              eventTitle: activeControl.title,
+            }
+          : undefined
+      }
+    >
       {!user && canUseAuth ? (
         <div className="planBanner planBannerPro" role="region" aria-label={t('plan.proLoginTitle')}>
           <div className="planBannerProText">

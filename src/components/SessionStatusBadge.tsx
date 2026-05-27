@@ -1,0 +1,27 @@
+import type { RuntimePhase } from '../domain/types'
+import { resolveSessionStatus } from '../lib/sessionStatus'
+import { useLocale } from '../i18n/useLocale'
+
+type SessionStatusBadgeProps = {
+  productionMode: boolean
+  phase: RuntimePhase | null
+  ready: boolean
+}
+
+export function SessionStatusBadge({ productionMode, phase, ready }: SessionStatusBadgeProps) {
+  const { t } = useLocale()
+  const { variant, label } = resolveSessionStatus({ productionMode, phase, ready })
+
+  return (
+    <span
+      className={`sessionStatusBadge sessionStatusBadge--${variant}`}
+      role="status"
+      aria-live="polite"
+    >
+      {variant === 'live' ? (
+        <span className="sessionStatusLiveDot" aria-hidden />
+      ) : null}
+      <span>{label(t)}</span>
+    </span>
+  )
+}

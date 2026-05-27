@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, Navigate } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
 import { ensureFreeSession, freeSessionSetupPath, isFreeSessionId } from '../lib/freeSession'
@@ -17,15 +17,22 @@ import {
   DEFAULT_EVENT_DISPLAY_SETTINGS,
   type EventDisplaySettings,
   type ProgramItem,
+  type RuntimePhase,
+  type RuntimeState,
   type WorshipEvent,
 } from '../domain/types'
 import { formatSecToHhMmSs } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
+import {
+  serializeSetupSnapshot,
+  useSetupAutoSave,
+  type PersistSetupOutcome,
+} from '../hooks/useSetupAutoSave'
 import { useLocale } from '../i18n/useLocale'
 import { isOfflineEventId } from '../lib/eventSource'
-import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
+import { subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { addLeaderToRoster, collectLeadersFromItems } from '../lib/leaders'
 import {
@@ -41,7 +48,8 @@ import {
   upsertEventWithItems,
   watchRuntimeState,
 } from '../lib/firestoreRepo'
-import { initialRuntimeState } from '../lib/runtimeEngine'
+import { getStageTheme } from '../lib/displayTheme'
+import { deriveLocalDisplay, initialRuntimeState } from '../lib/runtimeEngine'
 
 function newId(): string {
   return Math.random().toString(36).slice(2, 10)
@@ -104,45 +112,76 @@ function SetupPageInner({
   const { isFree, isPaid, freeSessionId } = usePlan()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
   const cloudMode = isPaid && hasFirebaseConfig() && Boolean(uid)
+  const cloudReady = hasFirebaseConfig()
 
   const [title, setTitle] = useState('')
+  const [titleError, setTitleError] = useState<string | null>(null)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [plannedStartTime, setPlannedStartTime] = useState('')
   const [settings, setSettings] = useState<EventDisplaySettings>(DEFAULT_EVENT_DISPLAY_SETTINGS)
   const [leaderNames, setLeaderNames] = useState<string[]>([])
   const [items, setItems] = useState<DraftItem[]>([])
   const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null)
+  const [navFocusConsumed, setNavFocusConsumed] = useState(false)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [loading, setLoading] = useState(isEdit)
-  const [saveNotice, setSaveNotice] = useState<string | null>(null)
+  const [startSaving, setStartSaving] = useState(false)
+  const [loadedForEventId, setLoadedForEventId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const programLoadKey = `${routeEventId ?? ''}|${String(authReady)}|${String(cloudReady)}|${uid ?? ''}|${String(isFree)}`
+  const [prevProgramLoadKey, setPrevProgramLoadKey] = useState(programLoadKey)
+  if (programLoadKey !== prevProgramLoadKey) {
+    setPrevProgramLoadKey(programLoadKey)
+    setLoadedForEventId(null)
+    setLoadError(null)
+  }
+  const isProgramLoading = Boolean(routeEventId) && (!authReady || loadedForEventId !== routeEventId)
+  const hydrated = !isProgramLoading
   const [importOpen, setImportOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
-  const [liveIndex, setLiveIndex] = useState<number | null>(null)
+  const [liveRuntime, setLiveRuntime] = useState<RuntimeState | null>(null)
 
-  const onAutoFocusDone = useCallback(() => setNewlyAddedId(null), [])
+  const navAutoFocusId = useMemo(() => {
+    if (isProgramLoading || navFocusConsumed || focusOrder == null || !items.length) return null
+    return items.find((it) => it.order === focusOrder)?.id ?? null
+  }, [isProgramLoading, navFocusConsumed, focusOrder, items])
+
+  const autoFocusId = newlyAddedId ?? navAutoFocusId
+
+  const onAutoFocusDone = useCallback(() => {
+    setNewlyAddedId(null)
+    if (navAutoFocusId != null) setNavFocusConsumed(true)
+  }, [navAutoFocusId])
 
   const canStart = useMemo(() => items.length > 0, [items.length])
-  const cloudReady = hasFirebaseConfig()
   const totalSec = useMemo(() => items.reduce((s, it) => s + it.durationSec, 0), [items])
   const totalLabel = formatSecToHhMmSs(totalSec)
   const setupEventId = routeEventId ?? lastEventId ?? null
   const productionMode = isProductionForEvent(setupEventId)
+  const liveEventId = useMemo(() => {
+    const eid = routeEventId ?? lastEventId
+    if (!eid || !isProductionForEvent(eid)) return null
+    return eid
+  }, [routeEventId, lastEventId, isProductionForEvent])
+
+  const liveIndex = liveRuntime?.currentIndex ?? null
+  const livePhase: RuntimePhase | null = liveRuntime?.phase ?? null
+  const liveNowIntervalMs = liveRuntime?.phase === 'running' ? 200 : 1000
+  const nowMs = useNowMs(liveEventId ? liveNowIntervalMs : 60_000)
+
+  const liveDotTheme = useMemo(() => {
+    if (!productionMode || !liveRuntime) return null
+    const { remainingSec } = deriveLocalDisplay({ state: liveRuntime, nowMs })
+    return getStageTheme({ remainingSec, settings })
+  }, [productionMode, liveRuntime, nowMs, settings])
 
   useEffect(() => {
     if (isFree) ensureFreeSession()
   }, [isFree])
 
   useEffect(() => {
-    if (!routeEventId || !authReady) {
-      if (!routeEventId) setLoading(false)
-      return
-    }
+    if (!routeEventId || !authReady) return
 
     let cancelled = false
-    setLoading(true)
-    setLoadError(null)
 
     const load = async () => {
       try {
@@ -189,7 +228,7 @@ function SetupPageInner({
           setLoadError(e instanceof Error ? e.message : t('setup.loadFailed'))
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setLoadedForEventId(routeEventId)
       }
     }
 
@@ -200,33 +239,23 @@ function SetupPageInner({
   }, [routeEventId, authReady, cloudReady, t, uid, isFree])
 
   useEffect(() => {
-    if (loading || focusOrder == null || !items.length) return
-    const match = items.find((it) => it.order === focusOrder)
-    if (match) setNewlyAddedId(match.id)
-  }, [loading, focusOrder, items])
+    if (!liveEventId) return
 
-  useEffect(() => {
-    const eid = routeEventId ?? lastEventId
-    if (!eid || !isProductionForEvent(eid)) {
-      setLiveIndex(null)
-      return
-    }
-
-    if (isOfflineEventId(eid)) {
-      const stored = loadStoredLocalRuntime(eid)
-      if (stored) setLiveIndex(stored.currentIndex)
-      return subscribeLocalRuntime(eid, (s) => setLiveIndex(s.currentIndex))
+    if (isOfflineEventId(liveEventId)) {
+      return subscribeLocalRuntime(liveEventId, (s) => {
+        setLiveRuntime(s)
+      })
     }
 
     if (cloudReady && uid) {
-      return watchRuntimeState(eid, (s) => {
-        if (s) setLiveIndex(s.currentIndex)
+      return watchRuntimeState(liveEventId, (s) => {
+        setLiveRuntime(s ?? null)
       })
     }
-  }, [routeEventId, lastEventId, cloudReady, uid, isProductionForEvent])
+  }, [liveEventId, cloudReady, uid])
 
   const buildEvent = (roster: string[]): WorshipEvent => ({
-    title: title.trim() || t('event.untitled'),
+    title: title.trim(),
     date,
     ...(plannedStartTime.trim() ? { plannedStartTime: plannedStartTime.trim() } : {}),
     status: 'active',
@@ -284,11 +313,9 @@ function SetupPageInner({
     setResetModalOpen(true)
   }
 
-  const onResetConfirm = () => {
-    setItems([])
-    setNewlyAddedId(null)
-    setResetModalOpen(false)
-  }
+  const persistSetupRef = useRef<
+    (options: { touchRuntime: boolean }) => Promise<PersistSetupOutcome>
+  >(async () => ({ localId: '', cloudEventId: null, notice: null, isError: true }))
 
   const onRemove = (id: string) => {
     setItems((prev) => prev.filter((x) => x.id !== id).map((x, i) => ({ ...x, order: i + 1 })))
@@ -369,55 +396,117 @@ function SetupPageInner({
     return eventId
   }
 
-  const onSave = async () => {
-    if (!canStart) return
-    setSaving(true)
-    setSaveNotice(null)
-    try {
-      let cloudEventId: string | null = null
-      if (cloudMode) {
-        cloudEventId = await persistCloud(!isEdit)
-      }
-      const localId = persistLocal()
-      if (cloudEventId) {
-        setSaveNotice(t('setup.savedSynced'))
-        if (!isEdit) nav(`/setup/${cloudEventId}`, { replace: true })
-      } else {
-        setSaveNotice(t('setup.saved'))
-        if (!isEdit) nav(`/setup/${localId}`, { replace: true })
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : t('setup.saveFailed')
-      const isPermission =
-        msg.includes('permission') || msg.includes('PERMISSION')
+  const persistSetup = useCallback(
+    async ({ touchRuntime }: { touchRuntime: boolean }): Promise<PersistSetupOutcome> => {
       try {
-        persistLocal()
-        setSaveNotice(
-          isPermission ? t('setup.savedLocalCloudFailed') : t('setup.saved'),
-        )
-      } catch {
-        setSaveNotice(isPermission ? t('setup.saveCloudPermission') : msg)
+        let cloudEventId: string | null = null
+        if (cloudMode) {
+          cloudEventId = await persistCloud(touchRuntime)
+        }
+        const localId = persistLocal()
+        const notice = cloudEventId ? t('setup.savedSynced') : t('setup.saved')
+        return { localId, cloudEventId, notice, isError: false }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : t('setup.saveFailed')
+        const isPermission =
+          msg.includes('permission') || msg.includes('PERMISSION')
+        try {
+          const localId = persistLocal()
+          const notice = isPermission
+            ? t('setup.savedLocalCloudFailed')
+            : t('setup.saved')
+          return { localId, cloudEventId: null, notice, isError: isPermission }
+        } catch {
+          const notice = isPermission ? t('setup.saveCloudPermission') : msg
+          return { localId: '', cloudEventId: null, notice, isError: true }
+        }
       }
-    } finally {
-      setSaving(false)
+    },
+    [cloudMode, persistCloud, persistLocal, t],
+  )
+
+  const setupSnapshot = useMemo(
+    () =>
+      serializeSetupSnapshot({
+        title,
+        date,
+        plannedStartTime,
+        settings,
+        leaderNames,
+        items,
+      }),
+    [title, date, plannedStartTime, settings, leaderNames, items],
+  )
+
+  const shouldNavigateAfterSave = !isEdit && !routeEventId
+
+  const {
+    saveStatus,
+    saveNotice,
+    saving: autoSaving,
+    flush,
+    cancelScheduled,
+    markSnapshotSaved,
+  } = useSetupAutoSave({
+    enabled: !isProgramLoading && items.length > 0,
+    hydrated,
+    snapshot: setupSnapshot,
+    persistSetup,
+    shouldNavigateAfterSave,
+    onNavigateAfterSave: (eventId) => nav(`/setup/${eventId}`, { replace: true }),
+  })
+
+  useEffect(() => {
+    persistSetupRef.current = persistSetup
+  }, [persistSetup])
+
+  const onResetConfirm = () => {
+    setItems([])
+    setNewlyAddedId(null)
+    setResetModalOpen(false)
+    if (!lastEventId && !routeEventId) return
+    const emptySnapshot = serializeSetupSnapshot({
+      title,
+      date,
+      plannedStartTime,
+      settings,
+      leaderNames,
+      items: [],
+    })
+    window.setTimeout(() => {
+      void persistSetupRef.current({ touchRuntime: false }).then((result) => {
+        if (result && !result.isError) markSnapshotSaved(emptySnapshot)
+      })
+    }, 0)
+  }
+
+  const saving = autoSaving || startSaving
+
+  const validateTitle = (): boolean => {
+    if (title.trim()) {
+      setTitleError(null)
+      return true
     }
+    setTitleError(t('setup.titleRequired'))
+    return false
   }
 
   const onStartControl = async () => {
-    if (!canStart) return
-    setSaving(true)
+    if (!canStart || !validateTitle()) return
+    setStartSaving(true)
+    cancelScheduled()
     try {
-      if (cloudMode) {
-        const reuseCloudId =
-          isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
-        const eventId = await persistCloud(!reuseCloudId)
-        if (eventId) startWithEventId(eventId)
-        return
-      }
-      const id = persistLocal()
-      startWithEventId(id)
+      const reuseCloudId =
+        isEdit &&
+        routeEventId &&
+        lastEventId === routeEventId &&
+        !isOfflineEventId(lastEventId)
+      const touchRuntime = cloudMode ? !reuseCloudId : false
+      const result = await flush(touchRuntime)
+      const eventId = result?.cloudEventId ?? result?.localId
+      if (eventId) startWithEventId(eventId)
     } finally {
-      setSaving(false)
+      setStartSaving(false)
     }
   }
 
@@ -437,9 +526,19 @@ function SetupPageInner({
     return <Navigate to={freeSessionSetupPath()} replace />
   }
 
-  if (loading) {
+  if (isProgramLoading) {
     return (
-      <ControlShell activeNav="setup" eventId={setupEventId} eventTitle={title}>
+      <ControlShell
+        activeNav="setup"
+        eventId={setupEventId}
+        eventTitle={title}
+        productionMode={productionMode}
+        sessionStatus={{
+          eventId: setupEventId,
+          productionMode,
+          eventTitle: title,
+        }}
+      >
         <p className="muted">{t('setup.loadingProgram')}</p>
       </ControlShell>
     )
@@ -451,6 +550,11 @@ function SetupPageInner({
       eventId={setupEventId}
       eventTitle={title}
       productionMode={productionMode}
+      sessionStatus={{
+        eventId: setupEventId,
+        productionMode,
+        eventTitle: title,
+      }}
       onLeaveToLibrary={requestLeave}
       aside={
         <SetupAsidePanel
@@ -459,12 +563,12 @@ function SetupPageInner({
           onOpenSpreadsheetImport={() => setImportOpen(true)}
           canStart={canStart}
           saving={saving}
+          saveStatus={saveStatus}
           saveNotice={saveNotice}
           productionMode={productionMode}
           cloudReady={cloudReady && isPaid}
           hasUid={Boolean(uid)}
           showCloudHints={isPaid}
-          onSave={() => void onSave()}
           onStartControl={() => void onStartControl()}
         />
       }
@@ -528,8 +632,13 @@ function SetupPageInner({
               <input
                 value={title}
                 placeholder={t('event.untitled')}
-                onChange={(e) => setTitle(e.target.value)}
+                aria-invalid={titleError != null}
+                onChange={(e) => {
+                  setTitle(e.target.value)
+                  if (titleError && e.target.value.trim()) setTitleError(null)
+                }}
               />
+              {titleError ? <p className="fieldError">{titleError}</p> : null}
             </label>
             <label className="field">
               <div className="label">{t('setup.date')}</div>
@@ -568,9 +677,11 @@ function SetupPageInner({
           </div>
           <SetupSegmentList
             items={items}
-            autoFocusId={newlyAddedId}
+            autoFocusId={autoFocusId}
             onAutoFocusDone={onAutoFocusDone}
             liveIndex={productionMode ? liveIndex : null}
+            livePhase={productionMode ? livePhase : null}
+            liveDotTheme={productionMode ? liveDotTheme : null}
             leaderNames={leaderNames}
             onReorder={setItems}
             onUpdate={onUpdate}
@@ -606,4 +717,13 @@ function SetupPageInner({
       />
     </ControlShell>
   )
+}
+
+function useNowMs(intervalMs: number): number {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), intervalMs)
+    return () => window.clearInterval(id)
+  }, [intervalMs])
+  return now
 }

@@ -1,17 +1,28 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
+import { useRuntimePhase } from '../hooks/useRuntimePhase'
+import { resolveSessionStatus } from '../lib/sessionStatus'
 import { LanguageToggle } from './LanguageToggle'
+import { SessionStatusBadge } from './SessionStatusBadge'
+import { SessionTransportButton } from './SessionTransportButton'
 import { BookIcon, ListIcon, SlidersIcon } from './SetupIcons'
 import { useLocale } from '../i18n/useLocale'
 
 export type ControlNav = 'setup' | 'control' | 'services'
+
+export type SessionStatusProps = {
+  eventId: string | null
+  productionMode: boolean
+  eventTitle?: string
+}
 
 type ControlShellProps = {
   activeNav: ControlNav
   eventId?: string | null
   eventTitle?: string
   productionMode?: boolean
+  sessionStatus?: SessionStatusProps
   onLeaveToLibrary?: () => void
   headerEnd?: ReactNode
   aside?: ReactNode
@@ -46,6 +57,7 @@ export function ControlShell({
   eventId,
   eventTitle,
   productionMode = false,
+  sessionStatus,
   onLeaveToLibrary,
   headerEnd,
   aside,
@@ -53,12 +65,20 @@ export function ControlShell({
 }: ControlShellProps) {
   const { t } = useLocale()
   const { isPaid, isFree, homePath } = usePlan()
-  const statusTitle = eventTitle?.trim() || t('event.untitled')
-  const statusSub = productionMode
-    ? t('nav.controlling')
-    : eventId
-      ? t('nav.inProduction')
-      : t('nav.setupBeforeStart')
+
+  const statusEventId = sessionStatus?.eventId ?? null
+  const statusProduction = sessionStatus?.productionMode ?? productionMode
+  const statusTitle =
+    sessionStatus?.eventTitle?.trim() || eventTitle?.trim() || t('event.untitled')
+
+  const { phase, ready } = useRuntimePhase(statusEventId)
+  const sessionLabel = statusEventId
+    ? resolveSessionStatus({ productionMode: statusProduction, phase, ready }).label(t)
+    : productionMode
+      ? t('nav.controlling')
+      : eventId
+        ? t('nav.inProduction')
+        : t('nav.setupBeforeStart')
 
   const setupTo = eventId ? `/setup/${eventId}` : isFree ? homePath : '/setup'
   const controlTo = eventId ? `/start/${eventId}` : null
@@ -109,6 +129,19 @@ export function ControlShell({
     </NavTab>
   )
 
+  const sessionHeaderUi = statusEventId ? (
+    <div className="appHeaderSession">
+      <SessionStatusBadge productionMode={statusProduction} phase={phase} ready={ready} />
+      {statusProduction ? (
+        <SessionTransportButton
+          eventId={statusEventId}
+          eventTitle={statusTitle}
+          phase={phase}
+        />
+      ) : null}
+    </div>
+  ) : null
+
   return (
     <div className="appShell">
       <header className="appHeader">
@@ -137,6 +170,7 @@ export function ControlShell({
         </nav>
 
         <div className="appHeaderEnd">
+          {sessionHeaderUi}
           {headerEnd}
           {isFree ? (
             <a className="btnGhost btnSm planUpgradeBtn" href="#upgrade">
@@ -160,7 +194,7 @@ export function ControlShell({
           </span>
           <div className="appSessionBarText">
             <div className="appSessionBarTitle">{statusTitle}</div>
-            <div className="appSessionBarSub">{statusSub}</div>
+            <div className="appSessionBarSub">{sessionLabel}</div>
           </div>
         </div>
       ) : null}

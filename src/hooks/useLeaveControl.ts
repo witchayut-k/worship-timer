@@ -23,6 +23,7 @@ export function useLeaveControl(productionMode: boolean) {
   )
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    if (isFree) return false
     if (bypassBlockerRef.current) return false
     return (
       productionMode &&
@@ -34,12 +35,12 @@ export function useLeaveControl(productionMode: boolean) {
   const leaveModalOpen = manualOpen || blocker.state === 'blocked'
 
   const requestLeave = useCallback(() => {
-    if (!productionMode) {
+    if (!productionMode || isFree) {
       navigate(libraryPath)
       return
     }
     setManualOpen(true)
-  }, [productionMode, navigate, libraryPath])
+  }, [productionMode, isFree, navigate, libraryPath])
 
   const goToLibrary = useCallback(() => {
     setManualOpen(false)

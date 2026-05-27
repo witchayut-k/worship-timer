@@ -213,6 +213,11 @@ function StartPageInner({ eventId }: { eventId: string }) {
       eventId={eventId}
       eventTitle={title}
       productionMode={productionMode}
+      sessionStatus={{
+        eventId,
+        productionMode,
+        eventTitle: title,
+      }}
       onLeaveToLibrary={requestLeave}
     >
       <div className="controlWorkspace">
