@@ -144,10 +144,10 @@ export function useSetupAutoSave({
 
       if (
         !touchRuntime &&
-        snapshotRef.current === lastSavedSnapshotRef.current &&
-        lastResultRef.current
+        snapshotRef.current === lastSavedSnapshotRef.current
       ) {
-        return lastResultRef.current
+        if (lastResultRef.current) return lastResultRef.current
+        return { localId: '', cloudEventId: null, notice: null, isError: false }
       }
 
       return runPersist(touchRuntime)

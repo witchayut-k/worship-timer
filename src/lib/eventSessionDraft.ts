@@ -66,7 +66,7 @@ export function isSetupDraftDirty(
   draft: SetupDraftBundle,
   lastSavedSnapshot: string | null,
 ): boolean {
-  if (lastSavedSnapshot === null) return false
+  if (lastSavedSnapshot === null) return true
   return snapshotFromDraftBundle(draft) !== lastSavedSnapshot
 }
 

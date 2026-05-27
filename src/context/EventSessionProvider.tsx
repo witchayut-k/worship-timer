@@ -67,17 +67,14 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
       if (!nextEvent) return
       const draft = setupDraftRef.current
       const saved = lastSavedSnapshotRef.current
-      const dirty =
-        draft !== null && saved !== null && computeDraftDirty(draft, saved)
+      const dirty = draft !== null && computeDraftDirty(draft, saved)
       if (!shouldRefreshDraftFromServer(dirty)) return
       const nextDraft = draftBundleFromEventProgram({
         event: nextEvent,
         programItems: nextItems,
       })
       setSetupDraft(nextDraft)
-      if (saved !== null) {
-        setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
-      }
+      setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
     },
     [],
   )
@@ -107,8 +104,14 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
         return
       }
       if (cancelled) return
+      const nextDraft = draftBundleFromEventProgram({
+        event: entry.event,
+        programItems: entry.items,
+      })
       setEvent(entry.event)
       setProgramItems(entry.items)
+      setSetupDraft(nextDraft)
+      setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
       setStatus('ready')
       return
     }
@@ -123,8 +126,14 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
         return
       }
       if (cancelled) return
+      const nextDraft = draftBundleFromEventProgram({
+        event: payload.event,
+        programItems: payload.items,
+      })
       setEvent(payload.event)
       setProgramItems(payload.items)
+      setSetupDraft(nextDraft)
+      setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
       setStatus('ready')
       return
     }

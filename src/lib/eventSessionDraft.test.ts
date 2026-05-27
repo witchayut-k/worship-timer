@@ -28,6 +28,21 @@ describe('eventSessionDraft', () => {
     expect(items[0]?.order).toBe(1)
   })
 
+  it('treats null baseline as dirty (unknown save state)', () => {
+    const draft = draftBundleFromEventProgram({
+      event: {
+        title: 'Sunday',
+        date: '2026-05-28',
+        status: 'active',
+        updatedAtMs: 1,
+        leaderNames: [],
+      },
+      programItems: [programItem(1)],
+      newId: () => 'a',
+    })
+    expect(isSetupDraftDirty(draft, null)).toBe(true)
+  })
+
   it('detects dirty draft when snapshot differs', () => {
     const draft = draftBundleFromEventProgram({
       event: {

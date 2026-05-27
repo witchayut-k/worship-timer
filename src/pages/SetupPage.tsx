@@ -34,6 +34,7 @@ import {
 } from '../hooks/useSetupAutoSave'
 import { useLocale } from '../i18n/useLocale'
 import { newDraftItemId, snapshotFromDraftBundle } from '../lib/eventSessionDraft'
+import { needsSetupPersistBeforeNav } from '../lib/setupNavigation'
 import { isOfflineEventId } from '../lib/eventSource'
 import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
@@ -140,6 +141,7 @@ function SetupPageInner({
   const [importOpen, setImportOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [liveRuntime, setLiveRuntime] = useState<RuntimeState | null>(null)
+  const baselineSeededRef = useRef(false)
 
   const navAutoFocusId = useMemo(() => {
     if (isProgramLoading || navFocusConsumed || focusOrder == null || !items.length) return null
@@ -177,6 +179,7 @@ function SetupPageInner({
 
   useEffect(() => {
     setFormHydrated(false)
+    baselineSeededRef.current = false
   }, [routeEventId])
 
   useEffect(() => {
@@ -466,6 +469,15 @@ function SetupPageInner({
     flushRef.current = flush
   }, [persistSetup, flush])
 
+  useEffect(() => {
+    if (!formHydrated || baselineSeededRef.current || !session) return
+    session.markSetupDraftSaved(setupSnapshot)
+    markSnapshotSaved(setupSnapshot)
+    baselineSeededRef.current = true
+  }, [formHydrated, session, markSnapshotSaved, setupSnapshot])
+
+  const persistBeforeNav = needsSetupPersistBeforeNav(session, saveStatus)
+
   const onSpreadsheetImport = useCallback(
     (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
       if (productionMode && livePhase === 'running' && importMode === 'replace') return
@@ -554,26 +566,27 @@ function SetupPageInner({
 
   const openControlRoom = async () => {
     if (!controlEventId) return
+    if (!needsSetupPersistBeforeNav(session, saveStatus)) {
+      nav(`/start/${controlEventId}`)
+      return
+    }
     setNavSaving(true)
     cancelScheduled()
     try {
-      const skipFlush =
-        saveStatus === 'saved' && session !== null && !session.isSetupDraftDirty()
-      if (!skipFlush) {
-        await flush(false)
-      }
+      await flush(false)
       nav(`/start/${controlEventId}`)
     } finally {
       setNavSaving(false)
     }
   }
 
-  const controlShellNavProps = controlEventId
-    ? {
-        onControlNavigate: () => openControlRoom(),
-        controlNavigateDisabled: navSaving,
-      }
-    : {}
+  const controlShellNavProps =
+    controlEventId && persistBeforeNav
+      ? {
+          onControlNavigate: () => void openControlRoom(),
+          controlNavigateDisabled: navSaving,
+        }
+      : {}
 
   const {
     leaveModalOpen,
