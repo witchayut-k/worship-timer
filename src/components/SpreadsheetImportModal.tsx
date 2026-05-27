@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocale } from '../i18n/useLocale'
 import { formatSecToMmSs } from '../domain/time'
 import {
@@ -16,17 +16,21 @@ type SpreadsheetImportModalProps = {
 }
 
 export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetImportModalProps) {
+  if (!open) return null
+  return <SpreadsheetImportModalInner onClose={onClose} onImport={onImport} />
+}
+
+function SpreadsheetImportModalInner({
+  onClose,
+  onImport,
+}: {
+  onClose: () => void
+  onImport: (rows: ParsedProgramRow[], mode: SpreadsheetImportMode) => void
+}) {
   const { t, locale } = useLocale()
   const [text, setText] = useState('')
   const [mode, setMode] = useState<SpreadsheetImportMode>('replace')
   const [clipboardError, setClipboardError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!open) return
-    setText('')
-    setMode('replace')
-    setClipboardError(null)
-  }, [open])
 
   const parsed = useMemo(() => parseSpreadsheetTsv(text), [text])
 
@@ -49,8 +53,6 @@ export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetI
     onImport(parsed.rows, mode)
     onClose()
   }
-
-  if (!open) return null
 
   const previewSkipped =
     parsed.skipped > 0 ? t('import.previewSkipped', { count: parsed.skipped }) : ''

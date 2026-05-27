@@ -11,12 +11,34 @@
   --scrollbar-track: transparent;
   --scrollbar-thumb: rgba(255, 255, 255, 0.22);
   --scrollbar-thumb-hover: rgba(122, 162, 255, 0.55);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-    Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+  --font-ui: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-heading: var(--font-ui);
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  /* Timer digits: prioritize distance readability + stable width */
+  --font-timer: var(--font-ui);
+
+  font-family: var(--font-ui);
   color: var(--text);
   background: radial-gradient(1200px 800px at 30% -10%, #1b2b5a 0%, transparent 60%),
     radial-gradient(900px 700px at 90% 0%, #3a1b5a 0%, transparent 55%),
     var(--bg);
+}
+
+html[lang='en'] {
+  --font-ui: 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-heading: 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+    Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+html[lang='th'] {
+  --font-ui: 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-heading: 'Noto Sans Thai', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+    Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
 }
 
 * {
@@ -50,6 +72,13 @@ body {
   min-height: 100vh;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 #root {
   min-height: 100vh;
 }
@@ -60,12 +89,13 @@ a {
 }
 
 code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family: var(--font-mono);
   font-size: 0.95em;
 }
 
-input {
+input,
+select,
+textarea {
   width: 100%;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -74,7 +104,9 @@ input {
   padding: 10px 12px;
   outline: none;
 }
-input:focus {
+input:focus,
+select:focus,
+textarea:focus {
   border-color: rgba(122, 162, 255, 0.7);
   box-shadow: 0 0 0 4px rgba(122, 162, 255, 0.18);
 }
@@ -98,7 +130,7 @@ input:focus {
 }
 
 .brand {
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.3px;
 }
 
@@ -127,7 +159,7 @@ input:focus {
 .pageTitle {
   margin: 10px 0 14px;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .card {
@@ -148,7 +180,7 @@ input:focus {
 .cardTitle {
   margin: 0;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .grid2 {
@@ -192,7 +224,7 @@ input:focus {
   place-items: center;
   background: rgba(122, 162, 255, 0.15);
   border: 1px solid rgba(122, 162, 255, 0.25);
-  font-weight: 800;
+  font-weight: 600;
 }
 .rowMain {
   display: flex;
@@ -209,13 +241,13 @@ input:focus {
 .btnPrimary,
 .btnGhost,
 .btnDanger {
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   padding: 10px 12px;
   background: rgba(0, 0, 0, 0.22);
   color: var(--text);
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
 }
 .btn:hover,
 .btnGhost:hover {
@@ -224,6 +256,30 @@ input:focus {
 .btnPrimary {
   background: linear-gradient(180deg, rgba(122, 162, 255, 0.45), rgba(122, 162, 255, 0.18));
   border-color: rgba(122, 162, 255, 0.5);
+}
+.btnStart {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(52, 211, 168, 0.55);
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(52, 211, 168, 0.42), rgba(16, 185, 129, 0.2));
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 20px rgba(52, 211, 168, 0.12);
+}
+.btnStart:hover:not(:disabled) {
+  border-color: rgba(94, 234, 180, 0.75);
+  background: linear-gradient(180deg, rgba(52, 211, 168, 0.52), rgba(16, 185, 129, 0.28));
+  box-shadow: 0 0 28px rgba(52, 211, 168, 0.2);
+}
+.btnStart:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 .btnDanger {
   background: linear-gradient(180deg, rgba(255, 77, 77, 0.35), rgba(255, 77, 77, 0.12));
@@ -295,7 +351,7 @@ input:focus {
 }
 .timerMetaLabel {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -313,7 +369,7 @@ input:focus {
 }
 .timerMetaCurrent .timerMetaName {
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text);
   white-space: normal;
 }
@@ -343,6 +399,8 @@ input:focus {
 }
 
 .timerValue {
+  font-family: var(--font-timer);
+  font-feature-settings: 'tnum' 1;
   font-variant-numeric: tabular-nums;
   font-size: clamp(64px, 10vw, 120px);
   font-weight: 900;
@@ -399,7 +457,7 @@ input:focus {
   min-width: 120px;
   padding: 12px 24px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   border-radius: 10px;
   border: 1px solid transparent;
   color: var(--text);
@@ -437,7 +495,7 @@ input:focus {
   display: grid;
   gap: 6px;
   padding: 12px;
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.18);
   color: var(--text);
@@ -448,7 +506,7 @@ input:focus {
   background: rgba(122, 162, 255, 0.14);
 }
 .listPickTitle {
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .footer {
@@ -527,7 +585,7 @@ input:focus {
   background: rgba(0, 0, 0, 0.22);
 }
 .viewerTitle {
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.4px;
 }
 .viewerMain {
@@ -608,10 +666,9 @@ input:focus {
 }
 .stageArcText {
   fill: var(--stage-muted);
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    monospace;
+  font-family: var(--font-mono);
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -633,19 +690,19 @@ input:focus {
   pointer-events: none;
 }
 .stageRemainingLabel {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    monospace;
+  font-family: var(--font-mono);
   font-size: clamp(11px, 1.5vmin, 15px);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.28em;
   color: var(--stage-secondary);
   margin-bottom: 0.55em;
 }
 .stageTimerValue {
-  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-timer);
+  font-feature-settings: 'tnum' 1;
   font-variant-numeric: tabular-nums;
   font-size: clamp(64px, 13vmin, 132px);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 0.95;
   letter-spacing: 0.04em;
   color: #fff;
@@ -658,19 +715,18 @@ input:focus {
   margin-top: clamp(14px, 2.2vmin, 28px);
 }
 .stageSpeakerLabel {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    monospace;
+  font-family: var(--font-mono);
   font-size: clamp(9px, 1.2vmin, 12px);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.28em;
   color: var(--stage-accent);
   margin-bottom: 0.45em;
   opacity: 0.9;
 }
 .stageSpeakerName {
-  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: clamp(20px, 3.8vmin, 36px);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.02em;
   color: #fff;
   text-shadow:
@@ -726,9 +782,10 @@ input:focus {
 .sidebarBrand {
   padding: 0 18px;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--brand);
   letter-spacing: 0.2px;
+  font-family: var(--font-heading);
 }
 
 .languageToggle {
@@ -744,11 +801,11 @@ input:focus {
 .languageToggleBtn {
   flex: 1;
   border: 0;
-  border-radius: 7px;
+  border-radius: 10px;
   padding: 6px 8px;
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
@@ -791,7 +848,7 @@ input:focus {
 
 .sidebarStatusTitle {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.3;
 }
 
@@ -854,7 +911,7 @@ input:focus {
 .sidebarNavSectionLabel {
   padding: 4px 18px 6px 16px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
@@ -907,7 +964,7 @@ input:focus {
 
 .controlWorkspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 280px) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -922,49 +979,16 @@ input:focus {
   overflow-y: auto;
 }
 
-.controlSideRail {
+.controlRightRail {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px 14px;
   border-left: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.12);
   height: 100%;
   max-height: 100%;
   min-height: 0;
   min-width: 0;
-  overflow-y: auto;
-}
-
-.controlSideRail .controlStatusPanel,
-.controlSideRail .controlStageOutput {
-  margin: 0;
-}
-
-.controlSideRail .controlStatusPanel {
-  padding: 14px;
-}
-
-.controlSideRail .controlStatusGrid {
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
-.controlSideRail .controlStageOutput {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.controlSideRail .controlStageOutputActions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.controlSideRail .controlStageOutputActions .btnGhost {
-  width: 100%;
-  justify-content: center;
+  overflow: hidden;
 }
 
 .controlTopBar {
@@ -979,8 +1003,8 @@ input:focus {
 }
 .controlTopClockTime {
   font-variant-numeric: tabular-nums;
-  font-size: clamp(22px, 3vw, 28px);
-  font-weight: 800;
+  font-size: clamp(16px, 2.2vw, 21px);
+  font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.1;
 }
@@ -995,32 +1019,23 @@ input:focus {
 }
 .controlTopActions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
-  margin-bottom: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.outputLinksBtn {
+.controlTopActionBtn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
 }
 
-.outputLinksMonitorIcon {
+.controlTopActionIcon {
   flex-shrink: 0;
   opacity: 0.85;
-}
-
-.controlRightRail {
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.12);
-  height: 100%;
-  max-height: 100%;
-  min-height: 0;
-  min-width: 0;
-  overflow: hidden;
 }
 
 .programSchedule {
@@ -1044,7 +1059,7 @@ input:focus {
 .programScheduleTitle {
   margin: 0;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .programScheduleList {
@@ -1077,12 +1092,12 @@ input:focus {
 
 .programScheduleTime {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .scheduleBadge {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 3px 8px;
@@ -1153,103 +1168,25 @@ input:focus {
   transform: translateX(-100%);
 }
 
-.controlStatusPanel {
-  margin-top: 12px;
-  padding: 16px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.18);
-}
-.controlSideRail .controlStatusPanel {
-  margin-top: 0;
-  padding: 14px;
-}
-.controlSideRail .controlStatusGrid {
-  margin-top: 0;
-}
-
-.controlWallClock {
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(28px, 4vw, 40px);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
-.controlStatusMeta {
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
 .controlStatusMetaSep {
   opacity: 0.5;
 }
 
-.controlStatusGrid {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.controlBlackoutBtnActive {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 }
 
-.controlStatusItem {
-  display: grid;
-  gap: 4px;
+.controlBlackoutBtnActive .controlTopActionIcon {
+  opacity: 1;
 }
 
-.controlStatusLabel {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.controlStatusValue {
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.controlStatusLate {
-  color: var(--timerOver);
-}
-
-.controlStatusEarly {
-  color: #6ee7a8;
-}
-
-.controlStageOutput {
-  margin-top: 12px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.14);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.controlStageOutputLabel {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.controlStageOutputActions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.controlStageOutputActive {
-  border-color: rgba(122, 162, 255, 0.55);
-  background: rgba(122, 162, 255, 0.12);
+.controlBlackoutBtnActive:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
 }
 
 .controlFlashBtnActive {
@@ -1323,7 +1260,7 @@ input:focus {
 }
 
 .setupAside {
-  padding: 24px 20px 48px 0;
+  padding: 24px 24px 48px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1333,66 +1270,242 @@ input:focus {
   overflow-y: auto;
 }
 
+.setupPage {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 24px;
+}
+
+.setupPage > .card {
+  margin: 0 0 16px;
+}
+
 .setupPageHeader {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .setupPageHeaderText {
-  min-width: 200px;
+  flex: 1 1 240px;
+  min-width: 0;
 }
 
 .setupPageTitle {
   margin: 0 0 6px;
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .setupPageDesc {
   margin: 0;
   font-size: 14px;
+  line-height: 1.45;
   color: var(--muted);
 }
 
-.setupHeaderActions {
+.setupToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 auto;
+}
+
+.setupToolbarGroup {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
 }
 
-.durationSummaryBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.setupToolbarDivider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.setupToolbarBtn {
+  font-size: 13px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.setupToolbarBtnDanger:not(:disabled) {
+  color: rgba(255, 180, 180, 0.95);
+  border-color: rgba(255, 77, 77, 0.35);
+}
+
+.setupToolbarBtnDanger:not(:disabled):hover {
+  border-color: rgba(255, 77, 77, 0.6);
+  background: rgba(255, 77, 77, 0.08);
+}
+
+.setupEventGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(148px, 180px) minmax(128px, 156px);
   gap: 12px;
-  padding: 12px 16px;
+  align-items: start;
+}
+
+.setupEventGrid .field > .label {
+  min-height: 18px;
+  margin-bottom: 6px;
+}
+
+.setupEventGrid .labelWithTag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.3;
+}
+
+.labelTag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.setupEventTitleField {
+  min-width: 0;
+}
+
+.setupEventTimeField {
+  min-width: 0;
+}
+
+.setupProgramCard {
+  padding-bottom: 16px;
+}
+
+.setupProgramHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
   margin-bottom: 14px;
-  border-radius: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.setupProgramHeadText {
+  min-width: 0;
+}
+
+.setupProgramTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.setupProgramMeta {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
+.setupProgramStats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.setupDurationChip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 14px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.22);
 }
 
-.durationSummaryLabel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+.setupDurationChipLabel {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.durationSummaryValue {
-  font-size: 20px;
-  font-weight: 800;
+.setupDurationChipValue {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.setupEmptyProgram {
+  margin: 0;
+  padding: 36px 20px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.setupOutputCard {
+  margin-bottom: 0;
+}
+
+.setupAsideActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setupAsideSave {
+  width: 100%;
+}
+
+.setupAsideMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.setupAsideMeta .saveNotice {
+  margin: 0;
+  font-size: 12px;
+}
+
+.setupAsideSecondary {
+  width: 100%;
+  font-size: 12px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.setupAsideMeta .muted {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .timeMono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1408,7 +1521,7 @@ input:focus {
   gap: 10px;
   padding: 0 10px 6px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1505,7 +1618,7 @@ input:focus {
 .modalTitle {
   margin: 0;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .modalClose {
@@ -1601,7 +1714,7 @@ input:focus {
 
 .outputLinksTabThumbTimer {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--brand);
 }
@@ -1632,7 +1745,7 @@ input:focus {
 .outputLinksTabThumbTime {
   position: absolute;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: #2ee6d6;
 }
@@ -1650,7 +1763,7 @@ input:focus {
 
 .outputLinksPreviewLabel {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   margin-bottom: 8px;
   color: var(--muted);
 }
@@ -1695,7 +1808,7 @@ input:focus {
 
 .outputLinksControllerMockTimer {
   font-size: 48px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--brand);
   line-height: 1;
@@ -1718,7 +1831,7 @@ input:focus {
 
 .outputLinksControllerMockBtn {
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.08);
@@ -1739,7 +1852,7 @@ input:focus {
 .outputLinksInfoTitle {
   margin: 0;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .outputLinksInfoText {
@@ -1759,7 +1872,7 @@ input:focus {
 
 .outputLinksPathLabel {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--muted);
@@ -1793,7 +1906,7 @@ input:focus {
   min-width: 0;
   padding: 8px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: rgba(0, 0, 0, 0.25);
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
@@ -1856,7 +1969,7 @@ input:focus {
 
 .importPreviewTitle {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .importPreviewTableWrap {
@@ -1880,7 +1993,7 @@ input:focus {
 
 .importPreviewTable th {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
@@ -1923,7 +2036,7 @@ input:focus {
 .asideCardTitle {
   margin: 0 0 12px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
@@ -1943,11 +2056,11 @@ input:focus {
   gap: 8px;
   min-height: 88px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.2);
   color: var(--text);
-  font-weight: 700;
+  font-weight: 500;
   font-size: 12px;
   cursor: pointer;
   font-family: inherit;
@@ -1984,7 +2097,7 @@ input:focus {
 
 .alertSettingTitle {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
   margin-bottom: 4px;
 }
 
@@ -2115,7 +2228,7 @@ input:focus {
 .serviceLiveBadge {
   display: inline-block;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 3px 8px;
@@ -2134,7 +2247,7 @@ input:focus {
   align-items: center;
   gap: 10px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(0, 0, 0, 0.25);
   padding: 0 14px;
 }
@@ -2195,7 +2308,7 @@ input:focus {
 .servicesDateTitle {
   margin: 0;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
@@ -2238,7 +2351,7 @@ input:focus {
 
 .servicesSessionTitle {
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .servicesSessionActions {
@@ -2251,7 +2364,7 @@ input:focus {
 .serviceStatusBadge {
   display: inline-block;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 3px 8px;
@@ -2328,14 +2441,7 @@ input:focus {
 
   .controlWorkspace {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto auto;
-  }
-
-  .controlSideRail {
-    border-left: none;
-    border-top: 1px solid var(--border);
-    max-height: min(40dvh, 380px);
-    overflow-y: auto;
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 
   .controlRightRail {
@@ -2364,6 +2470,31 @@ input:focus {
 }
 
 @media (max-width: 840px) {
+  .setupEventGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .setupProgramStats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .setupDurationChip {
+    align-items: flex-start;
+  }
+
+  .setupPageHeader {
+    flex-direction: column;
+  }
+
+  .setupToolbar {
+    width: 100%;
+  }
+
+  .setupToolbarDivider {
+    display: none;
+  }
+
   .grid2 {
     grid-template-columns: 1fr;
   }

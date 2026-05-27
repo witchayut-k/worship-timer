@@ -23,7 +23,7 @@ type Props = {
 function MonitorIcon() {
   return (
     <svg
-      className="outputLinksMonitorIcon"
+      className="controlTopActionIcon"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -181,11 +181,12 @@ export function OutputLinksModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  useEffect(() => {
-    if (!open) setCopied(false)
-  }, [open, activeTab])
-
   if (!open) return null
+
+  const close = () => {
+    setCopied(false)
+    onClose()
+  }
 
   const copyUrl = async () => {
     try {
@@ -211,7 +212,7 @@ export function OutputLinksModal({
       className="modalOverlay"
       role="presentation"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (e.target === e.currentTarget) close()
       }}
     >
       <div
@@ -229,7 +230,7 @@ export function OutputLinksModal({
             ref={closeRef}
             className="btnGhost modalClose"
             type="button"
-            onClick={onClose}
+            onClick={close}
             aria-label={t('common.close')}
           >
             ✕
@@ -244,7 +245,10 @@ export function OutputLinksModal({
               role="tab"
               aria-selected={activeTab === tab.kind}
               className={`outputLinksTab ${activeTab === tab.kind ? 'outputLinksTabActive' : ''}`}
-              onClick={() => setActiveTab(tab.kind)}
+              onClick={() => {
+                setCopied(false)
+                setActiveTab(tab.kind)
+              }}
             >
               {tab.thumb}
               <span className="outputLinksTabLabel">{tab.label}</span>

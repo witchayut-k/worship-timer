@@ -52,27 +52,8 @@ export function formatWallClockShort(ms: number): string {
   return `${hh}:${mm}`
 }
 
-export function computeCueFinishMs(nowMs: number, remainingSec: number): number {
-  return nowMs + remainingSec * 1000
-}
-
 export function sumDurationSec(items: ProgramItem[], fromIndex = 0): number {
   return items.slice(fromIndex).reduce((sum, it) => sum + Math.max(0, it.durationSec), 0)
-}
-
-export function computeServiceOverUnderSec(params: {
-  plannedStartMs: number
-  items: ProgramItem[]
-  currentIndex: number
-  remainingSec: number
-  nowMs: number
-}): number {
-  const { plannedStartMs, items, currentIndex, remainingSec, nowMs } = params
-  const totalPlannedSec = sumDurationSec(items)
-  const plannedEndMs = plannedStartMs + totalPlannedSec * 1000
-  const futureSec = sumDurationSec(items, currentIndex + 1)
-  const projectedEndMs = nowMs + (remainingSec + futureSec) * 1000
-  return Math.trunc((projectedEndMs - plannedEndMs) / 1000)
 }
 
 export function computeSegmentPlannedStartMs(

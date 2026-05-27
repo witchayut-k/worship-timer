@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   computeSegmentPlannedStartMs,
@@ -31,10 +31,11 @@ export function ProgramSchedulePanel({
   onJumpTo,
 }: Props) {
   const { t } = useLocale()
+  const [nowMs] = useState(() => Date.now())
   const plannedStartMs = useMemo(() => {
     if (!eventDate?.trim() || !plannedStartTime?.trim()) return null
-    return parsePlannedStartMs(eventDate, plannedStartTime, Date.now())
-  }, [eventDate, plannedStartTime])
+    return parsePlannedStartMs(eventDate, plannedStartTime, nowMs)
+  }, [eventDate, plannedStartTime, nowMs])
 
   return (
     <section className="programSchedule" aria-label={t('control.programSchedule')}>

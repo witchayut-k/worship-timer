@@ -54,9 +54,16 @@ export function StageCircleDisplay({
   const bottomLabel = buildBottomLabel(nextName, nextLeader)
   const timeText = formatSignedMMSS(remainingSec)
   const speakerName = currentLeader.trim() || '—'
+  const isOvertime = remainingSec < 0
+
+  const centerLabel = paused ? 'PAUSED' : isOvertime ? 'OVERTIME' : 'REMAINING'
 
   const rootClass = `stageDisplay stageTheme-${theme.variant}${theme.flash ? ' stageFlash' : ''}${paused ? ' stagePaused' : ''}`
-  const timerAriaLabel = paused ? `timer paused, ${timeText}` : 'timer'
+  const timerAriaLabel = paused
+    ? `timer paused, ${timeText}`
+    : isOvertime
+      ? `overtime, ${timeText}`
+      : 'timer'
 
   const style = {
     '--stage-accent': theme.accent,
@@ -142,7 +149,7 @@ export function StageCircleDisplay({
         </svg>
 
         <div className="stageCenter">
-          <div className="stageRemainingLabel">{paused ? 'PAUSED' : 'REMAINING'}</div>
+          <div className="stageRemainingLabel">{centerLabel}</div>
           <div className="stageTimerValue" aria-live="polite" aria-label={timerAriaLabel}>
             {timeText}
           </div>

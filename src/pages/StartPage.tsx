@@ -2,7 +2,6 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
 import { ControlStageOutput } from '../components/ControlStageOutput'
-import { ControlStatusPanel } from '../components/ControlStatusPanel'
 import { ControlTimerProgress } from '../components/ControlTimerProgress'
 import { LeaveControlModal } from '../components/LeaveControlModal'
 import { MonitorIcon, OutputLinksModal } from '../components/OutputLinksModal'
@@ -233,14 +232,22 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   <span>{dateLabel}</span>
                 </div>
               </div>
-              <button
-                className="btnGhost outputLinksBtn"
-                type="button"
-                onClick={() => setOutputLinksOpen(true)}
-              >
-                <MonitorIcon />
-                {t('control.outputLinks')}
-              </button>
+              <div className="controlTopActions" role="group" aria-label={t('control.stageControl')}>
+                <button
+                  className="btnGhost controlTopActionBtn"
+                  type="button"
+                  onClick={() => setOutputLinksOpen(true)}
+                >
+                  <MonitorIcon />
+                  {t('control.outputLinks')}
+                </button>
+                <ControlStageOutput
+                  blackout={state.blackout}
+                  manualFlashActive={manualFlashActive}
+                  onBlackoutChange={setBlackout}
+                  onFlashTrigger={triggerFlash}
+                />
+              </div>
             </div>
           ) : null}
 
@@ -354,43 +361,23 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     </button>
                   </div>
                 </div>
-              </section>
+            </section>
           )}
         </div>
 
         {current ? (
-          <>
-            <aside className="controlSideRail">
-              <ControlStatusPanel
-                nowMs={nowMs}
-                eventDate={eventMeta?.date}
-                plannedStartTime={eventMeta?.plannedStartTime}
-                items={items}
-                currentIndex={state.currentIndex}
-                remainingSec={display.remainingSec}
-              />
-
-              <ControlStageOutput
-                blackout={state.blackout}
-                manualFlashActive={manualFlashActive}
-                onBlackoutChange={setBlackout}
-                onFlashTrigger={triggerFlash}
-              />
-            </aside>
-
-            <aside className="controlRightRail">
-              <ProgramSchedulePanel
-                eventId={eventId}
-                items={items}
-                currentIndex={state.currentIndex}
-                phase={state.phase}
-                displayRemainingSec={display.remainingSec}
-                eventDate={eventMeta?.date}
-                plannedStartTime={eventMeta?.plannedStartTime}
-                onJumpTo={jumpTo}
-              />
-            </aside>
-          </>
+          <aside className="controlRightRail">
+            <ProgramSchedulePanel
+              eventId={eventId}
+              items={items}
+              currentIndex={state.currentIndex}
+              phase={state.phase}
+              displayRemainingSec={display.remainingSec}
+              eventDate={eventMeta?.date}
+              plannedStartTime={eventMeta?.plannedStartTime}
+              onJumpTo={jumpTo}
+            />
+          </aside>
         ) : null}
       </div>
 

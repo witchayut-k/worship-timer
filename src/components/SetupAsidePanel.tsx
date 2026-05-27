@@ -5,17 +5,78 @@ type SetupAsidePanelProps = {
   settings: EventDisplaySettings
   onSettingsChange: (patch: Partial<EventDisplaySettings>) => void
   onOpenSpreadsheetImport: () => void
+  canStart: boolean
+  saving: boolean
+  saveLabel: string
+  saveNotice: string | null
+  cloudMode: boolean
+  cloudReady: boolean
+  hasUid: boolean
+  onSave: () => void
+  onStartControl: () => void
+  onStartLocalDemo: () => void
 }
 
 export function SetupAsidePanel({
   settings,
   onSettingsChange,
   onOpenSpreadsheetImport,
+  canStart,
+  saving,
+  saveLabel,
+  saveNotice,
+  cloudMode,
+  cloudReady,
+  hasUid,
+  onSave,
+  onStartControl,
+  onStartLocalDemo,
 }: SetupAsidePanelProps) {
   const { t } = useLocale()
 
   return (
     <>
+      <section className="asideCard setupActionsCard">
+        <h2 className="asideCardTitle">{t('setup.startSection')}</h2>
+        <div className="setupAsideActions">
+          <button
+            className="btnStart"
+            type="button"
+            disabled={!canStart || saving}
+            onClick={onStartControl}
+          >
+            {saving ? t('setup.preparing') : t('setup.startControl')}
+          </button>
+          <button
+            className="btn setupAsideSave"
+            type="button"
+            disabled={!canStart || saving}
+            onClick={onSave}
+          >
+            {saving ? t('setup.saving') : saveLabel}
+          </button>
+        </div>
+        <div className="setupAsideMeta">
+          {saveNotice ? <p className="saveNotice">{saveNotice}</p> : null}
+          {!cloudMode && cloudReady ? (
+            <button
+              className="btnGhost setupAsideSecondary"
+              type="button"
+              disabled={!canStart}
+              onClick={onStartLocalDemo}
+            >
+              {t('setup.startLocalLegacy')}
+            </button>
+          ) : null}
+          {cloudReady && !hasUid ? <p className="muted">{t('setup.signInForCloud')}</p> : null}
+          {!cloudReady ? (
+            <p className="muted">
+              {t('setup.cloudEnvHint', { envFile: '.env.local', envExample: '.env.example' })}
+            </p>
+          ) : null}
+        </div>
+      </section>
+
       <section className="asideCard">
         <h2 className="asideCardTitle">{t('setupAside.tools')}</h2>
         <div className="toolGrid">

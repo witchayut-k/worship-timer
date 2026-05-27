@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
-import { EventLinks } from '../components/EventLinks'
 import { LeaveControlModal } from '../components/LeaveControlModal'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
 import {
@@ -429,136 +428,123 @@ function SetupPageInner({
           settings={settings}
           onSettingsChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
           onOpenSpreadsheetImport={() => setImportOpen(true)}
+          canStart={canStart}
+          saving={saving}
+          saveLabel={saveLabel}
+          saveNotice={saveNotice}
+          cloudMode={cloudMode}
+          cloudReady={cloudReady}
+          hasUid={Boolean(uid)}
+          onSave={() => void onSave()}
+          onStartControl={() => void onStartControl()}
+          onStartLocalDemo={onStartLocalDemo}
         />
       }
     >
-      <header className="setupPageHeader">
-        <div className="setupPageHeaderText">
-          <h1 className="setupPageTitle">{isEdit ? t('setup.editTitle') : t('setup.newTitle')}</h1>
-          <p className="setupPageDesc">{t('setup.desc', { title: displayTitle })}</p>
-        </div>
-        <div className="setupHeaderActions">
-          {lastEventId ? (
-            <Link className="btnGhost" to={`/start/${lastEventId}`}>
-              {t('setup.backToControl')}
-            </Link>
-          ) : null}
-          {productionMode ? (
-            <button className="btnGhost" type="button" onClick={requestLeave}>
-              {t('nav.goToServices')}
-            </button>
-          ) : (
-            <Link className="btnGhost" to="/services">
-              {t('nav.services')}
-            </Link>
-          )}
-          <button className="btnGhost" type="button" onClick={onClearAll} disabled={!items.length}>
-            {t('setup.clearAll')}
-          </button>
-          <button
-            className="btn"
-            type="button"
-            disabled={!canStart || saving}
-            onClick={() => void onSave()}
-          >
-            {saving ? t('setup.saving') : saveLabel}
-          </button>
-          <button className="btnPrimary" type="button" onClick={onAdd}>
-            {t('setup.addItem')}
-          </button>
-        </div>
-      </header>
-
-      {loadError ? <p className="saveNotice saveNoticeError">{loadError}</p> : null}
-
-      <section className="card">
-        <div className="grid2">
-          <label className="field">
-            <div className="label">{t('setup.eventTitle')}</div>
-            <input
-              value={title}
-              placeholder={t('event.titlePlaceholder')}
-              aria-invalid={titleError != null}
-              onChange={(e) => {
-                setTitle(e.target.value)
-                if (titleError && e.target.value.trim()) setTitleError(null)
-              }}
-            />
-            {titleError ? <p className="fieldError">{titleError}</p> : null}
-          </label>
-          <label className="field">
-            <div className="label">{t('setup.date')}</div>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </label>
-        </div>
-        <label className="field" style={{ marginTop: 10 }}>
-          <div className="label">{t('setup.plannedStart')}</div>
-          <input
-            type="time"
-            value={plannedStartTime}
-            onChange={(e) => setPlannedStartTime(e.target.value)}
-          />
-        </label>
-      </section>
-
-      <div className="durationSummaryBar">
-        <span className="durationSummaryLabel">
-          <span aria-hidden>🕐</span> {t('setup.totalDuration')}
-        </span>
-        <span className="durationSummaryValue timeMono">{totalLabel}</span>
-      </div>
-
-      <SetupSegmentList
-        items={items}
-        selectedId={selectedId}
-        liveIndex={liveIndex}
-        leaderNames={leaderNames}
-        onSelect={setSelectedId}
-        onReorder={setItems}
-        onUpdate={onUpdate}
-        onRemove={onRemove}
-        onLeaderCommit={onLeaderCommit}
-      />
-
-      {saveNotice ? <p className="saveNotice">{saveNotice}</p> : null}
-
-      <section className="card">
-        <div className="cardHeader">
-          <h2 className="cardTitle">{t('setup.startSection')}</h2>
-        </div>
-        <div className="stack">
-          <button
-            className="btnPrimary"
-            type="button"
-            disabled={!canStart || saving}
-            onClick={() => void onStartControl()}
-          >
-            {saving ? t('setup.preparing') : t('setup.startControl')}
-          </button>
-          {!cloudMode && cloudReady ? (
-            <button className="btn" type="button" disabled={!canStart} onClick={onStartLocalDemo}>
-              {t('setup.startLocalLegacy')}
-            </button>
-          ) : null}
-          {cloudReady && !uid ? (
-            <div className="muted">{t('setup.signInForCloud')}</div>
-          ) : null}
-          {!cloudReady ? (
-            <div className="muted">
-              {t('setup.cloudEnvHint', { envFile: '.env.local', envExample: '.env.example' })}
-            </div>
-          ) : null}
-        </div>
-      </section>
-
-      {isEdit && lastEventId ? (
-        <section className="card">
-          <div className="cardHeader">
-            <h2 className="cardTitle">{t('setup.outputLinks')}</h2>
+      <div className="setupPage">
+        <header className="setupPageHeader">
+          <div className="setupPageHeaderText">
+            <h1 className="setupPageTitle">{isEdit ? t('setup.editTitle') : t('setup.newTitle')}</h1>
+            <p className="setupPageDesc">{t('setup.desc', { title: displayTitle })}</p>
           </div>
-          <EventLinks eventId={lastEventId} />
+          <div className="setupToolbar" role="toolbar" aria-label={t('nav.programSetup')}>
+            <div className="setupToolbarGroup">
+              {lastEventId ? (
+                <Link className="btnGhost setupToolbarBtn" to={`/start/${lastEventId}`}>
+                  {t('setup.backToControl')}
+                </Link>
+              ) : null}
+              {productionMode ? (
+                <button className="btnGhost setupToolbarBtn" type="button" onClick={requestLeave}>
+                  {t('nav.goToServices')}
+                </button>
+              ) : (
+                <Link className="btnGhost setupToolbarBtn" to="/services">
+                  {t('nav.services')}
+                </Link>
+              )}
+            </div>
+            <span className="setupToolbarDivider" aria-hidden />
+            <div className="setupToolbarGroup">
+              <button
+                className="btnGhost setupToolbarBtn setupToolbarBtnDanger"
+                type="button"
+                onClick={onClearAll}
+                disabled={!items.length}
+              >
+                {t('setup.clearAll')}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {loadError ? <p className="saveNotice saveNoticeError">{loadError}</p> : null}
+
+        <section className="card setupEventCard">
+          <div className="cardHeader">
+            <h2 className="cardTitle">{t('setup.eventDetails')}</h2>
+          </div>
+          <div className="setupEventGrid">
+            <label className="field setupEventTitleField">
+              <div className="label">{t('setup.eventTitle')}</div>
+              <input
+                value={title}
+                placeholder={t('event.titlePlaceholder')}
+                aria-invalid={titleError != null}
+                onChange={(e) => {
+                  setTitle(e.target.value)
+                  if (titleError && e.target.value.trim()) setTitleError(null)
+                }}
+              />
+              {titleError ? <p className="fieldError">{titleError}</p> : null}
+            </label>
+            <label className="field">
+              <div className="label">{t('setup.date')}</div>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </label>
+            <label className="field setupEventTimeField">
+              <div className="label labelWithTag">
+                <span>{t('setup.plannedStart')}</span>
+                <span className="labelTag">{t('common.optional')}</span>
+              </div>
+              <input
+                type="time"
+                value={plannedStartTime}
+                onChange={(e) => setPlannedStartTime(e.target.value)}
+              />
+            </label>
+          </div>
         </section>
-      ) : null}
+
+        <section className="card setupProgramCard">
+          <div className="setupProgramHead">
+            <div className="setupProgramHeadText">
+              <h2 className="setupProgramTitle">{t('setup.programItems')}</h2>
+              <p className="setupProgramMeta muted">{t('setup.itemCount', { count: items.length })}</p>
+            </div>
+            <div className="setupProgramStats">
+              <div className="setupDurationChip">
+                <span className="setupDurationChipLabel">{t('setup.totalDuration')}</span>
+                <span className="setupDurationChipValue timeMono">{totalLabel}</span>
+              </div>
+              <button className="btnPrimary" type="button" onClick={onAdd}>
+                {t('setup.addItem')}
+              </button>
+            </div>
+          </div>
+          <SetupSegmentList
+            items={items}
+            selectedId={selectedId}
+            liveIndex={liveIndex}
+            leaderNames={leaderNames}
+            onSelect={setSelectedId}
+            onReorder={setItems}
+            onUpdate={onUpdate}
+            onRemove={onRemove}
+            onLeaderCommit={onLeaderCommit}
+          />
+        </section>
+      </div>
 
       <SpreadsheetImportModal
         open={importOpen}

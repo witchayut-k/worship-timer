@@ -172,6 +172,10 @@ export function SetupSegmentList({
     onReorder(reorderItems(items, String(active.id), String(over.id)))
   }
 
+  if (!items.length) {
+    return <p className="setupEmptyProgram">{t('setup.emptyProgram')}</p>
+  }
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <div className="segmentTable">
