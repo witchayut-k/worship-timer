@@ -6,6 +6,7 @@ import { EventWorkspaceLayout } from './layout/EventWorkspaceLayout'
 import { ServicesPage } from './pages/ServicesPage'
 import { SetupPage } from './pages/SetupPage'
 import { StartPage } from './pages/StartPage'
+import { CrewPage } from './pages/CrewPage'
 import { ViewerPage } from './pages/ViewerPage'
 import { sessionRoomSetupPath } from './lib/freeSession'
 import { isFreePlan } from './lib/planTier'
@@ -42,6 +43,7 @@ export const appRoutes = [
         ],
       },
       { path: '/view/:eventId', element: <ViewerPage /> },
+      { path: '/crew/:eventId', element: <CrewPage /> },
       { path: '*', element: <HomeRedirect /> },
     ],
   },

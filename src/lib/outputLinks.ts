@@ -1,4 +1,4 @@
-export type OutputLinkKind = 'controller' | 'stage'
+export type OutputLinkKind = 'controller' | 'stage' | 'crew'
 
 export type OutputLink = {
   kind: OutputLinkKind
@@ -11,19 +11,26 @@ export function getOutputLinks(eventId: string, origin?: string): OutputLink[] {
   const base = origin ?? (typeof window !== 'undefined' ? window.location.origin : '')
   const controllerPath = `/start/${eventId}`
   const stagePath = `/view/${eventId}?kiosk=1`
+  const crewPath = `/crew/${eventId}`
 
   return [
-    {
-      kind: 'controller',
-      label: 'Controller',
-      path: controllerPath,
-      url: `${base}${controllerPath}`,
-    },
     {
       kind: 'stage',
       label: 'Stage display',
       path: stagePath,
       url: `${base}${stagePath}`,
+    },
+    {
+      kind: 'crew',
+      label: 'Crew view',
+      path: crewPath,
+      url: `${base}${crewPath}`,
+    },
+    {
+      kind: 'controller',
+      label: 'Controller',
+      path: controllerPath,
+      url: `${base}${controllerPath}`,
     },
   ]
 }

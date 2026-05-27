@@ -192,6 +192,10 @@ export const en = {
     openStage: 'Open Stage Display',
     resizeRail: 'Resize program panel',
   },
+  crew: {
+    pageSubtitle: 'Read-only program rundown — room lights and media cues',
+    nowPlaying: 'Now playing',
+  },
   viewer: {
     noProgram: 'No program items found',
     localSyncHint: 'Local demo: open Controller in another tab for realtime sync',
@@ -215,12 +219,16 @@ export const en = {
     outputTypes: 'Output types',
     controllerTab: 'Controller',
     stageTab: 'Stage Display',
+    crewTab: 'Crew view',
     controllerPreview: 'Controller Preview',
     stagePreview: 'Stage Preview',
+    crewPreview: 'Crew Preview',
     controllerDesc:
       'Timer and program control room — for operators who Start/Pause, change segments, and manage the stage display.',
     stageDesc:
       'Fullscreen display for the stage — shows timer, current segment, and next segment in kiosk mode (no menus).',
+    crewDesc:
+      'Read-only program rundown for backstage — full schedule with room lights and media notes, synced in realtime. Optimized for phones (MC, lighting, media team).',
   },
   import: {
     title: 'Import from Spreadsheet',

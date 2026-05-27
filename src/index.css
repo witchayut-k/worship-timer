@@ -1971,6 +1971,81 @@ body.setupSplitResizing {
   color: #2ee6d6;
 }
 
+.outputLinksTabThumbCrew {
+  padding: 8px 10px;
+  gap: 3px;
+  align-items: stretch;
+}
+
+.outputLinksTabThumbCrewRow {
+  height: 5px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.outputLinksTabThumbCrewRowActive {
+  background: rgba(122, 162, 255, 0.55);
+}
+
+.outputLinksCrewMock {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.outputLinksCrewMockNow {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(122, 162, 255, 0.35);
+  background: rgba(122, 162, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.outputLinksCrewMockLabel {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.outputLinksCrewMockTitle {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.outputLinksCrewMockTimer {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.outputLinksCrewMockList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.outputLinksCrewMockRow {
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+}
+
+.outputLinksCrewMockRowActive {
+  border-color: rgba(122, 162, 255, 0.4);
+  color: var(--text);
+  background: rgba(122, 162, 255, 0.08);
+}
+
 .outputLinksBody {
   display: grid;
   grid-template-columns: 1fr minmax(220px, 280px);

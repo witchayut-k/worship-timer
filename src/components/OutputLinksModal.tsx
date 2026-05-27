@@ -64,6 +64,33 @@ function StageTabThumb() {
   )
 }
 
+function CrewTabThumb() {
+  return (
+    <div className="outputLinksTabThumb outputLinksTabThumbCrew" aria-hidden>
+      <span className="outputLinksTabThumbCrewRow outputLinksTabThumbCrewRowActive" />
+      <span className="outputLinksTabThumbCrewRow" />
+      <span className="outputLinksTabThumbCrewRow" />
+    </div>
+  )
+}
+
+function CrewPreviewMock() {
+  return (
+    <div className="outputLinksCrewMock" aria-hidden>
+      <div className="outputLinksCrewMockNow">
+        <span className="outputLinksCrewMockLabel">Now</span>
+        <span className="outputLinksCrewMockTitle">Worship</span>
+        <span className="outputLinksCrewMockTimer">08:42</span>
+      </div>
+      <div className="outputLinksCrewMockList">
+        <span className="outputLinksCrewMockRow outputLinksCrewMockRowActive">1. Welcome</span>
+        <span className="outputLinksCrewMockRow">2. Worship</span>
+        <span className="outputLinksCrewMockRow">3. Message</span>
+      </div>
+    </div>
+  )
+}
+
 function ControllerPreviewMock() {
   return (
     <div className="outputLinksControllerMock" aria-hidden>
@@ -187,9 +214,24 @@ export function OutputLinksModal({
   }
 
   const tabs: { kind: OutputLinkKind; label: string; thumb: ReactNode }[] = [
-    { kind: 'controller', label: t('modal.controllerTab'), thumb: <ControllerTabThumb /> },
     { kind: 'stage', label: t('modal.stageTab'), thumb: <StageTabThumb /> },
+    { kind: 'crew', label: t('modal.crewTab'), thumb: <CrewTabThumb /> },
+    { kind: 'controller', label: t('modal.controllerTab'), thumb: <ControllerTabThumb /> },
   ]
+
+  const previewLabel =
+    activeTab === 'stage'
+      ? t('modal.stagePreview')
+      : activeTab === 'crew'
+        ? t('modal.crewPreview')
+        : t('modal.controllerPreview')
+
+  const infoTitle =
+    activeTab === 'stage'
+      ? t('modal.stageTab')
+      : activeTab === 'crew'
+        ? t('modal.crewTab')
+        : t('modal.controllerTab')
 
   return (
     <div
@@ -242,9 +284,7 @@ export function OutputLinksModal({
 
         <div className="modalBody outputLinksBody">
           <div className="outputLinksPreviewCol">
-            <div className="outputLinksPreviewLabel">
-              {activeTab === 'stage' ? t('modal.stagePreview') : t('modal.controllerPreview')}
-            </div>
+            <div className="outputLinksPreviewLabel">{previewLabel}</div>
             {activeTab === 'stage' ? (
               <StagePreviewFrame
                 stageTemplate={stageTemplate}
@@ -259,17 +299,17 @@ export function OutputLinksModal({
               />
             ) : (
               <div className="outputLinksPreviewFrame outputLinksPreviewFrameMock">
-                <ControllerPreviewMock />
+                {activeTab === 'crew' ? <CrewPreviewMock /> : <ControllerPreviewMock />}
               </div>
             )}
           </div>
 
           <div className="outputLinksInfoCol">
-            <h3 className="outputLinksInfoTitle">
-              {activeTab === 'controller' ? t('modal.controllerTab') : t('modal.stageTab')}
-            </h3>
+            <h3 className="outputLinksInfoTitle">{infoTitle}</h3>
             {activeTab === 'controller' ? (
               <p className="outputLinksInfoText">{t('modal.controllerDesc')}</p>
+            ) : activeTab === 'crew' ? (
+              <p className="outputLinksInfoText">{t('modal.crewDesc')}</p>
             ) : (
               <>
                 <p className="outputLinksInfoText">{t('modal.stageDesc')}</p>

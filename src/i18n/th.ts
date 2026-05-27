@@ -192,6 +192,10 @@ export const th: Messages = {
     openStage: 'เปิดจอเวที',
     resizeRail: 'ปรับความกว้างแผงโปรแกรม',
   },
+  crew: {
+    pageSubtitle: 'ตารางโปรแกรมแบบดูอย่างเดียว — ไฟห้องและคิวมีเดีย',
+    nowPlaying: 'กำลังแสดง',
+  },
   viewer: {
     noProgram: 'ไม่พบรายการโปรแกรม',
     localSyncHint: 'Local demo: เปิด Controller ในอีกแท็บเพื่อ sync realtime',
@@ -215,12 +219,16 @@ export const th: Messages = {
     outputTypes: 'Output types',
     controllerTab: 'Controller',
     stageTab: 'Stage display',
+    crewTab: 'ทีมงาน / MC',
     controllerPreview: 'Controller Preview',
     stagePreview: 'Stage Preview',
+    crewPreview: 'ตัวอย่างทีมงาน',
     controllerDesc:
       'ห้องควบคุม timer และโปรแกรม — ใช้สำหรับผู้ควบคุมที่ต้อง Start/Pause, เปลี่ยน segment และจัดการจอ Stage',
     stageDesc:
       'จอแสดงผลเต็มหน้าจอสำหรับคนดูบนเวที — แสดง timer, segment ปัจจุบัน และ segment ถัดไป ในโหมด kiosk (ไม่มีเมนู)',
+    crewDesc:
+      'ตารางโปรแกรมแบบดูอย่างเดียวสำหรับทีมหลังเวที — รายการครบ พร้อมไฟห้องประชุมและมีเดีย sync realtime เหมาะกับมือถือ (MC, คุมไฟ, มีเดีย)',
   },
   import: {
     title: 'นำเข้าจากตาราง',

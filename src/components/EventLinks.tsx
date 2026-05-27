@@ -27,8 +27,11 @@ export function EventLinks({ eventId, showOpenStage = true }: Props) {
     window.open(stageLink.path, '_blank', 'noopener,noreferrer')
   }
 
-  const linkLabel = (kind: OutputLinkKind) =>
-    kind === 'controller' ? t('modal.controllerTab') : t('modal.stageTab')
+  const linkLabel = (kind: OutputLinkKind) => {
+    if (kind === 'controller') return t('modal.controllerTab')
+    if (kind === 'crew') return t('modal.crewTab')
+    return t('modal.stageTab')
+  }
 
   return (
     <div className="linkGrid">
