@@ -5,7 +5,7 @@ export const en = {
   plan: {
     freeBanner: 'Local only · 1 session · Data stays on this device',
     freeStorageHint: 'Saved on this device only — no account required',
-    upgradeCta: 'Upgrade to Pro',
+    upgradeCta: 'Upgrade',
     proBadge: 'Pro',
     proLoginTitle: 'Sign in to sync your library',
     proLoginDesc: 'Cloud backup, multiple sessions, and access from any device.',

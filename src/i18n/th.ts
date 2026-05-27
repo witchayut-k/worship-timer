@@ -7,7 +7,7 @@ export const th: Messages = {
   plan: {
     freeBanner: 'ใช้ในเครื่องเท่านั้น · 1 รอบ · ข้อมูลอยู่บนอุปกรณ์นี้',
     freeStorageHint: 'บันทึกในเครื่องเท่านั้น — ไม่ต้องสมัครสมาชิก',
-    upgradeCta: 'อัปเกรดเป็น Pro',
+    upgradeCta: 'อัพเกรด',
     proBadge: 'Pro',
     proLoginTitle: 'เข้าสู่ระบบเพื่อซิงก์ไลบรารี',
     proLoginDesc: 'สำรอง Cloud หลายรอบ และเข้าถึงจากทุกอุปกรณ์',
