@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "sstimer-abdd7"
+  },
+  "targets": {
+    "sstimer-abdd7": {
+      "hosting": {
+        "controlstage": ["controlstage"]
+      }
+    }
+  }
+}

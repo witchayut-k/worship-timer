@@ -417,11 +417,9 @@ textarea:focus {
 }
 .timerWarning .timerValue {
   color: #f5a623;
-  box-shadow: inset 4px 0 0 #f5a623;
 }
 .timerOver .timerValue {
   color: #ff6b5a;
-  box-shadow: inset 4px 0 0 var(--danger);
 }
 .timerFlash .timerValue {
   animation: timerFlashFade 1s ease-in-out infinite;
