@@ -494,7 +494,8 @@ function SetupPageInner({
     cancelScheduled,
     markSnapshotSaved,
   } = useSetupAutoSave({
-    enabled: !isProgramLoading && items.length > 0,
+    enabled:
+      !isProgramLoading && (items.length > 0 || Boolean(routeEventId ?? lastEventId)),
     hydrated,
     snapshot: setupSnapshot,
     persistSetup,
