@@ -449,7 +449,7 @@ function SetupPageInner({
         if (cloudMode) {
           cloudEventId = await persistCloud(touchRuntime)
         }
-        const localId = persistLocal()
+        const localId = persistLocal() ?? ''
         const notice = cloudEventId ? t('setup.savedSynced') : t('setup.saved')
         return { localId, cloudEventId, notice, isError: false }
       } catch (e) {
@@ -457,7 +457,7 @@ function SetupPageInner({
         const isPermission =
           msg.includes('permission') || msg.includes('PERMISSION')
         try {
-          const localId = persistLocal()
+          const localId = persistLocal() ?? ''
           const notice = isPermission
             ? t('setup.savedLocalCloudFailed')
             : t('setup.saved')

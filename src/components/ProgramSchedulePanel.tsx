@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   computeSegmentPlannedStartMs,
   formatWallClockShort,
@@ -21,7 +20,6 @@ type Props = {
 }
 
 export function ProgramSchedulePanel({
-  eventId,
   items,
   currentIndex,
   phase,

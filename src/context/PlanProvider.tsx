@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
-import { sessionRoomSetupPath, ensureSessionRoomId } from '../lib/freeSession'
+import { sessionRoomSetupPath } from '../lib/freeSession'
 import { getPlanTier, isPaidPlan, type PlanTier } from '../lib/planTier'
 
 type PlanContextValue = {
