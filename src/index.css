@@ -20,6 +20,13 @@
   /* Timer digits: prioritize distance readability + stable width */
   --font-timer: var(--font-ui);
 
+  /* Global typography scale */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 17px;
+
   font-family: var(--font-ui);
   color: var(--text);
   background: radial-gradient(1200px 800px at 30% -10%, #1b2b5a 0%, transparent 60%),
@@ -247,6 +254,7 @@ textarea:focus {
   background: rgba(0, 0, 0, 0.22);
   color: var(--text);
   cursor: pointer;
+  font-size: var(--text-base);
   font-weight: 600;
 }
 .btn:hover,
@@ -454,7 +462,7 @@ textarea:focus {
   gap: 8px;
   min-width: 120px;
   padding: 12px 24px;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   border-radius: 10px;
   border: 1px solid transparent;
@@ -1217,7 +1225,7 @@ textarea:focus {
 
 .programScheduleTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 
@@ -1250,7 +1258,7 @@ textarea:focus {
 }
 
 .programScheduleTime {
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 500;
 }
 
@@ -1399,7 +1407,7 @@ textarea:focus {
 }
 
 .programSchedulePlanned {
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .setupMainGrid {
@@ -1760,6 +1768,7 @@ body.setupSplitResizing {
   font-family: var(--font-mono);
   font-feature-settings: 'tnum' 1;
   font-variant-numeric: tabular-nums;
+  font-size: var(--text-base);
 }
 
 .segmentTable {
@@ -2548,7 +2557,7 @@ body.setupSplitResizing {
 
 .btnSm {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .btnDisabled {

@@ -41,9 +41,6 @@ export function ProgramSchedulePanel({
     <section className="programSchedule" aria-label={t('control.programSchedule')}>
       <div className="programScheduleHeader">
         <h2 className="programScheduleTitle">{t('control.programSchedule')}</h2>
-        <Link className="btnGhost btnSm" to={`/setup/${eventId}`}>
-          {t('control.editProgram')}
-        </Link>
       </div>
 
       <div className="programScheduleList">
