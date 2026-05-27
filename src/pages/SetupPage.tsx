@@ -11,7 +11,7 @@ import {
   type SpreadsheetImportMode,
 } from '../components/SpreadsheetImportModal'
 import { SetupSegmentList, type DraftItem } from '../components/SetupSegmentList'
-import { BookIcon, PlusIcon, RotateCcwIcon, SlidersIcon } from '../components/SetupIcons'
+import { BookIcon, PlusIcon, RotateCcwIcon } from '../components/SetupIcons'
 import type { ParsedProgramRow } from '../domain/spreadsheetImport'
 import {
   DEFAULT_EVENT_DISPLAY_SETTINGS,
@@ -692,37 +692,28 @@ function SetupPageInner({
             <p className="setupPageDesc">{t('setup.desc', { title: displayTitle })}</p>
           </div>
           <div className="setupToolbar" role="toolbar" aria-label={t('nav.programSetup')}>
-            <div className="setupToolbarGroup">
-              {controlEventId ? (
-                <button
-                  className="btnGhost setupToolbarBtn btnWithIcon"
-                  type="button"
-                  disabled={navSaving}
-                  onClick={() => void openControlRoom()}
-                >
-                  <SlidersIcon />
-                  <span>{navSaving ? t('setup.preparing') : t('setup.openControl')}</span>
-                </button>
-              ) : null}
-              {isPaid ? (
-                productionMode ? (
-                  <button
-                    className="btnGhost setupToolbarBtn btnWithIcon"
-                    type="button"
-                    onClick={requestLeave}
-                  >
-                    <BookIcon />
-                    <span>{t('nav.library')}</span>
-                  </button>
-                ) : (
-                  <Link className="btnGhost setupToolbarBtn btnWithIcon" to="/services">
-                    <BookIcon />
-                    <span>{t('nav.library')}</span>
-                  </Link>
-                )
-              ) : null}
-            </div>
-            <span className="setupToolbarDivider" aria-hidden />
+            {isPaid ? (
+              <>
+                <div className="setupToolbarGroup">
+                  {productionMode ? (
+                    <button
+                      className="btnGhost setupToolbarBtn btnWithIcon"
+                      type="button"
+                      onClick={requestLeave}
+                    >
+                      <BookIcon />
+                      <span>{t('nav.library')}</span>
+                    </button>
+                  ) : (
+                    <Link className="btnGhost setupToolbarBtn btnWithIcon" to="/services">
+                      <BookIcon />
+                      <span>{t('nav.library')}</span>
+                    </Link>
+                  )}
+                </div>
+                <span className="setupToolbarDivider" aria-hidden />
+              </>
+            ) : null}
             <div className="setupToolbarGroup">
               <button
                 className="btnGhost setupToolbarBtn setupToolbarBtnDanger btnWithIcon"

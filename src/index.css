@@ -700,7 +700,7 @@ textarea:focus {
   color: var(--muted);
 }
 
-.appTopNavItemLink:hover {
+.appTopNavItemLink:not(.appTopNavItemActive):hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.05);
 }
@@ -724,7 +724,7 @@ textarea:focus {
   font-family: inherit;
 }
 
-.appTopNavItemButton:hover {
+.appTopNavItemButton:not(.appTopNavItemActive):hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.05);
 }
@@ -910,6 +910,91 @@ textarea:focus {
   padding: 18px 20px 20px;
   min-height: 0;
   overflow-y: auto;
+}
+
+.controlWorkspace--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.controlWorkspace--empty > .controlTimerColumn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.controlEmptyStage {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 48px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.controlEmptyStageVisual {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  color: rgba(122, 162, 255, 0.55);
+  margin-bottom: 4px;
+}
+
+.controlEmptyStageRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.controlEmptyStageIcon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(122, 162, 255, 0.12);
+  color: var(--brand);
+}
+
+.controlEmptyStageIcon .setupIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.controlEmptyStageTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.controlEmptyStageDesc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 34ch;
+}
+
+.controlEmptyStageActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 .controlColumnResizer {
@@ -2738,6 +2823,14 @@ body.setupSplitResizing {
 
   .controlWorkspace {
     flex-direction: column;
+  }
+
+  .controlEmptyStage {
+    padding: 32px 20px;
+  }
+
+  .controlEmptyStageTitle {
+    font-size: 18px;
   }
 
   .controlColumnResizer {

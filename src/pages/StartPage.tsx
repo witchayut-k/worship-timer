@@ -2,6 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
 import { isSessionRoomId, sessionRoomControlPath } from '../lib/freeSession'
+import { ControlEmptyStage } from '../components/ControlEmptyStage'
 import { ControlShell } from '../components/ControlShell'
 import { ControlStageOutput } from '../components/ControlStageOutput'
 import { ControlTimerProgress } from '../components/ControlTimerProgress'
@@ -230,7 +231,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
     >
       <div
         ref={controlWorkspaceRef}
-        className={`controlWorkspace${current ? ' controlWorkspace--withRail' : ''}`}
+        className={`controlWorkspace${current ? ' controlWorkspace--withRail' : ' controlWorkspace--empty'}`}
       >
         <div className="controlTimerColumn">
           {isCloud && !hasFirebaseConfig() ? (
@@ -276,13 +277,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
           ) : null}
 
           {!current ? (
-            <div className="card">
-              <h1 className="pageTitle">{t('control.start')}</h1>
-              <div className="muted">
-                {t('control.noProgramBefore')}{' '}
-                <Link to={eventId ? `/setup/${eventId}` : '/setup'}>{t('control.setup')}</Link>
-              </div>
-            </div>
+            <ControlEmptyStage setupPath={eventId ? `/setup/${eventId}` : '/setup'} />
           ) : (
             <section className={`timerCard ${timerClass}`}>
                 <div className="timerMeta timerMetaRow">
