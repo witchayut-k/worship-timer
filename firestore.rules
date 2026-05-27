@@ -18,20 +18,25 @@ service cloud.firestore {
     }
 
     match /events/{eventId} {
+      function isEventOwner() {
+        return isAuthed()
+          && get(/databases/$(database)/documents/events/$(eventId)).data.ownerUid
+             == request.auth.uid;
+      }
+
       allow read: if true;
       allow create: if isController() || isOwnerOnCreate();
       allow update, delete: if isController() || isOwner();
 
       match /programItems/{itemId} {
         allow read: if true;
-        allow create, update, delete: if isController() || isOwner();
+        allow create, update, delete: if isController() || isEventOwner();
       }
 
       match /runtime/{docId} {
         allow read: if true;
-        allow create, update, delete: if isController() || isOwner();
+        allow create, update, delete: if isController() || isEventOwner();
       }
     }
   }
 }
-

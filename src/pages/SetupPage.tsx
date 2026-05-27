@@ -32,6 +32,7 @@ import {
 } from '../hooks/useSetupAutoSave'
 import { useLocale } from '../i18n/useLocale'
 import { isOfflineEventId } from '../lib/eventSource'
+import { isSessionRoomId } from '../lib/freeSession'
 import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { collectLeadersFromItems } from '../lib/leaders'
@@ -191,6 +192,7 @@ function SetupPageInner({
 
   useEffect(() => {
     if (!routeEventId || !authReady) return
+    if (cloudReady && !uid) return
 
     let cancelled = false
 
@@ -217,7 +219,28 @@ function SetupPageInner({
 
         if (cloudReady && uid) {
           const ev = await loadEvent(routeEventId)
-          if (!ev) throw new Error(t('setup.loadCloudNotFound'))
+          if (!ev) {
+            if (isSessionRoomId(routeEventId)) {
+              const emptyEvent: WorshipEvent = {
+                title: '',
+                date: new Date().toISOString().slice(0, 10),
+                status: 'active',
+                updatedAtMs: Date.now(),
+                settings: { ...DEFAULT_EVENT_DISPLAY_SETTINGS },
+                leaderNames: [],
+                ownerUid: uid,
+              }
+              await upsertEventProgram({
+                eventId: routeEventId,
+                event: emptyEvent,
+                items: [],
+              })
+              if (cancelled) return
+              setLastEventId(routeEventId)
+              return
+            }
+            throw new Error(t('setup.loadCloudNotFound'))
+          }
           const programItems = await loadProgramItems(routeEventId)
           if (cancelled) return
           setTitle(ev.data.title)
@@ -394,9 +417,11 @@ function SetupPageInner({
 
   const persistCloud = async (touchRuntime: boolean): Promise<string | null> => {
     if (!cloudMode || !uid) return null
+    const cloudRouteId =
+      routeEventId && !isOfflineEventId(routeEventId) ? routeEventId : null
     const reuseCloudId =
       isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
-    const eventId = reuseCloudId ? lastEventId! : newCloudEventId()
+    const eventId = cloudRouteId ?? (reuseCloudId ? lastEventId! : newCloudEventId())
     const roster = collectLeadersFromItems(
       leaderNames,
       items.map((it) => it.leaderName),

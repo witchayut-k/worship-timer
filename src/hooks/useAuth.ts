@@ -13,16 +13,25 @@ export function useAuth() {
       return
     }
     let cancelled = false
+    void (async () => {
+      const anonUser = await signInAnonymouslyIfNeeded()
+      if (cancelled) return
+      if (anonUser) {
+        setUser(anonUser)
+        setReady(true)
+      }
+    })()
     const unsub = subscribeAuth((u) => {
       if (cancelled) return
       setUser(u)
-      setReady(true)
+      if (u) setReady(true)
     })
-    if (!user) {
-      void signInAnonymouslyIfNeeded().catch(() => {})
-    }
+    const authTimeout = window.setTimeout(() => {
+      if (!cancelled) setReady(true)
+    }, 8000)
     return () => {
       cancelled = true
+      window.clearTimeout(authTimeout)
       unsub()
     }
   }, [])
