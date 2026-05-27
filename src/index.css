@@ -592,6 +592,35 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+.appHeaderDivider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.appHeaderClock {
+  min-width: 0;
+}
+
+.appHeaderClockTime {
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.appHeaderClockMeta {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
 .appBrand {
   font-size: 17px;
   font-weight: 600;
@@ -1043,29 +1072,10 @@ textarea:focus {
 
 .controlTopBar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 16px;
   margin-bottom: 12px;
-}
-.controlTopClock {
-  min-width: 0;
-}
-.controlTopClockTime {
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(16px, 2.2vw, 21px);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1.1;
-}
-.controlTopClockMeta {
-  margin-top: 2px;
-  font-size: 11px;
-  color: var(--muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
 }
 .controlTopActions {
   display: flex;

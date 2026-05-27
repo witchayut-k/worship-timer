@@ -11,7 +11,6 @@ import { MonitorIcon, OutputLinksModal } from '../components/OutputLinksModal'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
 import { PauseIcon, PlayIcon } from '../components/TransportIcons'
 import type { ProgramItem, WorshipEvent } from '../domain/types'
-import { formatLocalDateShort, formatWallClock, getTimezoneLabel } from '../domain/schedule'
 import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
 import { formatSignedMMSS } from '../domain/time'
@@ -44,7 +43,7 @@ export function StartPage() {
 }
 
 function StartPageInner({ eventId }: { eventId: string }) {
-  const { t, locale } = useLocale()
+  const { t } = useLocale()
   const { isFree } = usePlan()
   const { uid, ready: authReady } = useAuth()
   const { setActiveControl, isProductionForEvent } = useActiveControl()
@@ -87,9 +86,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const next = state.currentIndex + 1 < items.length ? items[state.currentIndex + 1] : null
 
   const timeText = formatSignedMMSS(display.remainingSec)
-  const clockText = formatWallClock(nowMs)
-  const timezoneLabel = getTimezoneLabel()
-  const dateLabel = formatLocalDateShort(nowMs, locale)
 
   const isCloud = !isOfflineEventId(eventId)
   const cloudReady = isCloud && hasFirebaseConfig()
@@ -249,14 +245,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
 
           {current ? (
             <div className="controlTopBar">
-              <div className="controlTopClock" aria-live="off">
-                <div className="controlTopClockTime">{clockText}</div>
-                <div className="controlTopClockMeta">
-                  <span>{timezoneLabel}</span>
-                  <span className="controlStatusMetaSep">·</span>
-                  <span>{dateLabel}</span>
-                </div>
-              </div>
               <div className="controlTopActions" role="group" aria-label={t('control.stageControl')}>
                 <button
                   className="btnGhost controlTopActionBtn"

@@ -4,6 +4,7 @@ import { usePlan } from '../context/PlanProvider'
 import { useResizableAside } from '../hooks/useResizableAside'
 import { useRuntimePhase } from '../hooks/useRuntimePhase'
 import { resolveSessionStatus } from '../lib/sessionStatus'
+import { AppHeaderClock } from './AppHeaderClock'
 import { LanguageToggle } from './LanguageToggle'
 import { SessionStatusBadge } from './SessionStatusBadge'
 import { BookIcon, ListIcon, SlidersIcon } from './SetupIcons'
@@ -158,6 +159,8 @@ export function ControlShell({
             {t('app.name')}
           </Link>
           {isPaid ? <span className="planBadge planBadgePro">{t('plan.proBadge')}</span> : null}
+          <span className="appHeaderDivider" aria-hidden />
+          <AppHeaderClock />
         </div>
 
         <nav className="appTopNav" aria-label={t('nav.mainMenu')}>
