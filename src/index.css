@@ -2262,6 +2262,130 @@ body.setupSplitResizing {
   cursor: not-allowed;
 }
 
+.stageTemplateGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.stageTemplateOption {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 2px 12px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.stageTemplateOptionSelected {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 1px var(--brand);
+}
+
+.stageTemplateOptionLabel {
+  grid-column: 2;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stageTemplateOptionDesc {
+  grid-column: 2;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.stageTemplateThumb {
+  grid-row: 1 / span 2;
+  width: 52px;
+  height: 40px;
+  border-radius: 6px;
+  background: #0a0f14;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.stageTemplateThumbCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stageTemplateThumbRing {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 2px solid rgba(46, 230, 214, 0.55);
+}
+
+.stageTemplateThumbMinimal,
+.stageTemplateThumbBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+}
+
+.stageTemplateThumbTimer {
+  font-family: var(--font-timer);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.stageTemplateThumbTimerSm {
+  font-size: 9px;
+}
+
+.stageTemplateThumbBar {
+  width: 70%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+}
+
+.stageTemplateThumbBar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 55%;
+  border-radius: 999px;
+  background: rgba(46, 230, 214, 0.7);
+}
+
+.stageTemplateThumbBarWide {
+  width: 88%;
+}
+
+.stageTemplateThumbCols {
+  display: flex;
+  gap: 3px;
+  width: 88%;
+}
+
+.stageTemplateThumbCols span {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .alertSettingRow {
   display: flex;
   align-items: flex-start;

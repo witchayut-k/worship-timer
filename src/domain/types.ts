@@ -4,14 +4,27 @@ export type RuntimePhase = 'stopped' | 'running' | 'paused'
 
 export type Role = 'controller' | 'viewer'
 
+export type StageDisplayTemplate = 'circle' | 'minimal' | 'bar'
+
+const STAGE_DISPLAY_TEMPLATES: StageDisplayTemplate[] = ['circle', 'minimal', 'bar']
+
+export function parseStageDisplayTemplate(value: unknown): StageDisplayTemplate {
+  if (typeof value === 'string' && STAGE_DISPLAY_TEMPLATES.includes(value as StageDisplayTemplate)) {
+    return value as StageDisplayTemplate
+  }
+  return 'circle'
+}
+
 export type EventDisplaySettings = {
   overtimeFlash: boolean
   warningAtOneMinute: boolean
+  stageTemplate?: StageDisplayTemplate
 }
 
 export const DEFAULT_EVENT_DISPLAY_SETTINGS: EventDisplaySettings = {
   overtimeFlash: true,
   warningAtOneMinute: true,
+  stageTemplate: 'circle',
 }
 
 export type WorshipEvent = {
@@ -60,8 +73,12 @@ export type ProgramItemDoc = {
 export function resolveEventSettings(
   event?: Pick<WorshipEvent, 'settings'> | null,
 ): EventDisplaySettings {
-  return {
+  const merged = {
     ...DEFAULT_EVENT_DISPLAY_SETTINGS,
     ...event?.settings,
+  }
+  return {
+    ...merged,
+    stageTemplate: parseStageDisplayTemplate(merged.stageTemplate),
   }
 }

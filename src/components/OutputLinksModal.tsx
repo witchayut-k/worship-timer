@@ -1,7 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { STAGE_LAYOUT_PX } from '../config/stageDisplay.config'
-import { StageCircleDisplay } from './StageCircleDisplay'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { getStageLayoutDimensions } from '../config/stageTemplates.config'
+import type { StageDisplayTemplate } from '../domain/types'
+import { useStageDisplayScale } from '../hooks/useStageDisplayScale'
 import type { StageTheme } from '../lib/displayTheme'
+import { StageDisplay } from './StageDisplay'
 import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
 
@@ -9,6 +11,7 @@ type Props = {
   open: boolean
   onClose: () => void
   eventId: string
+  stageTemplate: StageDisplayTemplate
   remainingSec: number
   durationSec: number
   currentName: string
@@ -82,6 +85,7 @@ function ControllerPreviewMock() {
 }
 
 function StagePreviewFrame({
+  stageTemplate,
   remainingSec,
   durationSec,
   currentName,
@@ -91,45 +95,23 @@ function StagePreviewFrame({
   theme,
   paused,
 }: Omit<Props, 'open' | 'onClose' | 'eventId'>) {
-  const frameRef = useRef<HTMLDivElement>(null)
-  const scaleRef = useRef<HTMLDivElement>(null)
-  const displayRef = useRef<HTMLDivElement>(null)
-
-  useLayoutEffect(() => {
-    const frame = frameRef.current
-    const scaleEl = scaleRef.current
-    const display = displayRef.current
-    if (!frame || !scaleEl || !display) return
-
-    const measure = () => {
-      const fitScale = Math.min(
-        frame.clientWidth / STAGE_LAYOUT_PX,
-        frame.clientHeight / STAGE_LAYOUT_PX,
-      )
-      const safeScale = Math.max(0.08, fitScale)
-      const fittedW = STAGE_LAYOUT_PX * safeScale
-      const fittedH = STAGE_LAYOUT_PX * safeScale
-
-      scaleEl.style.width = `${fittedW}px`
-      scaleEl.style.height = `${fittedH}px`
-      display.style.width = `${STAGE_LAYOUT_PX}px`
-      display.style.height = `${STAGE_LAYOUT_PX}px`
-      display.style.transform = `scale(${safeScale})`
-      display.style.transformOrigin = 'top left'
-    }
-
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(frame)
-    ro.observe(scaleEl)
-    return () => ro.disconnect()
-  }, [remainingSec, currentName, currentLeader, nextName, nextLeader, durationSec])
+  const { width, height } = getStageLayoutDimensions(stageTemplate)
+  const { frameRef, scaleRef, displayRef } = useStageDisplayScale(width, height, [
+    remainingSec,
+    currentName,
+    currentLeader,
+    nextName,
+    nextLeader,
+    durationSec,
+    stageTemplate,
+  ])
 
   return (
     <div className="outputLinksPreviewFrame" ref={frameRef}>
       <div className="outputLinksPreviewScale" ref={scaleRef}>
         <div ref={displayRef} className="outputLinksPreviewDisplayWrap">
-          <StageCircleDisplay
+          <StageDisplay
+            template={stageTemplate}
             remainingSec={remainingSec}
             durationSec={durationSec}
             currentName={currentName}
@@ -149,6 +131,7 @@ export function OutputLinksModal({
   open,
   onClose,
   eventId,
+  stageTemplate,
   remainingSec,
   durationSec,
   currentName,
@@ -264,6 +247,7 @@ export function OutputLinksModal({
             </div>
             {activeTab === 'stage' ? (
               <StagePreviewFrame
+                stageTemplate={stageTemplate}
                 remainingSec={remainingSec}
                 durationSec={durationSec}
                 currentName={currentName}

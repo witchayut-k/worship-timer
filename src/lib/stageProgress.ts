@@ -5,6 +5,13 @@ export type RingDash = {
   remainingRatio: number
 }
 
+export function computeRemainingRatio(remainingSec: number, durationSec: number): number {
+  const duration = Math.max(0, durationSec)
+  if (remainingSec < 0) return 1
+  if (duration <= 0) return 1
+  return Math.max(0, Math.min(1, remainingSec / duration))
+}
+
 export function computeRingDash(params: {
   remainingSec: number
   durationSec: number

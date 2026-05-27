@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { StageCircleDisplay } from '../components/StageCircleDisplay'
+import { StageDisplay } from '../components/StageDisplay'
 import type { ProgramItem, RuntimePhase, WorshipEvent } from '../domain/types'
 import { resolveEventSettings } from '../domain/types'
 import { computeRemainingSec } from '../domain/time'
@@ -128,7 +128,8 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
       <div className="viewerMain">
         {current ? (
           <>
-            <StageCircleDisplay
+            <StageDisplay
+              template={settings.stageTemplate ?? 'circle'}
               remainingSec={remainingSec}
               durationSec={current.durationSec}
               currentName={current.name}

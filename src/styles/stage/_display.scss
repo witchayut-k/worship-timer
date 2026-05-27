@@ -1,8 +1,6 @@
 @use 'tokens' as *;
 
 .stageDisplay {
-  width: var(--stage-display-width);
-  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,6 +9,11 @@
   --stage-muted: rgba(46, 230, 214, 0.75);
   --stage-secondary: #f0a030;
   --stage-secondary-glow: rgba(240, 160, 48, 0.5);
+}
+
+.stageDisplay--circle {
+  width: var(--stage-display-width);
+  aspect-ratio: 1;
 }
 
 .stageCircleWrap {
@@ -170,12 +173,6 @@
   //   0 0 40px var(--stage-glow),
   //   0 0 80px rgba(46, 230, 214, 0.15);
   text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
-}
-
-.stageFlash .stageRingProgress,
-.stageFlash .stageRingProgressGlow,
-.stageFlash .stageTimerValue {
-  animation: stageFlashFade $stage-flash-duration ease-in-out infinite;
 }
 
 .stageDisplay.stagePaused .stageRingProgressGlow {

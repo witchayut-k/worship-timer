@@ -1,11 +1,13 @@
-import { useLayoutEffect, useRef } from 'react'
-import { STAGE_LAYOUT_PX } from '../config/stageDisplay.config'
-import { StageCircleDisplay } from './StageCircleDisplay'
+import { getStageLayoutDimensions } from '../config/stageTemplates.config'
+import type { StageDisplayTemplate } from '../domain/types'
+import { useStageDisplayScale } from '../hooks/useStageDisplayScale'
 import type { StageTheme } from '../lib/displayTheme'
 import { useLocale } from '../i18n/useLocale'
+import { StageDisplay } from './StageDisplay'
 
 type Props = {
   eventId: string
+  stageTemplate: StageDisplayTemplate
   remainingSec: number
   durationSec: number
   currentName: string
@@ -22,6 +24,7 @@ function openStage(eventId: string) {
 
 export function StagePreview({
   eventId,
+  stageTemplate,
   remainingSec,
   durationSec,
   currentName,
@@ -32,45 +35,15 @@ export function StagePreview({
   paused = false,
 }: Props) {
   const { t } = useLocale()
-  const frameRef = useRef<HTMLDivElement>(null)
-  const scaleRef = useRef<HTMLDivElement>(null)
-  const displayRef = useRef<HTMLDivElement>(null)
-
-  useLayoutEffect(() => {
-    const frame = frameRef.current
-    const scaleEl = scaleRef.current
-    const display = displayRef.current
-    if (!frame || !scaleEl || !display) return
-
-    const measure = () => {
-      const fitScale = Math.min(
-        frame.clientWidth / STAGE_LAYOUT_PX,
-        frame.clientHeight / STAGE_LAYOUT_PX,
-      )
-      const safeScale = Math.max(0.08, fitScale)
-      const fittedW = STAGE_LAYOUT_PX * safeScale
-      const fittedH = STAGE_LAYOUT_PX * safeScale
-
-      scaleEl.style.width = `${fittedW}px`
-      scaleEl.style.height = `${fittedH}px`
-      display.style.width = `${STAGE_LAYOUT_PX}px`
-      display.style.height = `${STAGE_LAYOUT_PX}px`
-      display.style.transform = `scale(${safeScale})`
-      display.style.transformOrigin = 'top left'
-    }
-
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(frame)
-    ro.observe(scaleEl)
-    return () => ro.disconnect()
-  }, [
+  const { width, height } = getStageLayoutDimensions(stageTemplate)
+  const { frameRef, scaleRef, displayRef } = useStageDisplayScale(width, height, [
     remainingSec,
     currentName,
     currentLeader,
     nextName,
     nextLeader,
     durationSec,
+    stageTemplate,
   ])
 
   return (
@@ -84,7 +57,8 @@ export function StagePreview({
       <div className="stagePreviewFrame" ref={frameRef} aria-hidden>
         <div className="stagePreviewScale" ref={scaleRef}>
           <div ref={displayRef} className="stagePreviewDisplayWrap">
-            <StageCircleDisplay
+            <StageDisplay
+              template={stageTemplate}
               remainingSec={remainingSec}
               durationSec={durationSec}
               currentName={currentName}

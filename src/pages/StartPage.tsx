@@ -430,6 +430,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
         open={outputLinksOpen}
         onClose={() => setOutputLinksOpen(false)}
         eventId={eventId}
+        stageTemplate={settings.stageTemplate ?? 'circle'}
         remainingSec={display.remainingSec}
         durationSec={current?.durationSec ?? 0}
         currentName={current?.name ?? ''}

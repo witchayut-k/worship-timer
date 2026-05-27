@@ -1,0 +1,94 @@
+@use 'tokens' as *;
+
+.stageDisplay--bar {
+  width: min(98vmin, min(98dvh * 16 / 9, 1600px));
+  aspect-ratio: 16 / 9;
+  max-height: 98dvh;
+}
+
+.stageBarWrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 6% 5% 5%;
+  box-sizing: border-box;
+}
+
+.stageBarHeader {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65em;
+}
+
+.stageBarTimerRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1.25em;
+  flex-wrap: wrap;
+}
+
+.stageDisplay--bar .stageTimerValue {
+  font-size: var(--stage-timer-font-size);
+}
+
+.stageDisplay--bar .stageRemainingLabel {
+  margin-top: 0;
+  font-size: var(--stage-remaining-label-font-size);
+}
+
+.stageBarSegments {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4%;
+  align-items: end;
+  min-height: 0;
+  margin-top: 4%;
+}
+
+.stageBarSegmentCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  min-width: 0;
+}
+
+.stageBarSegmentColNext {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.stageBarSegmentColNext .stageSegmentInside {
+  align-items: flex-end;
+}
+
+.stageLinearProgress {
+  width: 100%;
+}
+
+.stageLinearProgressTrack {
+  width: 100%;
+  height: 0.35em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.stageLinearProgressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--stage-accent);
+  box-shadow: 0 0 12px var(--stage-glow);
+  transition: width 0.2s linear;
+}
+
+.stageFlash .stageLinearProgressFill,
+.stageFlash .stageRingProgress,
+.stageFlash .stageRingProgressGlow,
+.stageFlash .stageTimerValue {
+  animation: stageFlashFade $stage-flash-duration ease-in-out infinite;
+}

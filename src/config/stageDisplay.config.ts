@@ -42,7 +42,39 @@ export const stageDisplayConfig = {
   },
 } as const
 
-export type StageDisplayConfig = typeof stageDisplayConfig
+export type StageTypographyConfig = {
+  segmentKicker: number
+  segmentName: number
+  segmentLeader: number
+  remainingLabel: number
+  timer: number
+  timerWeight: number
+  remainingMarginTop: number
+}
+
+export type StageDisplaySizingConfig = {
+  maxVmin: number
+  maxDvh: number
+  maxPx: number
+  centerPaddingX: string
+  glowInset: string
+  centerMaxWidth: string
+}
+
+export type StageDisplayConfig = {
+  layoutPx: number
+  ring: typeof stageDisplayConfig.ring
+  display: StageDisplaySizingConfig
+  clamp: {
+    referenceShortSidePx: number
+    fontMinRatio: number
+    fontMaxRatio: number
+    timerMinRatio: number
+    spacingMinRatio: number
+    spacingMaxRatio: number
+  }
+  typography: StageTypographyConfig
+}
 
 export const STAGE_LAYOUT_PX = stageDisplayConfig.layoutPx
 

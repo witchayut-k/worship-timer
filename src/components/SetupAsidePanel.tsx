@@ -1,6 +1,7 @@
-import type { EventDisplaySettings } from '../domain/types'
+import type { EventDisplaySettings, StageDisplayTemplate } from '../domain/types'
 import type { SetupSaveStatus } from '../hooks/useSetupAutoSave'
 import { PlayIcon, TableIcon } from './SetupIcons'
+import { SetupStageTemplatePicker } from './SetupStageTemplatePicker'
 import { useLocale } from '../i18n/useLocale'
 
 type SetupAsidePanelProps = {
@@ -90,6 +91,14 @@ export function SetupAsidePanel({
             {t('setupAside.autoAdvance')}
           </button>
         </div>
+      </section>
+
+      <section className="asideCard">
+        <h2 className="asideCardTitle">{t('setupAside.stageDisplay')}</h2>
+        <SetupStageTemplatePicker
+          value={settings.stageTemplate ?? 'circle'}
+          onChange={(stageTemplate: StageDisplayTemplate) => onSettingsChange({ stageTemplate })}
+        />
       </section>
 
       <section className="asideCard">
