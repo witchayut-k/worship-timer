@@ -3,6 +3,22 @@ import { formatSignedMMSS } from '../domain/time'
 import type { StageTheme } from '../lib/displayTheme'
 import { computeRingDash } from '../lib/stageProgress'
 
+export const STAGE_LAYOUT_PX = 520
+
+const RING_RADIUS = 228
+const FRAME_RADIUS = RING_RADIUS + 8
+const SIZE = STAGE_LAYOUT_PX
+const CENTER = SIZE / 2
+
+const RING_STROKE = 12
+const RING_GLOW_STROKE = 18
+
+type SegmentLines = {
+  kicker: string
+  segment: string
+  leader: string | null
+}
+
 type Props = {
   remainingSec: number
   durationSec: number
@@ -14,25 +30,39 @@ type Props = {
   paused?: boolean
 }
 
-const RING_RADIUS = 196
-const ARC_TEXT_RADIUS = RING_RADIUS + 32
-const FRAME_RADIUS = RING_RADIUS + 28
-const SIZE = 480
-const CENTER = SIZE / 2
-
-function buildTopLabel(name: string, leader: string): string {
+function currentSegmentLines(name: string, leader: string): SegmentLines {
   const segment = name.trim().toUpperCase() || '—'
   const lead = leader.trim().toUpperCase()
-  if (lead) return `CURRENT SEGMENT — ${segment} — ${lead}`
-  return `CURRENT SEGMENT — ${segment}`
+  return {
+    kicker: 'CURRENT SEGMENT',
+    segment,
+    leader: lead || null,
+  }
 }
 
-function buildBottomLabel(name: string | null, leader: string | null): string {
-  if (!name?.trim()) return 'NEXT UP: —'
+function nextSegmentLines(name: string | null, leader: string | null): SegmentLines {
+  if (!name?.trim()) {
+    return { kicker: 'NEXT UP', segment: '—', leader: null }
+  }
   const segment = name.trim().toUpperCase()
   const nextLead = leader?.trim().toUpperCase()
-  if (nextLead) return `NEXT UP: ${segment} — ${nextLead}`
-  return `NEXT UP: ${segment}`
+  return {
+    kicker: 'NEXT UP',
+    segment,
+    leader: nextLead || null,
+  }
+}
+
+function SegmentInsideRing({ lines, variant }: { lines: SegmentLines; variant: 'current' | 'next' }) {
+  const rootClass =
+    variant === 'current' ? 'stageSegmentInside stageSegmentInsideCurrent' : 'stageSegmentInside stageSegmentInsideNext'
+  return (
+    <div className={rootClass}>
+      <div className="stageSegmentKicker">{lines.kicker}</div>
+      <div className="stageSegmentName">{lines.segment}</div>
+      {lines.leader ? <div className="stageSegmentLeader">{lines.leader}</div> : null}
+    </div>
+  )
 }
 
 export function StageCircleDisplay({
@@ -50,8 +80,8 @@ export function StageCircleDisplay({
     [remainingSec, durationSec],
   )
 
-  const topLabel = buildTopLabel(currentName, currentLeader)
-  const bottomLabel = buildBottomLabel(nextName, nextLeader)
+  const currentLines = currentSegmentLines(currentName, currentLeader)
+  const nextLines = nextSegmentLines(nextName, nextLeader)
   const timeText = formatSignedMMSS(remainingSec)
   const speakerName = currentLeader.trim() || '—'
   const isOvertime = remainingSec < 0
@@ -71,6 +101,7 @@ export function StageCircleDisplay({
     '--stage-muted': theme.muted,
     '--stage-secondary': theme.secondary,
     '--stage-secondary-glow': theme.secondaryGlow,
+    '--stage-ring-inset': `${((CENTER - RING_RADIUS + RING_STROKE / 2 + 10) / CENTER) * 100}%`,
   } as CSSProperties
 
   return (
@@ -82,18 +113,8 @@ export function StageCircleDisplay({
           aria-hidden="true"
         >
           <defs>
-            <path
-              id="stageArcTop"
-              d={`M ${CENTER - ARC_TEXT_RADIUS} ${CENTER} A ${ARC_TEXT_RADIUS} ${ARC_TEXT_RADIUS} 0 0 1 ${CENTER + ARC_TEXT_RADIUS} ${CENTER}`}
-              fill="none"
-            />
-            <path
-              id="stageArcBottom"
-              d={`M ${CENTER - ARC_TEXT_RADIUS} ${CENTER} A ${ARC_TEXT_RADIUS} ${ARC_TEXT_RADIUS} 0 0 0 ${CENTER + ARC_TEXT_RADIUS} ${CENTER}`}
-              fill="none"
-            />
             <filter id="stageProgressGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="8" result="blur" />
+              <feGaussianBlur stdDeviation="6" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -116,7 +137,7 @@ export function StageCircleDisplay({
             cy={CENTER}
             r={RING_RADIUS}
             fill="none"
-            strokeWidth={28}
+            strokeWidth={RING_GLOW_STROKE}
             strokeDasharray={ring.dashArray}
             strokeDashoffset={ring.dashOffset}
             transform={`rotate(-90 ${CENTER} ${CENTER})`}
@@ -129,33 +150,27 @@ export function StageCircleDisplay({
             cy={CENTER}
             r={RING_RADIUS}
             fill="none"
-            strokeWidth={18}
+            strokeWidth={RING_STROKE}
             strokeDasharray={ring.dashArray}
             strokeDashoffset={ring.dashOffset}
             transform={`rotate(-90 ${CENTER} ${CENTER})`}
           />
-
-          <text className="stageArcText stageArcTextTop">
-            <textPath href="#stageArcTop" startOffset="50%" textAnchor="middle">
-              {topLabel}
-            </textPath>
-          </text>
-
-          <text className="stageArcText stageArcTextBottom">
-            <textPath href="#stageArcBottom" startOffset="50%" textAnchor="middle">
-              {bottomLabel}
-            </textPath>
-          </text>
         </svg>
 
         <div className="stageCenter">
-          <div className="stageRemainingLabel">{centerLabel}</div>
+          <div className="stageCenterTop">
+            <SegmentInsideRing lines={currentLines} variant="current" />
+            <div className="stageRemainingLabel">{centerLabel}</div>
+          </div>
           <div className="stageTimerValue" aria-live="polite" aria-label={timerAriaLabel}>
             {timeText}
           </div>
-          <div className="stageSpeakerBlock">
-            <div className="stageSpeakerLabel">SPEAKER</div>
-            <div className="stageSpeakerName">{speakerName}</div>
+          <div className="stageCenterBottom">
+            <SegmentInsideRing lines={nextLines} variant="next" />
+            <div className="stageSpeakerBlock">
+              <div className="stageSpeakerLabel">SPEAKER</div>
+              <div className="stageSpeakerName">{speakerName}</div>
+            </div>
           </div>
         </div>
       </div>

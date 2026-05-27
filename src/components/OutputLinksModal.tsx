@@ -1,10 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { StageCircleDisplay } from './StageCircleDisplay'
+import { StageCircleDisplay, STAGE_LAYOUT_PX } from './StageCircleDisplay'
 import type { StageTheme } from '../lib/displayTheme'
 import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
-
-const STAGE_LAYOUT_PX = 480
 
 type Props = {
   open: boolean

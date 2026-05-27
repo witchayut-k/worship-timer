@@ -571,8 +571,14 @@ textarea:focus {
 }
 .viewer.kiosk .viewerMain {
   padding: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
 }
 .viewer.kiosk {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
   background: #000;
 }
 
@@ -622,7 +628,7 @@ textarea:focus {
 
 /* Circular stage display */
 .stageDisplay {
-  width: min(92vmin, 920px);
+  width: min(96vmin, 980px);
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -641,7 +647,7 @@ textarea:focus {
 .stageCircleWrap::before {
   content: '';
   position: absolute;
-  inset: 8%;
+  inset: 5%;
   border-radius: 50%;
   background: radial-gradient(
     circle at 50% 45%,
@@ -670,21 +676,6 @@ textarea:focus {
   stroke-linecap: round;
   transition: stroke 0.35s ease, stroke-dasharray 0.2s linear;
 }
-.stageArcText {
-  fill: var(--stage-muted);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.stageArcTextTop {
-  fill: var(--stage-accent);
-}
-.stageArcTextBottom {
-  fill: rgba(255, 255, 255, 0.38);
-  letter-spacing: 0.16em;
-}
 .stageCenter {
   position: absolute;
   inset: 0;
@@ -692,23 +683,91 @@ textarea:focus {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: var(--stage-ring-inset, 14%) 10%;
   text-align: center;
   pointer-events: none;
 }
+.stageCenterTop,
+.stageCenterBottom {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 92%;
+  min-height: 0;
+}
+.stageCenterBottom {
+  justify-content: flex-start;
+}
+.stageSegmentInside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  max-width: 100%;
+}
+.stageSegmentKicker {
+  font-family: var(--font-mono);
+  font-size: clamp(8px, 1.05vmin, 11px);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.stageSegmentName {
+  font-family: var(--font-ui);
+  font-size: clamp(11px, 1.65vmin, 17px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stageSegmentLeader {
+  font-family: var(--font-mono);
+  font-size: clamp(9px, 1.2vmin, 12px);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stageSegmentInsideCurrent .stageSegmentKicker {
+  color: var(--stage-accent);
+}
+.stageSegmentInsideCurrent .stageSegmentName {
+  color: #fff;
+}
+.stageSegmentInsideCurrent .stageSegmentLeader {
+  color: var(--stage-muted);
+}
+.stageSegmentInsideNext .stageSegmentKicker {
+  color: rgba(255, 255, 255, 0.42);
+}
+.stageSegmentInsideNext .stageSegmentName,
+.stageSegmentInsideNext .stageSegmentLeader {
+  color: rgba(255, 255, 255, 0.55);
+}
 .stageRemainingLabel {
   font-family: var(--font-mono);
-  font-size: clamp(11px, 1.5vmin, 15px);
+  font-size: clamp(10px, 1.35vmin, 14px);
   font-weight: 600;
   letter-spacing: 0.28em;
   color: var(--stage-secondary);
-  margin-bottom: 0.55em;
+  margin-top: clamp(6px, 1vmin, 12px);
 }
 .stageTimerValue {
+  flex: 0 0 auto;
   font-family: var(--font-timer);
   font-feature-settings: 'tnum' 1;
   font-variant-numeric: tabular-nums;
-  font-size: clamp(64px, 13vmin, 132px);
-  font-weight: 600;
+  font-size: clamp(120px, 24vmin, 240px);
+  font-weight: 900;
   line-height: 0.95;
   letter-spacing: 0.04em;
   color: #fff;
@@ -718,7 +777,7 @@ textarea:focus {
     0 0 80px rgba(46, 230, 214, 0.15);
 }
 .stageSpeakerBlock {
-  margin-top: clamp(14px, 2.2vmin, 28px);
+  margin-top: clamp(10px, 1.6vmin, 20px);
 }
 .stageSpeakerLabel {
   font-family: var(--font-mono);

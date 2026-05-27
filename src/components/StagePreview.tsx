@@ -1,9 +1,7 @@
 import { useLayoutEffect, useRef } from 'react'
-import { StageCircleDisplay } from './StageCircleDisplay'
+import { StageCircleDisplay, STAGE_LAYOUT_PX } from './StageCircleDisplay'
 import type { StageTheme } from '../lib/displayTheme'
 import { useLocale } from '../i18n/useLocale'
-
-const STAGE_LAYOUT_PX = 480
 
 type Props = {
   eventId: string
