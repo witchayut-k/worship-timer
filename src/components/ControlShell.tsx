@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { BookIcon, ListIcon, SlidersIcon } from './SetupIcons'
+import { usePlan } from '../context/PlanProvider'
 import { LanguageToggle } from './LanguageToggle'
+import { BookIcon, ListIcon, SlidersIcon } from './SetupIcons'
 import { useLocale } from '../i18n/useLocale'
 
 export type ControlNav = 'setup' | 'control' | 'services'
@@ -11,21 +12,32 @@ type ControlShellProps = {
   eventId?: string | null
   eventTitle?: string
   productionMode?: boolean
-  onLeaveToServices?: () => void
+  onLeaveToLibrary?: () => void
+  headerEnd?: ReactNode
   aside?: ReactNode
   children: ReactNode
 }
 
-function openStage(eventId: string) {
-  window.open(`/view/${eventId}?kiosk=1`, '_blank', 'noopener,noreferrer')
-}
-
-function NavItemContent({ icon, label }: { icon: ReactNode; label: string }) {
+function NavTab({
+  active,
+  disabled,
+  title,
+  children,
+}: {
+  active: boolean
+  disabled?: boolean
+  title?: string
+  children: ReactNode
+}) {
+  if (disabled) {
+    return (
+      <span className="appTopNavItem appTopNavItemDisabled" title={title}>
+        {children}
+      </span>
+    )
+  }
   return (
-    <span className="btnWithIcon sidebarNavItemContent">
-      {icon}
-      <span>{label}</span>
-    </span>
+    <span className={`appTopNavItem${active ? ' appTopNavItemActive' : ''}`}>{children}</span>
   )
 }
 
@@ -34,11 +46,13 @@ export function ControlShell({
   eventId,
   eventTitle,
   productionMode = false,
-  onLeaveToServices,
+  onLeaveToLibrary,
+  headerEnd,
   aside,
   children,
 }: ControlShellProps) {
   const { t } = useLocale()
+  const { isPaid, isFree, homePath } = usePlan()
   const statusTitle = eventTitle?.trim() || t('event.untitled')
   const statusSub = productionMode
     ? t('nav.controlling')
@@ -46,105 +60,112 @@ export function ControlShell({
       ? t('nav.inProduction')
       : t('nav.setupBeforeStart')
 
-  const controlLink = eventId ? (
+  const setupTo = eventId ? `/setup/${eventId}` : isFree ? homePath : '/setup'
+  const controlTo = eventId ? `/start/${eventId}` : null
+
+  const libraryNav = isPaid ? (
+    productionMode ? (
+      <button
+        className="appTopNavItem appTopNavItemButton"
+        type="button"
+        onClick={onLeaveToLibrary}
+      >
+        <BookIcon />
+        <span>{t('nav.library')}</span>
+      </button>
+    ) : (
+      <Link
+        className={`appTopNavItem appTopNavItemLink${activeNav === 'services' ? ' appTopNavItemActive' : ''}`}
+        to="/services"
+      >
+        <BookIcon />
+        <span>{t('nav.library')}</span>
+      </Link>
+    )
+  ) : null
+
+  const setupNav = (
     <Link
-      className={`sidebarNavItem ${activeNav === 'control' ? 'sidebarNavItemActive' : ''}`}
-      to={`/start/${eventId}`}
+      className={`appTopNavItem appTopNavItemLink${activeNav === 'setup' ? ' appTopNavItemActive' : ''}`}
+      to={setupTo}
     >
-      <NavItemContent icon={<SlidersIcon />} label={t('nav.controlRoom')} />
+      <ListIcon />
+      <span>{t('nav.programSetup')}</span>
     </Link>
-  ) : (
-    <span
-      className="sidebarNavItem sidebarNavItemDisabled"
-      title={t('nav.controlRoomDisabled')}
-    >
-      <NavItemContent icon={<SlidersIcon />} label={t('nav.controlRoom')} />
-    </span>
   )
 
-  const setupLink = (
+  const controlNav = controlTo ? (
     <Link
-      className={`sidebarNavItem ${activeNav === 'setup' ? 'sidebarNavItemActive' : ''}`}
-      to={eventId ? `/setup/${eventId}` : '/setup'}
+      className={`appTopNavItem appTopNavItemLink${activeNav === 'control' ? ' appTopNavItemActive' : ''}`}
+      to={controlTo}
     >
-      <NavItemContent icon={<ListIcon />} label={t('nav.programSetup')} />
+      <SlidersIcon />
+      <span>{t('nav.controlRoom')}</span>
     </Link>
-  )
-
-  const stageButton = eventId ? (
-    <button
-      className="sidebarNavItem sidebarNavItemButton"
-      type="button"
-      onClick={() => openStage(eventId)}
-    >
-      {t('nav.stageDisplay')}
-    </button>
   ) : (
-    <span
-      className="sidebarNavItem sidebarNavItemDisabled"
-      title={t('nav.stageDisabled')}
-    >
-      {t('nav.stageDisplay')}
-    </span>
-  )
-
-  const libraryLabel = t('nav.library')
-
-  const servicesLink = productionMode ? (
-    <button
-      className="sidebarNavItem sidebarNavItemButton sidebarNavItemMuted"
-      type="button"
-      onClick={onLeaveToServices}
-    >
-      <NavItemContent icon={<BookIcon />} label={libraryLabel} />
-    </button>
-  ) : (
-    <Link
-      className={`sidebarNavItem ${activeNav === 'services' ? 'sidebarNavItemActive' : ''}`}
-      to="/services"
-    >
-      <NavItemContent icon={<BookIcon />} label={libraryLabel} />
-    </Link>
+    <NavTab active={false} disabled title={t('nav.controlRoomDisabled')}>
+      <SlidersIcon />
+      <span>{t('nav.controlRoom')}</span>
+    </NavTab>
   )
 
   return (
-    <div className="controlShell">
-      <aside className="sidebar">
-        <div className="sidebarBrand">Worship Timer</div>
-        <LanguageToggle />
-
-        <div className="sidebarStatus">
-          <div className="sidebarStatusIcon" aria-hidden>
-            ◉
-          </div>
-          <div>
-            <div className="sidebarStatusTitle">{statusTitle}</div>
-            <div className="sidebarStatusSub">{statusSub}</div>
-          </div>
+    <div className="appShell">
+      <header className="appHeader">
+        <div className="appHeaderStart">
+          <Link className="appBrand" to={homePath}>
+            {t('app.name')}
+          </Link>
+          {isPaid ? <span className="planBadge planBadgePro">{t('plan.proBadge')}</span> : null}
         </div>
 
-        <nav className="sidebarNav" aria-label={t('nav.mainMenu')}>
-          {productionMode ? (
+        <nav className="appTopNav" aria-label={t('nav.mainMenu')}>
+          {isPaid && !productionMode ? libraryNav : null}
+          {isPaid && productionMode ? (
             <>
-              {controlLink}
-              {setupLink}
-              {stageButton}
-              <div className="sidebarNavDivider" role="separator" />
-              <div className="sidebarNavSectionLabel">{libraryLabel}</div>
-              {servicesLink}
+              {controlNav}
+              {setupNav}
+              <span className="appTopNavDivider" role="separator" />
+              {libraryNav}
             </>
           ) : (
             <>
-              {servicesLink}
-              {controlLink}
-              {setupLink}
-              {stageButton}
+              {setupNav}
+              {controlNav}
             </>
           )}
         </nav>
-      </aside>
 
-      <div className="controlMain">
+        <div className="appHeaderEnd">
+          {headerEnd}
+          {isFree ? (
+            <a className="btnGhost btnSm planUpgradeBtn" href="#upgrade">
+              {t('plan.upgradeCta')}
+            </a>
+          ) : null}
+          <LanguageToggle />
+        </div>
+      </header>
+
+      {isFree ? (
+        <div className="planBanner planBannerFree" role="status">
+          <span>{t('plan.freeBanner')}</span>
+        </div>
+      ) : null}
+
+      {!isFree && (eventId || eventTitle) && activeNav !== 'services' ? (
+        <div className="appSessionBar">
+          <span className="appSessionBarIcon" aria-hidden>
+            ◉
+          </span>
+          <div className="appSessionBarText">
+            <div className="appSessionBarTitle">{statusTitle}</div>
+            <div className="appSessionBarSub">{statusSub}</div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="appMain">
         {aside ? (
           <div className="setupMainGrid">
             <div className="setupMainColumn">{children}</div>

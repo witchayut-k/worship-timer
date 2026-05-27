@@ -13,6 +13,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useLocale } from '../i18n/useLocale'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { listEventsForUser } from '../lib/firestoreRepo'
+import { FREE_SESSION_ID } from '../lib/freeSession'
 import { listLocalEvents } from '../lib/localLibrary'
 
 function StatusBadge({ status }: { status: EventStatus }) {
@@ -50,7 +51,7 @@ export function ServicesPage() {
         const docs = await listEventsForUser(uid)
         setEntries(docs.map((d) => ({ ...d, itemCount: undefined })))
       } else {
-        const local = listLocalEvents()
+        const local = listLocalEvents().filter((e) => e.id !== FREE_SESSION_ID)
         setEntries(
           local.map((e) => ({
             id: e.id,
@@ -97,8 +98,32 @@ export function ServicesPage() {
     nav(`/start/${pendingSwitch.eventId}`)
   }
 
+  const authHeader = canUseAuth ? (
+    user ? (
+      <button className="btnGhost btnSm" type="button" onClick={() => void signOut()}>
+        {t('services.signOut')}
+      </button>
+    ) : (
+      <button className="btn btnSm" type="button" onClick={() => void signIn().then(() => refresh())}>
+        {t('services.signIn')}
+      </button>
+    )
+  ) : null
+
   return (
-    <ControlShell activeNav="services">
+    <ControlShell activeNav="services" headerEnd={authHeader}>
+      {!user && canUseAuth ? (
+        <div className="planBanner planBannerPro" role="region" aria-label={t('plan.proLoginTitle')}>
+          <div className="planBannerProText">
+            <strong>{t('plan.proLoginTitle')}</strong>
+            <p className="muted planBannerProDesc">{t('plan.proLoginDesc')}</p>
+          </div>
+          <button className="btnPrimary btnSm" type="button" onClick={() => void signIn().then(() => refresh())}>
+            {t('services.signIn')}
+          </button>
+        </div>
+      ) : null}
+
       {activeControl ? (
         <div className="servicesActiveBanner">
           <span>{t('services.activeBanner', { title: activeControl.title })}</span>
@@ -127,17 +152,6 @@ export function ServicesPage() {
           <p className="setupPageDesc">{t('services.desc', { hint: storageHint })}</p>
         </div>
         <div className="servicesHeaderActions">
-          {canUseAuth ? (
-            user ? (
-              <button className="btnGhost" type="button" onClick={() => void signOut()}>
-                {t('services.signOut')}
-              </button>
-            ) : (
-              <button className="btn" type="button" onClick={() => void signIn().then(() => refresh())}>
-                {t('services.signIn')}
-              </button>
-            )
-          ) : null}
           <Link className="btnPrimary" to="/setup">
             {t('services.createNew')}
           </Link>

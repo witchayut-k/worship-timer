@@ -12,6 +12,7 @@ type SetupAsidePanelProps = {
   productionMode: boolean
   cloudReady: boolean
   hasUid: boolean
+  showCloudHints?: boolean
   onSave: () => void
   onStartControl: () => void
 }
@@ -22,10 +23,7 @@ export function SetupAsidePanel({
   onOpenSpreadsheetImport,
   canStart,
   saving,
-  saveNotice,
   productionMode,
-  cloudReady,
-  hasUid,
   onSave,
   onStartControl,
 }: SetupAsidePanelProps) {
@@ -57,15 +55,18 @@ export function SetupAsidePanel({
             <span>{saving ? t('setup.saving') : t('setup.save')}</span>
           </button>
         </div>
-        <div className="setupAsideMeta">
+        {/* <div className="setupAsideMeta">
           {saveNotice ? <p className="saveNotice">{saveNotice}</p> : null}
-          {cloudReady && !hasUid ? <p className="muted">{t('setup.signInForCloud')}</p> : null}
-          {!cloudReady ? (
+          {showCloudHints && cloudReady && !hasUid ? (
+            <p className="muted">{t('setup.signInForCloud')}</p>
+          ) : null}
+          {showCloudHints && !cloudReady ? (
             <p className="muted">
               {t('setup.cloudEnvHint', { envFile: '.env.local', envExample: '.env.example' })}
             </p>
           ) : null}
-        </div>
+          {!showCloudHints ? <p className="muted">{t('plan.freeStorageHint')}</p> : null}
+        </div> */}
       </section>
 
       <section className="asideCard">

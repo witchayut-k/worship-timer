@@ -1,13 +1,14 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { pauseRuntimeIfRunning } from '../lib/endActiveControlSession'
 import { getStoredLocale, translate } from '../i18n/translate'
+import { storageKeys } from '../lib/storageKeys'
 import {
   ActiveControlContext,
   type ActiveControl,
   type ActiveControlContextValue,
 } from './activeControlContext'
 
-const STORAGE_KEY = 'worship-timer:active-control'
+const STORAGE_KEY = storageKeys.activeControl
 
 function readStoredActiveControl(): ActiveControl | null {
   try {

@@ -761,37 +761,207 @@ textarea:focus {
   }
 }
 
-/* Control shell (Setup + Start) */
-.controlShell {
+/* App shell (no sidebar — top header + main) */
+.appShell {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-}
-
-.sidebar {
-  border-right: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.28);
-  padding: 20px 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  background: var(--bg);
 }
 
-.sidebarBrand {
-  padding: 0 18px;
-  font-size: 18px;
+.appHeader {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.appHeaderStart {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.appBrand {
+  font-size: 17px;
   font-weight: 600;
   color: var(--brand);
   letter-spacing: 0.2px;
   font-family: var(--font-heading);
+  text-decoration: none;
+}
+
+.appBrand:hover {
+  color: var(--brand);
+  opacity: 0.9;
+}
+
+.appHeaderEnd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.appTopNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.appTopNavItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.appTopNavItemLink {
+  text-decoration: none;
+  color: var(--muted);
+}
+
+.appTopNavItemLink:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.appTopNavItemActive {
+  color: var(--brand);
+  background: rgba(122, 162, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(122, 162, 255, 0.22);
+}
+
+.appTopNavItemDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.appTopNavItemButton {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.appTopNavItemButton:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.appTopNavDivider {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.planBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.planBadgePro {
+  color: var(--brand);
+  background: rgba(122, 162, 255, 0.14);
+  border: 1px solid rgba(122, 162, 255, 0.3);
+}
+
+.planBanner {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.planBannerFree {
+  text-align: center;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.planBannerPro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(122, 162, 255, 0.08);
+}
+
+.planBannerProText strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.planBannerProDesc {
+  margin: 0;
+  font-size: 12px;
+}
+
+.planUpgradeBtn {
+  white-space: nowrap;
+}
+
+.appSessionBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.appSessionBarIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(122, 162, 255, 0.12);
+  border: 1px solid rgba(122, 162, 255, 0.25);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.appSessionBarTitle {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.appSessionBarSub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
 }
 
 .languageToggle {
   display: flex;
   gap: 4px;
-  margin: 0 18px;
   padding: 3px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
@@ -827,112 +997,8 @@ textarea:focus {
   color: var(--danger, #f87171);
 }
 
-.sidebarStatus {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 0 18px;
-}
-
-.sidebarStatusIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: rgba(122, 162, 255, 0.12);
-  border: 1px solid rgba(122, 162, 255, 0.25);
-  font-size: 14px;
-  flex-shrink: 0;
-}
-
-.sidebarStatusTitle {
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.3;
-}
-
-.sidebarStatusSub {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.sidebarNav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sidebarNavItemContent {
-  width: 100%;
-}
-
-.sidebarNavItem {
-  display: block;
-  padding: 10px 18px 10px 16px;
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 14px;
-  border-left: 3px solid transparent;
-  border-radius: 0;
-  background: transparent;
-  border-top: none;
-  border-right: none;
-  border-bottom: none;
-  text-align: left;
-  width: 100%;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.sidebarNavItem:hover:not(.sidebarNavItemDisabled) {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.sidebarNavItemActive {
-  color: var(--brand);
-  border-left-color: var(--brand);
-  background: rgba(122, 162, 255, 0.08);
-}
-
-.sidebarNavItemDisabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.sidebarNavItemButton {
-  appearance: none;
-}
-
-.sidebarNavDivider {
-  height: 1px;
-  margin: 10px 16px 6px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.sidebarNavSectionLabel {
-  padding: 4px 18px 6px 16px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-  opacity: 0.75;
-}
-
-.sidebarNavItemMuted {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.sidebarNavItemMuted:hover:not(.sidebarNavItemDisabled) {
-  color: var(--text);
-}
-
-.controlMain {
+.appMain {
+  flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -940,14 +1006,14 @@ textarea:focus {
   flex-direction: column;
 }
 
-.controlMain > .controlContent,
-.controlMain > .setupMainGrid {
+.appMain > .controlContent,
+.appMain > .setupMainGrid {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.controlMain > .controlContent:not(:has(> .controlWorkspace)) {
+.appMain > .controlContent:not(:has(> .controlWorkspace)) {
   overflow-y: auto;
 }
 
@@ -2421,38 +2487,25 @@ textarea:focus {
 }
 
 @media (max-width: 960px) {
-  .controlShell {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-
-  .sidebar {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 12px 0;
-  }
-
-  .sidebarNav {
-    flex-direction: row;
+  .appHeader {
     flex-wrap: wrap;
-    padding: 0 12px;
-    gap: 6px;
+    padding: 10px 12px;
   }
 
-  .sidebarNavItem {
-    border-left: none;
-    border-radius: 10px;
-    padding: 8px 12px;
-    width: auto;
+  .appTopNav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
   }
 
-  .sidebarNavItemActive {
-    border-left: none;
-    background: rgba(122, 162, 255, 0.14);
+  .appHeaderEnd {
+    margin-left: auto;
   }
 
-  .sidebarStatus {
-    display: none;
+  .planBannerPro {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
   }
 
   .controlWorkspace {

@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { usePlan } from '../context/PlanProvider'
 import { useLocale } from '../i18n/useLocale'
 
 type LeaveControlModalProps = {
   open: boolean
   title: string
+  leaveDestinationKey?: 'modal.goToServices' | 'modal.goToSetup'
   onGoToServices: () => void
   onEndControl: () => void
   onCancel: () => void
@@ -12,11 +14,13 @@ type LeaveControlModalProps = {
 export function LeaveControlModal({
   open,
   title,
+  leaveDestinationKey = 'modal.goToServices',
   onGoToServices,
   onEndControl,
   onCancel,
 }: LeaveControlModalProps) {
   const { t } = useLocale()
+  const { isFree } = usePlan()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -59,7 +63,7 @@ export function LeaveControlModal({
         </header>
 
         <div className="modalBody">
-          <p>{t('modal.leaveBody', { title })}</p>
+          <p>{t(isFree ? 'modal.leaveBodyFree' : 'modal.leaveBody', { title })}</p>
         </div>
 
         <footer className="modalFooter">
@@ -67,7 +71,7 @@ export function LeaveControlModal({
             {t('common.cancel')}
           </button>
           <button className="btn" type="button" onClick={onGoToServices}>
-            {t('modal.goToServices')}
+            {t(leaveDestinationKey)}
           </button>
           <button className="btnDanger" type="button" onClick={onEndControl}>
             {t('modal.endControl')}

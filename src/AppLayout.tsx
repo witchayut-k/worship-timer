@@ -1,10 +1,13 @@
 import { Outlet } from 'react-router-dom'
 import { ActiveControlProvider } from './context/ActiveControlProvider'
+import { PlanProvider } from './context/PlanProvider'
 
 export function AppLayout() {
   return (
-    <ActiveControlProvider>
-      <Outlet />
-    </ActiveControlProvider>
+    <PlanProvider>
+      <ActiveControlProvider>
+        <Outlet />
+      </ActiveControlProvider>
+    </PlanProvider>
   )
 }

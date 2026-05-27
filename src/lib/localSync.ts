@@ -1,11 +1,12 @@
 import type { RuntimeState } from '../domain/types'
+import { storageKeys } from './storageKeys'
 
 function channelName(eventId: string): string {
-  return `worship-timer:${eventId}`
+  return storageKeys.event(eventId)
 }
 
 function storageKey(eventId: string): string {
-  return `worship-timer:runtime:${eventId}`
+  return storageKeys.runtime(eventId)
 }
 
 export function loadStoredLocalRuntime(eventId: string): RuntimeState | null {

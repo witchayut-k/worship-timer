@@ -1,6 +1,17 @@
 import type { Messages } from './en'
 
 export const th: Messages = {
+  app: {
+    name: 'ControlStage',
+  },
+  plan: {
+    freeBanner: 'ใช้ในเครื่องเท่านั้น · 1 รอบ · ข้อมูลอยู่บนอุปกรณ์นี้',
+    freeStorageHint: 'บันทึกในเครื่องเท่านั้น — ไม่ต้องสมัครสมาชิก',
+    upgradeCta: 'อัปเกรดเป็น Pro',
+    proBadge: 'Pro',
+    proLoginTitle: 'เข้าสู่ระบบเพื่อซิงก์ไลบรารี',
+    proLoginDesc: 'สำรอง Cloud หลายรอบ และเข้าถึงจากทุกอุปกรณ์',
+  },
   nav: {
     mainMenu: 'เมนูหลัก',
     controlRoom: 'ห้องควบคุม',
@@ -32,7 +43,7 @@ export const th: Messages = {
     label: 'ภาษา',
   },
   event: {
-    untitled: 'ยังไม่ตั้งชื่องาน',
+    untitled: 'Untitled',
     titlePlaceholder: 'ชื่องานนมัสการ',
   },
   services: {
@@ -80,10 +91,10 @@ export const th: Messages = {
     savedLocalCloudFailed: 'บันทึกในเครื่องแล้ว — ซิงก์ Cloud ไม่สำเร็จ ตรวจสอบสิทธิ์ Firebase',
     saveFailed: 'บันทึกไม่สำเร็จ',
     saveCloudPermission: 'บันทึก Cloud ไม่สำเร็จ — ต้องมีสิทธิ์ controller ใน Firebase',
-    addItem: 'เพิ่มรายการ',
+    addItem: 'เพิ่มช่วง',
     loadingProgram: 'กำลังโหลดโปรแกรม…',
     eventDetails: 'รายละเอียดงาน',
-    programItems: 'รายการโปรแกรม',
+    programItems: 'ตารางโปรแกรม',
     itemCount: '{count} รายการ',
     emptyProgram: 'ยังไม่มีรายการ — เพิ่มรายการหรือนำเข้าจากสเปรดชีต',
     eventTitle: 'ชื่องาน',
@@ -174,7 +185,10 @@ export const th: Messages = {
     leaveTitle: 'ออกจากหน้าควบคุม?',
     leaveBody:
       'กำลังควบคุม «{title}» — Timer และจอ Stage ยังทำงานอยู่ คุณสามารถกลับมาควบคุมได้จากไลบรารี',
+    leaveBodyFree:
+      'กำลังควบคุม «{title}» — Timer และจอ Stage ยังทำงานอยู่ คุณกลับไปตั้งค่าโปรแกรมได้ตลอด',
     goToServices: 'ไลบรารี',
+    goToSetup: 'ตั้งค่าโปรแกรม',
     endControl: 'จบการควบคุม',
     switchTitle: 'สลับห้องควบคุม?',
     switchBody: 'สลับจาก «{from}» ไป «{to}»?',

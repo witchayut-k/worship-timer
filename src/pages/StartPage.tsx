@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
+import { usePlan } from '../context/PlanProvider'
+import { freeSessionControlPath, isFreeSessionId } from '../lib/freeSession'
 import { ControlShell } from '../components/ControlShell'
 import { ControlStageOutput } from '../components/ControlStageOutput'
 import { ControlTimerProgress } from '../components/ControlTimerProgress'
@@ -40,6 +42,7 @@ export function StartPage() {
 
 function StartPageInner({ eventId }: { eventId: string }) {
   const { t, locale } = useLocale()
+  const { isFree } = usePlan()
   const { setActiveControl, isProductionForEvent } = useActiveControl()
   const local = useMemo(() => resolveEventPayload(eventId), [eventId])
 
@@ -162,9 +165,10 @@ function StartPageInner({ eventId }: { eventId: string }) {
     leaveModalOpen,
     leaveModalTitle,
     requestLeave,
-    confirmGoToServices,
+    confirmGoToLibrary,
     endControlAndLeave,
     cancelLeave,
+    leaveDestinationKey,
   } = useLeaveControl(productionMode)
 
   const start = () => {
@@ -199,13 +203,17 @@ function StartPageInner({ eventId }: { eventId: string }) {
     dispatch({ type: 'triggerManualFlash', nowMs: Date.now() })
   }
 
+  if (isFree && !isFreeSessionId(eventId)) {
+    return <Navigate to={freeSessionControlPath()} replace />
+  }
+
   return (
     <ControlShell
       activeNav="control"
       eventId={eventId}
       eventTitle={title}
       productionMode={productionMode}
-      onLeaveToServices={requestLeave}
+      onLeaveToLibrary={requestLeave}
     >
       <div className="controlWorkspace">
         <div className="controlTimerColumn">
@@ -384,7 +392,8 @@ function StartPageInner({ eventId }: { eventId: string }) {
       <LeaveControlModal
         open={leaveModalOpen}
         title={leaveModalTitle}
-        onGoToServices={confirmGoToServices}
+        leaveDestinationKey={leaveDestinationKey}
+        onGoToServices={confirmGoToLibrary}
         onEndControl={endControlAndLeave}
         onCancel={cancelLeave}
       />

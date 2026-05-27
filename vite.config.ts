@@ -9,8 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Worship Timer',
-        short_name: 'WorshipTimer',
+        name: 'ControlStage',
+        short_name: 'ControlStage',
         theme_color: '#0b2a6f',
         background_color: '#0b2a6f',
         display: 'standalone',

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, Navigate } from 'react-router-dom'
+import { usePlan } from '../context/PlanProvider'
+import { ensureFreeSession, freeSessionSetupPath, isFreeSessionId } from '../lib/freeSession'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { ControlShell } from '../components/ControlShell'
 import { LeaveControlModal } from '../components/LeaveControlModal'
@@ -95,8 +97,9 @@ function SetupPageInner({
   const { isProductionForEvent } = useActiveControl()
   const focusOrder = (location.state as { focusOrder?: number } | null)?.focusOrder
   const { uid, ready: authReady } = useAuth()
+  const { isFree, isPaid, freeSessionId } = usePlan()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
-  const cloudMode = hasFirebaseConfig() && Boolean(uid)
+  const cloudMode = isPaid && hasFirebaseConfig() && Boolean(uid)
 
   const [title, setTitle] = useState('')
   const [titleError, setTitleError] = useState<string | null>(null)
@@ -121,6 +124,10 @@ function SetupPageInner({
   const totalLabel = formatSecToHhMmSs(totalSec)
 
   useEffect(() => {
+    if (isFree) ensureFreeSession()
+  }, [isFree])
+
+  useEffect(() => {
     if (!routeEventId || !authReady) {
       if (!routeEventId) setLoading(false)
       return
@@ -132,6 +139,9 @@ function SetupPageInner({
 
     const load = async () => {
       try {
+        if (isFree && routeEventId && isFreeSessionId(routeEventId)) {
+          ensureFreeSession()
+        }
         if (isLibraryEventId(routeEventId)) {
           const entry = getLocalEvent(routeEventId)
           if (!entry) throw new Error(t('setup.loadLocalNotFound'))
@@ -180,7 +190,7 @@ function SetupPageInner({
     return () => {
       cancelled = true
     }
-  }, [routeEventId, authReady, cloudReady, t, uid])
+  }, [routeEventId, authReady, cloudReady, t, uid, isFree])
 
   useEffect(() => {
     if (loading || focusOrder == null || !items.length) return
@@ -298,9 +308,13 @@ function SetupPageInner({
     )
     const programItems = buildProgramItems()
     const reuseLocalId =
-      isEdit && routeEventId && lastEventId === routeEventId && isLibraryEventId(lastEventId)
+      !isFree &&
+      isEdit &&
+      routeEventId &&
+      lastEventId === routeEventId &&
+      isLibraryEventId(lastEventId)
     const id = upsertLocalEvent({
-      id: reuseLocalId ? lastEventId : newLocalLibraryId(),
+      id: isFree ? freeSessionId : reuseLocalId ? lastEventId! : newLocalLibraryId(),
       event: buildEvent(roster),
       items: programItems,
     })
@@ -402,10 +416,15 @@ function SetupPageInner({
     leaveModalOpen,
     leaveModalTitle,
     requestLeave,
-    confirmGoToServices,
+    confirmGoToLibrary,
     endControlAndLeave,
     cancelLeave,
+    leaveDestinationKey,
   } = useLeaveControl(productionMode)
+
+  if (isFree && routeEventId && !isFreeSessionId(routeEventId)) {
+    return <Navigate to={freeSessionSetupPath()} replace />
+  }
 
   if (loading) {
     return (
@@ -421,7 +440,7 @@ function SetupPageInner({
       eventId={shellEventId}
       eventTitle={title}
       productionMode={productionMode}
-      onLeaveToServices={requestLeave}
+      onLeaveToLibrary={requestLeave}
       aside={
         <SetupAsidePanel
           settings={settings}
@@ -431,8 +450,9 @@ function SetupPageInner({
           saving={saving}
           saveNotice={saveNotice}
           productionMode={productionMode}
-          cloudReady={cloudReady}
+          cloudReady={cloudReady && isPaid}
           hasUid={Boolean(uid)}
+          showCloudHints={isPaid}
           onSave={() => void onSave()}
           onStartControl={() => void onStartControl()}
         />
@@ -452,17 +472,23 @@ function SetupPageInner({
                   <span>{t('setup.openControl')}</span>
                 </Link>
               ) : null}
-              {productionMode ? (
-                <button className="btnGhost setupToolbarBtn btnWithIcon" type="button" onClick={requestLeave}>
-                  <BookIcon />
-                  <span>{t('nav.library')}</span>
-                </button>
-              ) : (
-                <Link className="btnGhost setupToolbarBtn btnWithIcon" to="/services">
-                  <BookIcon />
-                  <span>{t('nav.library')}</span>
-                </Link>
-              )}
+              {isPaid ? (
+                productionMode ? (
+                  <button
+                    className="btnGhost setupToolbarBtn btnWithIcon"
+                    type="button"
+                    onClick={requestLeave}
+                  >
+                    <BookIcon />
+                    <span>{t('nav.library')}</span>
+                  </button>
+                ) : (
+                  <Link className="btnGhost setupToolbarBtn btnWithIcon" to="/services">
+                    <BookIcon />
+                    <span>{t('nav.library')}</span>
+                  </Link>
+                )
+              ) : null}
             </div>
             <span className="setupToolbarDivider" aria-hidden />
             <div className="setupToolbarGroup">
@@ -567,7 +593,8 @@ function SetupPageInner({
       <LeaveControlModal
         open={leaveModalOpen}
         title={leaveModalTitle}
-        onGoToServices={confirmGoToServices}
+        leaveDestinationKey={leaveDestinationKey}
+        onGoToServices={confirmGoToLibrary}
         onEndControl={endControlAndLeave}
         onCancel={cancelLeave}
       />

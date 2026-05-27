@@ -1,6 +1,6 @@
-# Worship Timer (Realtime + Cloud)
+# ControlStage (Realtime + Cloud)
 
-Web PWA สำหรับควบคุมเวลารอบนมัสการ
+Web PWA สำหรับควบคุมเวลารอบนมัสการ — ห้องควบคุมและจอ Stage sync กัน
 
 - **Setup** — ตั้งโปรแกรม, เวลา `mm:ss`, ผู้ดำเนิน (เลือกจากรายการ), toggles สีเตือน/กระพริบ
 - **Controller** (`/start/:eventId`) — ควบคุมเวลา, Next/Prev แล้วหยุดรอกด Start
@@ -35,4 +35,3 @@ npm run dev
 | Stage | `/view/{eventId}?kiosk=1` |
 
 ใช้ปุ่ม **Copy** / **เปิดจอเวที** ในหน้า Controller หรือการ์ดลิงก์ใน Setup
-# worship-timer

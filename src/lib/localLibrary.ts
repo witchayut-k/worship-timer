@@ -1,7 +1,8 @@
 import type { ProgramItem, WorshipEvent } from '../domain/types'
 import type { LocalPayload } from './localPayload'
+import { storageKeys } from './storageKeys'
 
-const STORAGE_KEY = 'worship-timer:library'
+const STORAGE_KEY = storageKeys.library
 
 export type LocalLibraryEntry = {
   id: string
