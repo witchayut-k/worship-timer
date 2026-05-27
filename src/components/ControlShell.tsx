@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
+import { useResizableAside } from '../hooks/useResizableAside'
 import { useRuntimePhase } from '../hooks/useRuntimePhase'
 import { resolveSessionStatus } from '../lib/sessionStatus'
 import { LanguageToggle } from './LanguageToggle'
@@ -67,6 +68,7 @@ export function ControlShell({
   children,
 }: ControlShellProps) {
   const { t } = useLocale()
+  const resizable = useResizableAside()
   const { isPaid, isFree, homePath } = usePlan()
 
   const statusEventId = sessionStatus?.eventId ?? null
@@ -207,8 +209,22 @@ export function ControlShell({
 
       <div className="appMain">
         {aside ? (
-          <div className="setupMainGrid">
+          <div
+            ref={resizable.gridRef}
+            className={`setupMainGrid${resizable.isResizing ? ' setupMainGridResizing' : ''}`}
+            style={resizable.gridStyle}
+          >
             <div className="setupMainColumn">{children}</div>
+            <div
+              className="setupSplitGutter"
+              role="separator"
+              aria-orientation="vertical"
+              aria-valuenow={resizable.asideWidth}
+              aria-valuemin={resizable.minAsideWidth}
+              aria-valuemax={resizable.maxAsideWidth}
+              aria-label={t('setup.resizeAside')}
+              {...resizable.gutterProps}
+            />
             <aside className="setupAside">{aside}</aside>
           </div>
         ) : (

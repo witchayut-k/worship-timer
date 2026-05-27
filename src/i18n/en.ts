@@ -94,6 +94,7 @@ export const en = {
     addItem: 'Add Segment',
     loadingProgram: 'Loading program…',
     eventDetails: 'Event Details',
+    resizeAside: 'Resize panels',
     programItems: 'Program Schedule',
     itemCount: '{count} items',
     emptyProgram: 'No items yet — add one or import from a spreadsheet',
@@ -174,6 +175,7 @@ export const en = {
     stagePreview: 'Stage Preview',
     openFullscreen: 'Open Fullscreen',
     openStage: 'Open Stage Display',
+    resizeRail: 'Resize program panel',
   },
   viewer: {
     noProgram: 'No program items found',

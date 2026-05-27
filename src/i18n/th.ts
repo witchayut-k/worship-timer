@@ -94,6 +94,7 @@ export const th: Messages = {
     addItem: 'เพิ่มช่วง',
     loadingProgram: 'กำลังโหลดโปรแกรม…',
     eventDetails: 'รายละเอียดงาน',
+    resizeAside: 'ปรับขนาดแผงด้านข้าง',
     programItems: 'ตารางโปรแกรม',
     itemCount: '{count} รายการ',
     emptyProgram: 'ยังไม่มีรายการ — เพิ่มรายการหรือนำเข้าจากสเปรดชีต',
@@ -174,6 +175,7 @@ export const th: Messages = {
     stagePreview: 'Preview จอ Stage',
     openFullscreen: 'เปิดจอเต็ม',
     openStage: 'เปิดจอเวที',
+    resizeRail: 'ปรับความกว้างแผงโปรแกรม',
   },
   viewer: {
     noProgram: 'ไม่พบรายการโปรแกรม',

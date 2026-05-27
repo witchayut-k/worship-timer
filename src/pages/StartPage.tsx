@@ -15,6 +15,7 @@ import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
 import { formatSignedMMSS } from '../domain/time'
 import { useActiveControl } from '../hooks/useActiveControl'
+import { useControlRailWidth } from '../hooks/useControlRailWidth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
 import { useLocale } from '../i18n/useLocale'
 import { getStageTheme, getTimerThemeClasses } from '../lib/displayTheme'
@@ -93,6 +94,9 @@ function StartPageInner({ eventId }: { eventId: string }) {
 
   const hydratingRef = useRef(false)
   const runtimeSyncedRef = useRef(isLocal)
+  const controlWorkspaceRef = useRef<HTMLDivElement>(null)
+  const { railWidth, minRailWidth, maxRailWidth, onResizerPointerDown } =
+    useControlRailWidth(controlWorkspaceRef)
 
   useEffect(() => {
     if (!cloudReady) return
@@ -220,7 +224,10 @@ function StartPageInner({ eventId }: { eventId: string }) {
       }}
       onLeaveToLibrary={requestLeave}
     >
-      <div className="controlWorkspace">
+      <div
+        ref={controlWorkspaceRef}
+        className={`controlWorkspace${current ? ' controlWorkspace--withRail' : ''}`}
+      >
         <div className="controlTimerColumn">
           {isCloud && !hasFirebaseConfig() ? (
             <div className="card">
@@ -379,7 +386,18 @@ function StartPageInner({ eventId }: { eventId: string }) {
         </div>
 
         {current ? (
-          <aside className="controlRightRail">
+          <>
+            <div
+              className="controlColumnResizer"
+              role="separator"
+              aria-orientation="vertical"
+              aria-valuenow={railWidth}
+              aria-valuemin={minRailWidth}
+              aria-valuemax={maxRailWidth}
+              aria-label={t('control.resizeRail')}
+              onPointerDown={onResizerPointerDown}
+            />
+            <aside className="controlRightRail" style={{ width: railWidth }}>
             <ProgramSchedulePanel
               eventId={eventId}
               items={items}
@@ -391,6 +409,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
               onJumpTo={jumpTo}
             />
           </aside>
+          </>
         ) : null}
       </div>
 

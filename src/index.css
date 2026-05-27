@@ -1089,8 +1089,7 @@ textarea:focus {
 }
 
 .controlWorkspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  display: flex;
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -1098,6 +1097,8 @@ textarea:focus {
 }
 
 .controlWorkspace > .controlTimerColumn {
+  flex: 1;
+  min-width: 0;
   max-width: none;
   margin: 0;
   padding: 18px 20px 20px;
@@ -1105,10 +1106,42 @@ textarea:focus {
   overflow-y: auto;
 }
 
+.controlColumnResizer {
+  flex-shrink: 0;
+  width: 8px;
+  margin: 0 -2px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+  position: relative;
+  align-self: stretch;
+}
+
+.controlColumnResizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--border);
+  pointer-events: none;
+  transition: background 0.15s ease, width 0.15s ease;
+}
+
+.controlColumnResizer:hover::after,
+.controlColumnResizer:active::after {
+  width: 2px;
+  background: rgba(122, 162, 255, 0.55);
+}
+
 .controlRightRail {
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--border);
+  flex-shrink: 0;
   background: rgba(0, 0, 0, 0.12);
   height: 100%;
   max-height: 100%;
@@ -1371,11 +1404,45 @@ textarea:focus {
 
 .setupMainGrid {
   display: grid;
-  grid-template-columns: 1fr minmax(260px, 300px);
   gap: 0;
   height: 100%;
   min-height: 0;
   align-items: stretch;
+}
+
+.setupMainGridResizing {
+  user-select: none;
+}
+
+body.setupSplitResizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.setupSplitGutter {
+  position: relative;
+  flex-shrink: 0;
+  touch-action: none;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.setupSplitGutter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--border);
+  transition: background 0.15s ease, width 0.15s ease;
+}
+
+.setupSplitGutter:hover::before,
+.setupMainGridResizing .setupSplitGutter::before {
+  width: 2px;
+  background: rgba(122, 162, 255, 0.55);
 }
 
 .setupMainColumn {
@@ -1390,10 +1457,18 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  border-left: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.12);
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
+}
+
+.setupAside .setupEventCard {
+  margin: 0;
+}
+
+.setupAside .setupEventGrid {
+  grid-template-columns: 1fr;
 }
 
 .setupPage {
@@ -1530,8 +1605,8 @@ textarea:focus {
 .setupEventCard input[type='date']::-webkit-calendar-picker-indicator,
 .setupEventCard input[type='time']::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  width: 1rem;
-  height: 1rem;
+  width: 0.75rem;
+  height: 0.75rem;
   margin-inline-end: 4px;
   opacity: 1;
   filter: none;
@@ -2731,24 +2806,30 @@ textarea:focus {
   }
 
   .controlWorkspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
+    flex-direction: column;
+  }
+
+  .controlColumnResizer {
+    display: none;
   }
 
   .controlRightRail {
-    border-left: none;
+    width: auto !important;
     border-top: 1px solid var(--border);
     height: auto;
     max-height: min(45dvh, 420px);
   }
 
   .setupMainGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     grid-template-rows: minmax(0, 1fr) auto;
   }
 
+  .setupSplitGutter {
+    display: none;
+  }
+
   .setupAside {
-    border-left: none;
     border-top: 1px solid var(--border);
     padding: 16px 24px 48px;
     max-height: min(45dvh, 420px);

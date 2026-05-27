@@ -6,6 +6,7 @@ import { ConfirmModal } from '../components/ConfirmModal'
 import { ControlShell } from '../components/ControlShell'
 import { LeaveControlModal } from '../components/LeaveControlModal'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
+import { SetupEventDetailsCard } from '../components/SetupEventDetailsCard'
 import {
   SpreadsheetImportModal,
   type SpreadsheetImportMode,
@@ -588,20 +589,34 @@ function SetupPageInner({
       onLeaveToLibrary={requestLeave}
       {...controlShellNavProps}
       aside={
-        <SetupAsidePanel
-          settings={settings}
-          onSettingsChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
-          onOpenSpreadsheetImport={() => setImportOpen(true)}
-          canStart={canStart}
-          saving={saving}
-          saveStatus={saveStatus}
-          saveNotice={saveNotice}
-          productionMode={productionMode}
-          cloudReady={cloudReady && isPaid}
-          hasUid={Boolean(uid)}
-          showCloudHints={isPaid}
-          onStartControl={() => void onStartControl()}
-        />
+        <>
+          <SetupEventDetailsCard
+            title={title}
+            titleError={titleError}
+            date={date}
+            plannedStartTime={plannedStartTime}
+            onTitleChange={(value) => {
+              setTitle(value)
+              if (titleError && value.trim()) setTitleError(null)
+            }}
+            onDateChange={setDate}
+            onPlannedStartTimeChange={setPlannedStartTime}
+          />
+          <SetupAsidePanel
+            settings={settings}
+            onSettingsChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
+            onOpenSpreadsheetImport={() => setImportOpen(true)}
+            canStart={canStart}
+            saving={saving}
+            saveStatus={saveStatus}
+            saveNotice={saveNotice}
+            productionMode={productionMode}
+            cloudReady={cloudReady && isPaid}
+            hasUid={Boolean(uid)}
+            showCloudHints={isPaid}
+            onStartControl={() => void onStartControl()}
+          />
+        </>
       }
     >
       <div className="setupPage">
@@ -657,42 +672,6 @@ function SetupPageInner({
         </header>
 
         {loadError ? <p className="saveNotice saveNoticeError">{loadError}</p> : null}
-
-        <section className="card setupEventCard">
-          <div className="cardHeader">
-            <h2 className="cardTitle">{t('setup.eventDetails')}</h2>
-          </div>
-          <div className="setupEventGrid">
-            <label className="field setupEventTitleField">
-              <div className="label">{t('setup.eventTitle')}</div>
-              <input
-                value={title}
-                placeholder={t('event.untitled')}
-                aria-invalid={titleError != null}
-                onChange={(e) => {
-                  setTitle(e.target.value)
-                  if (titleError && e.target.value.trim()) setTitleError(null)
-                }}
-              />
-              {titleError ? <p className="fieldError">{titleError}</p> : null}
-            </label>
-            <label className="field">
-              <div className="label">{t('setup.date')}</div>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </label>
-            <label className="field setupEventTimeField">
-              <div className="label labelWithTag">
-                <span>{t('setup.plannedStart')}</span>
-                <span className="labelTag">{t('common.optional')}</span>
-              </div>
-              <input
-                type="time"
-                value={plannedStartTime}
-                onChange={(e) => setPlannedStartTime(e.target.value)}
-              />
-            </label>
-          </div>
-        </section>
 
         <section className="card setupProgramCard">
           <div className="setupProgramHead">
