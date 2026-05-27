@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { User } from 'firebase/auth'
-import { canUseAuth, signInWithGoogle, signOut, subscribeAuth } from '../lib/auth'
+import { canUseAuth, signInAnonymouslyIfNeeded, signInWithGoogle, signOut, subscribeAuth } from '../lib/auth'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -12,10 +12,19 @@ export function useAuth() {
       setReady(true)
       return
     }
-    return subscribeAuth((u) => {
+    let cancelled = false
+    const unsub = subscribeAuth((u) => {
+      if (cancelled) return
       setUser(u)
       setReady(true)
     })
+    if (!user) {
+      void signInAnonymouslyIfNeeded().catch(() => {})
+    }
+    return () => {
+      cancelled = true
+      unsub()
+    }
   }, [])
 
   return {

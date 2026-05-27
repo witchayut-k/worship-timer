@@ -1,12 +1,11 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
-import { freeSessionSetupPath, FREE_SESSION_ID } from '../lib/freeSession'
+import { sessionRoomSetupPath, ensureSessionRoomId } from '../lib/freeSession'
 import { getPlanTier, isPaidPlan, type PlanTier } from '../lib/planTier'
 
 type PlanContextValue = {
   tier: PlanTier
   isPaid: boolean
   isFree: boolean
-  freeSessionId: string
   homePath: string
 }
 
@@ -16,12 +15,12 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const value = useMemo<PlanContextValue>(() => {
     const tier = getPlanTier()
     const isPaid = isPaidPlan()
+    const homePath = isPaid ? '/services' : sessionRoomSetupPath()
     return {
       tier,
       isPaid,
       isFree: !isPaid,
-      freeSessionId: FREE_SESSION_ID,
-      homePath: isPaid ? '/services' : freeSessionSetupPath(),
+      homePath,
     }
   }, [])
 

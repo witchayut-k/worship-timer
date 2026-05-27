@@ -1,40 +1,40 @@
-import type { ProgramItem, WorshipEvent } from '../domain/types'
-import { DEFAULT_EVENT_DISPLAY_SETTINGS } from '../domain/types'
-import { getLocalEvent, isLibraryEventId, upsertLocalEvent } from './localLibrary'
+export const SESSION_ROOM_STORAGE_KEY = 'controlstage:session-room-id'
 
-/** Fixed local slot for Free plan (single session, overwrite only). */
-export const FREE_SESSION_ID = 'lib-free-slot'
-
-export function isFreeSessionId(eventId: string): boolean {
-  return eventId === FREE_SESSION_ID
-}
-
-export function freeSessionSetupPath(): string {
-  return `/setup/${FREE_SESSION_ID}`
-}
-
-export function freeSessionControlPath(): string {
-  return `/start/${FREE_SESSION_ID}`
-}
-
-export function ensureFreeSession(): { id: string; event: WorshipEvent; items: ProgramItem[] } {
-  const existing = getLocalEvent(FREE_SESSION_ID)
-  if (existing) {
-    return { id: existing.id, event: existing.event, items: existing.items }
+export function getSessionRoomId(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const id = window.sessionStorage.getItem(SESSION_ROOM_STORAGE_KEY)
+    return id && id.trim() ? id : null
+  } catch {
+    return null
   }
-  const event: WorshipEvent = {
-    title: '',
-    date: new Date().toISOString().slice(0, 10),
-    status: 'active',
-    updatedAtMs: Date.now(),
-    settings: { ...DEFAULT_EVENT_DISPLAY_SETTINGS },
-    leaderNames: [],
-  }
-  upsertLocalEvent({ id: FREE_SESSION_ID, event, items: [] })
-  return { id: FREE_SESSION_ID, event, items: [] }
 }
 
-export function coerceFreeSessionEventId(eventId: string | undefined): string {
-  if (!eventId || !isLibraryEventId(eventId)) return FREE_SESSION_ID
-  return FREE_SESSION_ID
+export function ensureSessionRoomId(): string {
+  const existing = getSessionRoomId()
+  if (existing) return existing
+  const next = `evt-${Date.now().toString(36)}`
+  try {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(SESSION_ROOM_STORAGE_KEY, next)
+    }
+  } catch {
+    // ignore storage failures; fall back to in-memory id
+  }
+  return next
+}
+
+export function isSessionRoomId(eventId: string): boolean {
+  const current = getSessionRoomId()
+  return Boolean(current && current === eventId)
+}
+
+export function sessionRoomSetupPath(): string {
+  const id = ensureSessionRoomId()
+  return `/setup/${id}`
+}
+
+export function sessionRoomControlPath(): string {
+  const id = ensureSessionRoomId()
+  return `/start/${id}`
 }

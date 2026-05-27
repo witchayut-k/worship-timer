@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams, Navigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
-import { ensureFreeSession, freeSessionSetupPath, isFreeSessionId } from '../lib/freeSession'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { ControlShell } from '../components/ControlShell'
 import { LeaveControlModal } from '../components/LeaveControlModal'
@@ -124,9 +123,9 @@ function SetupPageInner({
   const { isProductionForEvent } = useActiveControl()
   const focusOrder = (location.state as { focusOrder?: number } | null)?.focusOrder
   const { uid, ready: authReady } = useAuth()
-  const { isFree, isPaid, freeSessionId } = usePlan()
+  const { isFree, isPaid } = usePlan()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
-  const cloudMode = isPaid && hasFirebaseConfig() && Boolean(uid)
+  const cloudMode = hasFirebaseConfig() && Boolean(uid)
   const cloudReady = hasFirebaseConfig()
 
   const [title, setTitle] = useState('')
@@ -191,19 +190,12 @@ function SetupPageInner({
   }, [productionMode, liveRuntime, nowMs, settings])
 
   useEffect(() => {
-    if (isFree) ensureFreeSession()
-  }, [isFree])
-
-  useEffect(() => {
     if (!routeEventId || !authReady) return
 
     let cancelled = false
 
     const load = async () => {
       try {
-        if (isFree && routeEventId && isFreeSessionId(routeEventId)) {
-          ensureFreeSession()
-        }
         if (isLibraryEventId(routeEventId)) {
           const entry = getLocalEvent(routeEventId)
           if (!entry) throw new Error(t('setup.loadLocalNotFound'))
@@ -382,20 +374,17 @@ function SetupPageInner({
     nav(`/start/${eventId}`)
   }
 
-  const persistLocal = (): string => {
+  const persistLocal = (): string | null => {
+    if (isFree) return null
     const roster = collectLeadersFromItems(
       leaderNames,
       items.map((it) => it.leaderName),
     )
     const programItems = buildProgramItems()
     const reuseLocalId =
-      !isFree &&
-      isEdit &&
-      routeEventId &&
-      lastEventId === routeEventId &&
-      isLibraryEventId(lastEventId)
+      isEdit && routeEventId && lastEventId === routeEventId && isLibraryEventId(lastEventId)
     const id = upsertLocalEvent({
-      id: isFree ? freeSessionId : reuseLocalId ? lastEventId! : newLocalLibraryId(),
+      id: reuseLocalId ? lastEventId! : newLocalLibraryId(),
       event: buildEvent(roster),
       items: programItems,
     })
@@ -607,10 +596,6 @@ function SetupPageInner({
     cancelLeave,
     leaveDestinationKey,
   } = useLeaveControl(productionMode)
-
-  if (isFree && routeEventId && !isFreeSessionId(routeEventId)) {
-    return <Navigate to={freeSessionSetupPath()} replace />
-  }
 
   if (isProgramLoading) {
     return (

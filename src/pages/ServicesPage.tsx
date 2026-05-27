@@ -13,7 +13,6 @@ import { useAuth } from '../hooks/useAuth'
 import { useLocale } from '../i18n/useLocale'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { listEventsForUser } from '../lib/firestoreRepo'
-import { FREE_SESSION_ID } from '../lib/freeSession'
 import { listLocalEvents } from '../lib/localLibrary'
 
 function StatusBadge({ status }: { status: EventStatus }) {
@@ -51,7 +50,7 @@ export function ServicesPage() {
         const docs = await listEventsForUser(uid)
         setEntries(docs.map((d) => ({ ...d, itemCount: undefined })))
       } else {
-        const local = listLocalEvents().filter((e) => e.id !== FREE_SESSION_ID)
+        const local = listLocalEvents()
         setEntries(
           local.map((e) => ({
             id: e.id,

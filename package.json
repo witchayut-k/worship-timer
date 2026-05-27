@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy:firestore-rules": "bash scripts/deploy-firestore-rules.sh --rules-only",
+    "deploy:firestore": "bash scripts/deploy-firestore-rules.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

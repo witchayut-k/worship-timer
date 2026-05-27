@@ -6,7 +6,7 @@ import { ServicesPage } from './pages/ServicesPage'
 import { SetupPage } from './pages/SetupPage'
 import { StartPage } from './pages/StartPage'
 import { ViewerPage } from './pages/ViewerPage'
-import { freeSessionSetupPath } from './lib/freeSession'
+import { sessionRoomSetupPath } from './lib/freeSession'
 import { isFreePlan } from './lib/planTier'
 
 function HomeRedirect() {
@@ -15,7 +15,7 @@ function HomeRedirect() {
 }
 
 function FreeSetupRedirect() {
-  return <Navigate to={freeSessionSetupPath()} replace />
+  return <Navigate to={sessionRoomSetupPath()} replace />
 }
 
 const freeSetupOnly = isFreePlan()

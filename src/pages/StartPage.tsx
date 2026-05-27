@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
-import { freeSessionControlPath, isFreeSessionId } from '../lib/freeSession'
+import { isSessionRoomId, sessionRoomControlPath } from '../lib/freeSession'
 import { ControlShell } from '../components/ControlShell'
 import { ControlStageOutput } from '../components/ControlStageOutput'
 import { ControlTimerProgress } from '../components/ControlTimerProgress'
@@ -207,8 +207,8 @@ function StartPageInner({ eventId }: { eventId: string }) {
     dispatch({ type: 'triggerManualFlash', nowMs: Date.now() })
   }
 
-  if (isFree && !isFreeSessionId(eventId)) {
-    return <Navigate to={freeSessionControlPath()} replace />
+  if (isFree && !isSessionRoomId(eventId)) {
+    return <Navigate to={sessionRoomControlPath()} replace />
   }
 
   return (

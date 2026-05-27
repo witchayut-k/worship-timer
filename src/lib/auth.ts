@@ -1,6 +1,7 @@
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
+  signInAnonymously,
   signInWithPopup,
   signOut as firebaseSignOut,
   type User,
@@ -18,6 +19,18 @@ export function subscribeAuth(cb: (user: User | null) => void): () => void {
   }
   const auth = getAuthClient()
   return onAuthStateChanged(auth, cb)
+}
+
+export async function signInAnonymouslyIfNeeded(): Promise<User | null> {
+  if (!canUseAuth()) return null
+  const auth = getAuthClient()
+  if (auth.currentUser) return auth.currentUser
+  try {
+    const cred = await signInAnonymously(auth)
+    return cred.user
+  } catch {
+    return null
+  }
 }
 
 export async function signInWithGoogle(): Promise<User> {
