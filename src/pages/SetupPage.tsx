@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, Navigate } from 'react-router-dom'
 import { usePlan } from '../context/PlanProvider'
 import { ensureFreeSession, freeSessionSetupPath, isFreeSessionId } from '../lib/freeSession'
@@ -106,13 +106,11 @@ function SetupPageInner({
   const cloudMode = isPaid && hasFirebaseConfig() && Boolean(uid)
 
   const [title, setTitle] = useState('')
-  const [titleError, setTitleError] = useState<string | null>(null)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [plannedStartTime, setPlannedStartTime] = useState('')
   const [settings, setSettings] = useState<EventDisplaySettings>(DEFAULT_EVENT_DISPLAY_SETTINGS)
   const [leaderNames, setLeaderNames] = useState<string[]>([])
   const [items, setItems] = useState<DraftItem[]>([])
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -123,10 +121,14 @@ function SetupPageInner({
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [liveIndex, setLiveIndex] = useState<number | null>(null)
 
+  const onAutoFocusDone = useCallback(() => setNewlyAddedId(null), [])
+
   const canStart = useMemo(() => items.length > 0, [items.length])
   const cloudReady = hasFirebaseConfig()
   const totalSec = useMemo(() => items.reduce((s, it) => s + it.durationSec, 0), [items])
   const totalLabel = formatSecToHhMmSs(totalSec)
+  const setupEventId = routeEventId ?? lastEventId ?? null
+  const productionMode = isProductionForEvent(setupEventId)
 
   useEffect(() => {
     if (isFree) ensureFreeSession()
@@ -200,12 +202,15 @@ function SetupPageInner({
   useEffect(() => {
     if (loading || focusOrder == null || !items.length) return
     const match = items.find((it) => it.order === focusOrder)
-    if (match) setSelectedId(match.id)
+    if (match) setNewlyAddedId(match.id)
   }, [loading, focusOrder, items])
 
   useEffect(() => {
     const eid = routeEventId ?? lastEventId
-    if (!eid) return
+    if (!eid || !isProductionForEvent(eid)) {
+      setLiveIndex(null)
+      return
+    }
 
     if (isOfflineEventId(eid)) {
       const stored = loadStoredLocalRuntime(eid)
@@ -218,16 +223,10 @@ function SetupPageInner({
         if (s) setLiveIndex(s.currentIndex)
       })
     }
-  }, [routeEventId, lastEventId, cloudReady, uid])
-
-  useEffect(() => {
-    if (loading || focusOrder != null || liveIndex == null || !items.length) return
-    const match = items[liveIndex]
-    if (match) setSelectedId(match.id)
-  }, [loading, focusOrder, liveIndex, items])
+  }, [routeEventId, lastEventId, cloudReady, uid, isProductionForEvent])
 
   const buildEvent = (roster: string[]): WorshipEvent => ({
-    title,
+    title: title.trim() || t('event.untitled'),
     date,
     ...(plannedStartTime.trim() ? { plannedStartTime: plannedStartTime.trim() } : {}),
     status: 'active',
@@ -277,7 +276,6 @@ function SetupPageInner({
         mediaNote: '',
       },
     ])
-    setSelectedId(id)
     setNewlyAddedId(id)
   }
 
@@ -288,13 +286,12 @@ function SetupPageInner({
 
   const onResetConfirm = () => {
     setItems([])
-    setSelectedId(null)
+    setNewlyAddedId(null)
     setResetModalOpen(false)
   }
 
   const onRemove = (id: string) => {
     setItems((prev) => prev.filter((x) => x.id !== id).map((x, i) => ({ ...x, order: i + 1 })))
-    setSelectedId((cur) => (cur === id ? null : cur))
     setNewlyAddedId((cur) => (cur === id ? null : cur))
   }
 
@@ -318,7 +315,7 @@ function SetupPageInner({
         imported.map((it) => it.leaderName),
       ),
     )
-    setSelectedId(imported[0]?.id ?? null)
+    if (imported[0]) setNewlyAddedId(imported[0].id)
   }
 
   const startWithEventId = (eventId: string) => {
@@ -372,17 +369,8 @@ function SetupPageInner({
     return eventId
   }
 
-  const validateTitle = (): boolean => {
-    if (title.trim()) {
-      setTitleError(null)
-      return true
-    }
-    setTitleError(t('setup.titleRequired'))
-    return false
-  }
-
   const onSave = async () => {
-    if (!canStart || !validateTitle()) return
+    if (!canStart) return
     setSaving(true)
     setSaveNotice(null)
     try {
@@ -416,7 +404,7 @@ function SetupPageInner({
   }
 
   const onStartControl = async () => {
-    if (!canStart || !validateTitle()) return
+    if (!canStart) return
     setSaving(true)
     try {
       if (cloudMode) {
@@ -433,10 +421,8 @@ function SetupPageInner({
     }
   }
 
-  const shellEventId = lastEventId
   const displayTitle = title.trim() || t('event.untitled')
-  const productionMode = isProductionForEvent(shellEventId)
-  const controlEventId = productionMode ? shellEventId : null
+  const controlEventId = productionMode ? setupEventId : null
   const {
     leaveModalOpen,
     leaveModalTitle,
@@ -453,7 +439,7 @@ function SetupPageInner({
 
   if (loading) {
     return (
-      <ControlShell activeNav="setup" eventId={shellEventId} eventTitle={title}>
+      <ControlShell activeNav="setup" eventId={setupEventId} eventTitle={title}>
         <p className="muted">{t('setup.loadingProgram')}</p>
       </ControlShell>
     )
@@ -462,7 +448,7 @@ function SetupPageInner({
   return (
     <ControlShell
       activeNav="setup"
-      eventId={shellEventId}
+      eventId={setupEventId}
       eventTitle={title}
       productionMode={productionMode}
       onLeaveToLibrary={requestLeave}
@@ -541,14 +527,9 @@ function SetupPageInner({
               <div className="label">{t('setup.eventTitle')}</div>
               <input
                 value={title}
-                placeholder={t('event.titlePlaceholder')}
-                aria-invalid={titleError != null}
-                onChange={(e) => {
-                  setTitle(e.target.value)
-                  if (titleError && e.target.value.trim()) setTitleError(null)
-                }}
+                placeholder={t('event.untitled')}
+                onChange={(e) => setTitle(e.target.value)}
               />
-              {titleError ? <p className="fieldError">{titleError}</p> : null}
             </label>
             <label className="field">
               <div className="label">{t('setup.date')}</div>
@@ -587,12 +568,10 @@ function SetupPageInner({
           </div>
           <SetupSegmentList
             items={items}
-            selectedId={selectedId}
             autoFocusId={newlyAddedId}
-            onAutoFocusDone={() => setNewlyAddedId(null)}
-            liveIndex={liveIndex}
+            onAutoFocusDone={onAutoFocusDone}
+            liveIndex={productionMode ? liveIndex : null}
             leaderNames={leaderNames}
-            onSelect={setSelectedId}
             onReorder={setItems}
             onUpdate={onUpdate}
             onRemove={onRemove}

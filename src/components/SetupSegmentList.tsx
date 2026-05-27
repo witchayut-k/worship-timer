@@ -25,12 +25,10 @@ export type DraftItem = ProgramItem & { id: string }
 
 type SetupSegmentListProps = {
   items: DraftItem[]
-  selectedId: string | null
   autoFocusId: string | null
   onAutoFocusDone: () => void
   liveIndex?: number | null
   leaderNames: string[]
-  onSelect: (id: string) => void
   onReorder: (items: DraftItem[]) => void
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
   onRemove: (id: string) => void
@@ -46,11 +44,9 @@ function reorderItems(items: DraftItem[], activeId: string, overId: string): Dra
 
 type SortableRowProps = {
   item: DraftItem
-  selected: boolean
   autoFocus: boolean
   isLive: boolean
   leaderNames: string[]
-  onSelect: (id: string) => void
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
   onRemove: (id: string) => void
   onLeaderCommit: (name: string) => void
@@ -59,11 +55,9 @@ type SortableRowProps = {
 
 function SortableRow({
   item,
-  selected,
   autoFocus,
   isLive,
   leaderNames,
-  onSelect,
   onUpdate,
   onRemove,
   onLeaderCommit,
@@ -94,16 +88,7 @@ function SortableRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={`segmentRow ${selected ? 'segmentRowSelected' : ''} ${isLive ? 'segmentRowLive' : ''} ${isDragging ? 'segmentRowDragging' : ''}`}
-      onClick={() => onSelect(item.id)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onSelect(item.id)
-        }
-      }}
+      className={`segmentRow ${isLive ? 'segmentRowLive' : ''} ${isDragging ? 'segmentRowDragging' : ''}`}
     >
       <div
         className="dragHandle segmentColHandle"
@@ -170,12 +155,10 @@ function SortableRow({
 
 export function SetupSegmentList({
   items,
-  selectedId,
   autoFocusId,
   onAutoFocusDone,
   liveIndex = null,
   leaderNames,
-  onSelect,
   onReorder,
   onUpdate,
   onRemove,
@@ -214,11 +197,9 @@ export function SetupSegmentList({
             <SortableRow
               key={it.id}
               item={it}
-              selected={selectedId === it.id}
               autoFocus={it.id === autoFocusId}
               isLive={liveIndex != null && idx === liveIndex}
               leaderNames={leaderNames}
-              onSelect={onSelect}
               onUpdate={onUpdate}
               onRemove={onRemove}
               onLeaderCommit={onLeaderCommit}

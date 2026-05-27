@@ -1620,16 +1620,20 @@ textarea:focus {
   background: rgba(0, 0, 0, 0.18);
   border-left-width: 3px;
   border-left-color: transparent;
-  cursor: pointer;
 }
 
-.segmentRowSelected {
+.segmentRow:focus-within {
   border-left-color: var(--brand);
   background: rgba(122, 162, 255, 0.1);
 }
 
 .segmentRowLive {
   border-left-color: var(--brand);
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+
+.segmentRow:focus-within.segmentRowLive {
+  background: rgba(122, 162, 255, 0.1);
   box-shadow: inset 3px 0 0 var(--brand);
 }
 
@@ -2032,6 +2036,47 @@ textarea:focus {
   gap: 10px;
 }
 
+.importModalTabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.importModalTab {
+  padding: 10px 14px 12px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.importModalTab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.importModalTabActive {
+  color: var(--text);
+  border-bottom-color: var(--brand);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.importModalPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.importModalPanel[hidden] {
+  display: none;
+}
+
 .importTextarea {
   width: 100%;
   min-height: 120px;
@@ -2040,6 +2085,41 @@ textarea:focus {
     'Courier New', monospace;
   font-size: 12px;
   line-height: 1.4;
+}
+
+.importTemplate {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.importTemplateActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.importTemplateHint {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.importTemplateNote {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.importTemplateTable {
+  font-size: 12px;
+}
+
+.importTemplateTable .timeMono {
+  white-space: nowrap;
 }
 
 .importPreview {
