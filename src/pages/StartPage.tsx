@@ -212,6 +212,8 @@ function StartPageInner({ eventId }: { eventId: string }) {
     return <Navigate to={sessionRoomControlPath()} replace />
   }
 
+  const displayTitle = title.trim() || t('event.untitled')
+
   return (
     <ControlShell
       activeNav="control"
@@ -225,46 +227,51 @@ function StartPageInner({ eventId }: { eventId: string }) {
       }}
       onLeaveToLibrary={requestLeave}
     >
-      <div
-        ref={controlWorkspaceRef}
-        className={`controlWorkspace${current ? ' controlWorkspace--withRail' : ' controlWorkspace--empty'}`}
-      >
-        <div className="controlTimerColumn">
-          {isCloud && !hasFirebaseConfig() ? (
-            <div className="card">
-              <h1 className="pageTitle">{t('control.firebaseRequired')}</h1>
-              <div className="muted">
-                {t('control.firebaseHint', {
-                  envFile: '.env.local',
-                  envExample: '.env.example',
-                })}{' '}
-                <Link to="/setup">{t('control.localDemo')}</Link>
+      <div className="controlPage">
+        <div
+          ref={controlWorkspaceRef}
+          className={`controlWorkspace${current ? ' controlWorkspace--withRail' : ' controlWorkspace--empty'}`}
+        >
+          <div className="controlTimerColumn">
+            <header className="setupPageHeader controlPageHeader">
+              <div className="setupPageHeaderText">
+                <h1 className="setupPageTitle">{t('control.pageTitle')}</h1>
+                <p className="setupPageDesc">{t('control.desc', { title: displayTitle })}</p>
               </div>
-            </div>
-          ) : null}
-
-          {current ? (
-            <div className="controlTopBar">
-              <div className="controlTopActions" role="group" aria-label={t('control.stageControl')}>
-                <button
-                  className="btnGhost controlTopActionBtn"
-                  type="button"
-                  onClick={() => setOutputLinksOpen(true)}
-                >
-                  <MonitorIcon />
-                  {t('control.outputLinks')}
-                </button>
-                <ControlStageOutput
-                  blackout={state.blackout}
-                  manualFlashActive={manualFlashActive}
-                  onBlackoutChange={setBlackout}
-                  onFlashTrigger={triggerFlash}
-                />
+              {current ? (
+                <div className="controlTopActions" role="group" aria-label={t('control.stageControl')}>
+                  <button
+                    className="btnGhost controlTopActionBtn"
+                    type="button"
+                    onClick={() => setOutputLinksOpen(true)}
+                  >
+                    <MonitorIcon />
+                    {t('control.outputLinks')}
+                  </button>
+                  <ControlStageOutput
+                    blackout={state.blackout}
+                    manualFlashActive={manualFlashActive}
+                    onBlackoutChange={setBlackout}
+                    onFlashTrigger={triggerFlash}
+                  />
+                </div>
+              ) : null}
+            </header>
+            <div className="controlTimerBody">
+            {isCloud && !hasFirebaseConfig() ? (
+              <div className="card">
+                <h1 className="pageTitle">{t('control.firebaseRequired')}</h1>
+                <div className="muted">
+                  {t('control.firebaseHint', {
+                    envFile: '.env.local',
+                    envExample: '.env.example',
+                  })}{' '}
+                  <Link to="/setup">{t('control.localDemo')}</Link>
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {!current ? (
+            {!current ? (
             <ControlEmptyStage setupPath={eventId ? `/setup/${eventId}` : '/setup'} />
           ) : (
             <section className={`timerCard ${timerClass}`}>
@@ -370,7 +377,8 @@ function StartPageInner({ eventId }: { eventId: string }) {
                 </div>
             </section>
           )}
-        </div>
+            </div>
+          </div>
 
         {current ? (
           <>
@@ -398,6 +406,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
           </aside>
           </>
         ) : null}
+        </div>
       </div>
 
       <LeaveControlModal

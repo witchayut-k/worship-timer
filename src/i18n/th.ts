@@ -157,6 +157,8 @@ export const th: Messages = {
     warningOneMinuteDesc: 'เปลี่ยนเป็นสีเหลืองเมื่อเหลือ 1 นาที',
   },
   control: {
+    pageTitle: 'ห้องควบคุม',
+    desc: 'ควบคุมตัวจับเวลาและจอ Stage สำหรับ «{title}»',
     firebaseRequired: 'Cloud mode ต้องตั้งค่า Firebase',
     firebaseHint:
       'สร้างไฟล์ {envFile} จาก {envExample} แล้วเติมค่า Firebase config จากนั้นรีเฟรชหน้า หรือใช้',

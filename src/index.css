@@ -915,12 +915,30 @@ textarea:focus {
   padding: 18px 20px 48px;
 }
 
-.controlContent:has(> .controlWorkspace) {
+.controlContent:has(> .controlPage) {
   max-width: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
+}
+
+.controlPage {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.controlPageHeader {
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.controlPage > .controlWorkspace {
+  flex: 1;
+  min-height: 0;
 }
 
 .controlWorkspace {
@@ -932,13 +950,21 @@ textarea:focus {
 }
 
 .controlWorkspace > .controlTimerColumn {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   max-width: none;
   margin: 0;
-  padding: 18px 20px 20px;
+  padding: 24px 24px 48px;
   min-height: 0;
   overflow-y: auto;
+}
+
+.controlTimerBody {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .controlWorkspace--empty {
@@ -947,6 +973,10 @@ textarea:focus {
 }
 
 .controlWorkspace--empty > .controlTimerColumn {
+  overflow: hidden;
+}
+
+.controlWorkspace--empty .controlTimerBody {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1070,13 +1100,6 @@ textarea:focus {
   overflow: hidden;
 }
 
-.controlTopBar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
-}
 .controlTopActions {
   display: flex;
   flex-wrap: wrap;
@@ -1398,7 +1421,7 @@ body.setupSplitResizing {
 }
 
 .setupPageTitle {
-  margin: 0 0 6px;
+  margin: 0 0;
   font-size: 26px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -1407,6 +1430,7 @@ body.setupSplitResizing {
 .setupPageDesc {
   margin: 0;
   font-size: 14px;
+  font-weight: 300;
   line-height: 1.45;
   color: var(--muted);
 }

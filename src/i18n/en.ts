@@ -157,6 +157,8 @@ export const en = {
     warningOneMinuteDesc: 'Turn yellow when 1 minute remains',
   },
   control: {
+    pageTitle: 'Control Room',
+    desc: 'Control timer and stage display for «{title}»',
     firebaseRequired: 'Cloud mode requires Firebase setup',
     firebaseHint:
       'Create {envFile} from {envExample}, fill in your Firebase config, then refresh — or use',
