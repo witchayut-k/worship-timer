@@ -1,0 +1,67 @@
+.viewer.kiosk .viewerTop,
+.viewer.kiosk .viewerFooter {
+  display: none;
+}
+
+.viewer.kiosk .viewerMain {
+  padding: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.viewer.kiosk {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #000;
+}
+
+.viewer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+.viewerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.viewerTitle {
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.viewerMain {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  min-height: 0;
+  position: relative;
+}
+
+.viewerBlackout {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 20;
+}
+
+.viewerFooter {
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.stageEmpty {
+  padding: 24px;
+  text-align: center;
+}

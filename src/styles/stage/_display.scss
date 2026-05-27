@@ -1,0 +1,205 @@
+@use 'tokens' as *;
+
+.stageDisplay {
+  width: var(--stage-display-width);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --stage-accent: #2ee6d6;
+  --stage-glow: rgba(46, 230, 214, 0.55);
+  --stage-muted: rgba(46, 230, 214, 0.75);
+  --stage-secondary: #f0a030;
+  --stage-secondary-glow: rgba(240, 160, 48, 0.5);
+}
+
+.stageCircleWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.stageCircleWrap::before {
+  content: '';
+  position: absolute;
+  inset: var(--stage-glow-inset, 3%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(46, 230, 214, 0.06) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.stageSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.stageRingFrame {
+  stroke: rgba(255, 255, 255, 0.14);
+}
+
+.stageRingProgressGlow {
+  stroke: var(--stage-accent);
+  stroke-linecap: round;
+  opacity: $stage-ring-glow-opacity;
+  pointer-events: none;
+}
+
+.stageRingProgress {
+  stroke: var(--stage-accent);
+  stroke-linecap: round;
+  transition: $stage-ring-transition;
+}
+
+.stageCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--stage-ring-inset, 12%) var(--stage-center-padding-x, 5%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.stageCenterTop,
+.stageCenterBottom {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: var(--stage-center-max-width, 92%);
+  min-height: 0;
+}
+
+.stageCenterBottom {
+  justify-content: flex-start;
+}
+
+.stageSegmentInside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  max-width: 100%;
+}
+
+.stageSegmentKicker {
+  font-family: var(--font-mono);
+  font-size: var(--stage-segment-kicker-font-size);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 3;
+}
+
+.stageSegmentName {
+  font-family: var(--font-ui);
+  font-size: var(--stage-segment-name-font-size);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stageSegmentLeader {
+  font-family: var(--font-ui);
+  font-size: var(--stage-segment-leader-font-size);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stageSegmentInsideCurrent .stageSegmentKicker {
+  color: var(--stage-accent);
+}
+
+.stageSegmentInsideCurrent .stageSegmentName {
+  color: #fff;
+}
+
+.stageSegmentInsideCurrent .stageSegmentLeader {
+  color: var(--stage-muted);
+}
+
+.stageSegmentInsideNext .stageSegmentKicker {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.stageSegmentInsideNext .stageSegmentName,
+.stageSegmentInsideNext .stageSegmentLeader {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.stageRemainingLabel {
+  font-family: var(--font-mono);
+  font-size: var(--stage-remaining-label-font-size);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  color: var(--stage-secondary);
+  margin-top: var(--stage-remaining-label-margin-top);
+}
+
+.stageTimerValue {
+  flex: 0 0 auto;
+  font-family: var(--font-timer);
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--stage-timer-font-size);
+  font-weight: var(--stage-timer-font-weight, 900);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #fff;
+  // text-shadow:
+  //   0 0 20px var(--stage-glow),
+  //   0 0 40px var(--stage-glow),
+  //   0 0 80px rgba(46, 230, 214, 0.15);
+  text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+}
+
+.stageFlash .stageRingProgress,
+.stageFlash .stageRingProgressGlow,
+.stageFlash .stageTimerValue {
+  animation: stageFlashFade $stage-flash-duration ease-in-out infinite;
+}
+
+.stageDisplay.stagePaused .stageRingProgressGlow {
+  opacity: $stage-paused-glow-opacity;
+}
+
+.stageDisplay.stagePaused .stageTimerValue {
+  opacity: $stage-paused-timer-opacity;
+  text-shadow:
+    0 0 12px var(--stage-glow),
+    0 0 24px rgba(46, 230, 214, 0.1);
+}
+
+.stageDisplay.stagePaused .stageRemainingLabel {
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.32em;
+}
+
+@keyframes stageFlashFade {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}

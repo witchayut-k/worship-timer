@@ -1,17 +1,17 @@
 import { useMemo, type CSSProperties } from 'react'
+import {
+  getStageCssVars,
+  getStageLayoutMetrics,
+  STAGE_LAYOUT_PX,
+  stageDisplayConfig,
+} from '../config/stageDisplay.config'
 import { formatSignedMMSS } from '../domain/time'
 import type { StageTheme } from '../lib/displayTheme'
 import { computeRingDash } from '../lib/stageProgress'
 
-export const STAGE_LAYOUT_PX = 520
+export { STAGE_LAYOUT_PX }
 
-const RING_RADIUS = 228
-const FRAME_RADIUS = RING_RADIUS + 8
-const SIZE = STAGE_LAYOUT_PX
-const CENTER = SIZE / 2
-
-const RING_STROKE = 12
-const RING_GLOW_STROKE = 18
+const stageMetrics = getStageLayoutMetrics(stageDisplayConfig)
 
 type SegmentLines = {
   kicker: string
@@ -76,14 +76,13 @@ export function StageCircleDisplay({
   paused = false,
 }: Props) {
   const ring = useMemo(
-    () => computeRingDash({ remainingSec, durationSec, radius: RING_RADIUS }),
+    () => computeRingDash({ remainingSec, durationSec, radius: stageMetrics.ringRadius }),
     [remainingSec, durationSec],
   )
 
   const currentLines = currentSegmentLines(currentName, currentLeader)
   const nextLines = nextSegmentLines(nextName, nextLeader)
   const timeText = formatSignedMMSS(remainingSec)
-  const speakerName = currentLeader.trim() || '—'
   const isOvertime = remainingSec < 0
 
   const centerLabel = paused ? 'PAUSED' : isOvertime ? 'OVERTIME' : 'REMAINING'
@@ -96,25 +95,28 @@ export function StageCircleDisplay({
       : 'timer'
 
   const style = {
+    ...getStageCssVars(stageMetrics),
     '--stage-accent': theme.accent,
     '--stage-glow': theme.glow,
     '--stage-muted': theme.muted,
     '--stage-secondary': theme.secondary,
     '--stage-secondary-glow': theme.secondaryGlow,
-    '--stage-ring-inset': `${((CENTER - RING_RADIUS + RING_STROKE / 2 + 10) / CENTER) * 100}%`,
   } as CSSProperties
+
+  const { center, layoutPx, ringRadius, ringStroke, ringGlowStroke, frameRadius, frameStroke, glowBlur } =
+    stageMetrics
 
   return (
     <div className={rootClass} style={style}>
       <div className="stageCircleWrap">
         <svg
           className="stageSvg"
-          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          viewBox={`0 0 ${layoutPx} ${layoutPx}`}
           aria-hidden="true"
         >
           <defs>
             <filter id="stageProgressGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feGaussianBlur stdDeviation={glowBlur} result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -124,36 +126,36 @@ export function StageCircleDisplay({
 
           <circle
             className="stageRingFrame"
-            cx={CENTER}
-            cy={CENTER}
-            r={FRAME_RADIUS}
+            cx={center}
+            cy={center}
+            r={frameRadius}
             fill="none"
-            strokeWidth={1.5}
+            strokeWidth={frameStroke}
           />
 
           <circle
             className="stageRingProgressGlow"
-            cx={CENTER}
-            cy={CENTER}
-            r={RING_RADIUS}
+            cx={center}
+            cy={center}
+            r={ringRadius}
             fill="none"
-            strokeWidth={RING_GLOW_STROKE}
+            strokeWidth={ringGlowStroke}
             strokeDasharray={ring.dashArray}
             strokeDashoffset={ring.dashOffset}
-            transform={`rotate(-90 ${CENTER} ${CENTER})`}
+            transform={`rotate(-90 ${center} ${center})`}
             filter="url(#stageProgressGlow)"
           />
 
           <circle
             className="stageRingProgress"
-            cx={CENTER}
-            cy={CENTER}
-            r={RING_RADIUS}
+            cx={center}
+            cy={center}
+            r={ringRadius}
             fill="none"
-            strokeWidth={RING_STROKE}
+            strokeWidth={ringStroke}
             strokeDasharray={ring.dashArray}
             strokeDashoffset={ring.dashOffset}
-            transform={`rotate(-90 ${CENTER} ${CENTER})`}
+            transform={`rotate(-90 ${center} ${center})`}
           />
         </svg>
 
@@ -167,10 +169,6 @@ export function StageCircleDisplay({
           </div>
           <div className="stageCenterBottom">
             <SegmentInsideRing lines={nextLines} variant="next" />
-            <div className="stageSpeakerBlock">
-              <div className="stageSpeakerLabel">SPEAKER</div>
-              <div className="stageSpeakerName">{speakerName}</div>
-            </div>
           </div>
         </div>
       </div>

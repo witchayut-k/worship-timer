@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { LocaleProvider } from './i18n/LocaleProvider'
 import { appRoutes } from './routes'
 import './index.css'
+import './styles/stage/index.scss'
 
 const router = createBrowserRouter(appRoutes)
 

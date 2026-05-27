@@ -17,7 +17,7 @@ const STAGE_COLORS: Record<
   Pick<StageTheme, 'accent' | 'glow' | 'muted' | 'secondary' | 'secondaryGlow'>
 > = {
   normal: {
-    accent: '#2ee6d6',
+    accent: '#00f2ff',
     glow: 'rgba(46, 230, 214, 0.55)',
     muted: 'rgba(46, 230, 214, 0.75)',
     secondary: '#f0a030',

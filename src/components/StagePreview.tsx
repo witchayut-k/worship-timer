@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
-import { StageCircleDisplay, STAGE_LAYOUT_PX } from './StageCircleDisplay'
+import { STAGE_LAYOUT_PX } from '../config/stageDisplay.config'
+import { StageCircleDisplay } from './StageCircleDisplay'
 import type { StageTheme } from '../lib/displayTheme'
 import { useLocale } from '../i18n/useLocale'
 
