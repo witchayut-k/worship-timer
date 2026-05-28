@@ -118,6 +118,10 @@ export const en = {
     loadSignInRequired: 'Sign in to edit Cloud services',
     loadFailed: 'Failed to load',
     reorderBlockedRunning: 'Pause in Control Room before reordering segments',
+    workspaceCrashTitle: 'Something went wrong in this workspace',
+    workspaceCrashBody:
+      'The page hit an unexpected error. Reload to recover and continue controlling this service.',
+    workspaceCrashReload: 'Reload page',
   },
   setupSegment: {
     liveNow: 'On stage now',
