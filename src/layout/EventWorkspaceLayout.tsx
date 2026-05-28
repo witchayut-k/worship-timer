@@ -21,8 +21,7 @@ class WorkspaceErrorBoundary extends Component<
     return { hasError: true }
   }
 
-  componentDidCatch(_error: Error) {}
-  componentDidCatch() {}
+  componentDidCatch(_error: Error, _info: unknown) {}
 
   render() {
     if (this.state.hasError) {
