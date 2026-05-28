@@ -1,6 +1,6 @@
 import type { EventDisplaySettings, StageDisplayTemplate } from '../domain/types'
 import type { SetupSaveStatus } from '../hooks/useSetupAutoSave'
-import { TableIcon } from './SetupIcons'
+import { PlayIcon, TableIcon } from './SetupIcons'
 import { SetupStageTemplatePicker } from './SetupStageTemplatePicker'
 import { useLocale } from '../i18n/useLocale'
 
@@ -70,28 +70,39 @@ export function SetupAsidePanel({
         ) : null}
       </section> */}
 
-      <section className="asideCard setupAsideSection setupAsideSectionTools">
-        <h2 className="asideCardTitle setupAsideSectionTitle">{t('setupAside.tools')}</h2>
+      <section className="asideCard">
+        <h2 className="asideCardTitle">{t('setupAside.tools')}</h2>
         <div className="toolGrid">
-          <button className="toolTile toolTileAction" type="button" onClick={onOpenSpreadsheetImport}>
+          <button className="toolTile" type="button" onClick={onOpenSpreadsheetImport}>
             <span className="toolTileIcon" aria-hidden>
               <TableIcon />
             </span>
             {t('setupAside.importSpreadsheet')}
           </button>
+          <button
+            className="toolTile toolTileDisabled"
+            type="button"
+            disabled
+            title={t('setupAside.comingSoon')}
+          >
+            <span className="toolTileIcon" aria-hidden>
+              <PlayIcon />
+            </span>
+            {t('setupAside.autoAdvance')}
+          </button>
         </div>
       </section>
 
-      <section className="asideCard setupAsideSection setupAsideSectionStage">
-        <h2 className="asideCardTitle setupAsideSectionTitle">{t('setupAside.stageDisplay')}</h2>
+      <section className="asideCard">
+        <h2 className="asideCardTitle">{t('setupAside.stageDisplay')}</h2>
         <SetupStageTemplatePicker
           value={settings.stageTemplate ?? 'circle'}
           onChange={(stageTemplate: StageDisplayTemplate) => onSettingsChange({ stageTemplate })}
         />
       </section>
 
-      <section className="asideCard setupAsideSection setupAsideSectionAlerts">
-        <h2 className="asideCardTitle setupAsideSectionTitle">{t('setupAside.alerts')}</h2>
+      <section className="asideCard">
+        <h2 className="asideCardTitle">{t('setupAside.alerts')}</h2>
         <div className="alertSettingRow">
           <div className="alertSettingText">
             <div className="alertSettingTitle">{t('setupAside.overtimeFlash')}</div>
