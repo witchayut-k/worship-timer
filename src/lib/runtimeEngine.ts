@@ -6,7 +6,14 @@ export type RuntimeAction =
   | { type: 'start'; nowMs: number; uid?: string | null }
   | { type: 'pause'; nowMs: number; uid?: string | null }
   | { type: 'resetCurrent'; nowMs: number; items: ProgramItem[]; uid?: string | null }
-  | { type: 'jumpTo'; nowMs: number; index: number; items: ProgramItem[]; uid?: string | null }
+  | {
+      type: 'jumpTo'
+      nowMs: number
+      index: number
+      items: ProgramItem[]
+      autoStart?: boolean
+      uid?: string | null
+    }
   | { type: 'adjust'; nowMs: number; deltaSec: number; uid?: string | null }
   | { type: 'setRemaining'; nowMs: number; remainingSec: number; uid?: string | null }
   | { type: 'setBlackout'; nowMs: number; enabled: boolean; uid?: string | null }
@@ -92,12 +99,13 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
     case 'jumpTo': {
       const idx = clampInt(action.index, 0, Math.max(0, action.items.length - 1))
       const dur = action.items[idx]?.durationSec ?? 0
+      const autoStart = action.autoStart === true
       return {
         ...base,
         ...clearStageOutput,
         currentIndex: idx,
-        phase: 'stopped',
-        startedAtMs: null,
+        phase: autoStart ? 'running' : 'stopped',
+        startedAtMs: autoStart ? action.nowMs : null,
         remainingSec: dur,
       }
     }

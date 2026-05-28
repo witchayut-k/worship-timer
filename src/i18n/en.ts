@@ -191,6 +191,9 @@ export const en = {
     openFullscreen: 'Open Fullscreen',
     openStage: 'Open Stage Display',
     resizeRail: 'Resize program panel',
+    transport: 'Transport',
+    autoStartOnNext: 'Auto-start on navigate',
+    autoStartOnNextHint: 'Starts the timer when you use Prev, Next, or pick a segment in the schedule.',
   },
   crew: {
     nowPlaying: 'Now playing',

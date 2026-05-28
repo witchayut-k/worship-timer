@@ -191,6 +191,9 @@ export const th: Messages = {
     openFullscreen: 'เปิดจอเต็ม',
     openStage: 'เปิดจอเวที',
     resizeRail: 'ปรับความกว้างแผงโปรแกรม',
+    transport: 'ควบคุมการเล่น',
+    autoStartOnNext: 'เริ่มจับเวลาเมื่อเปลี่ยนรายการ',
+    autoStartOnNextHint: 'เริ่มนับเวลาทันทีเมื่อกด Prev, Next หรือเลือกรายการในตารางโปรแกรม',
   },
   crew: {
     nowPlaying: 'กำลังแสดง',
