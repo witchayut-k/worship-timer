@@ -46,6 +46,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
   const lastSavedSnapshotRef = useRef<string | null>(null)
   const programItemsRef = useRef<ProgramItem[]>([])
   const eventRef = useRef<WorshipEvent | null>(null)
+  const programItemsHydratedRef = useRef(false)
 
   useEffect(() => {
     setupDraftRef.current = setupDraft
@@ -62,6 +63,10 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
   useEffect(() => {
     eventRef.current = event
   }, [event])
+
+  useEffect(() => {
+    programItemsHydratedRef.current = programItemsHydrated
+  }, [programItemsHydrated])
 
   const refreshDraftFromServer = useCallback(
     (nextEvent: WorshipEvent | null, nextItems: ProgramItem[]) => {
@@ -92,6 +97,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
     setEvent(null)
     setProgramItems([])
     setProgramItemsHydrated(false)
+    programItemsHydratedRef.current = false
     setSetupDraft(null)
     setLastSavedSnapshot(null)
 
@@ -193,7 +199,9 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
         setEvent(ev)
         setError(null)
         setStatus('ready')
-        refreshDraftFromServer(ev, programItemsRef.current)
+        if (programItemsHydratedRef.current) {
+          refreshDraftFromServer(ev, programItemsRef.current)
+        }
       })
 
       const unsubItems = watchProgramItems(eventId, (items) => {

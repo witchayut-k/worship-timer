@@ -36,6 +36,27 @@ export function tickRemainingSec(params: { state: RuntimeState; nowMs: number })
   return Math.trunc(state.remainingSec - elapsed)
 }
 
+export function clampRuntimeIndex(state: RuntimeState, items: ProgramItem[]): RuntimeState {
+  if (items.length === 0) return state
+  const maxIdx = items.length - 1
+  if (state.currentIndex >= 0 && state.currentIndex <= maxIdx) return state
+
+  const idx = clampInt(state.currentIndex, 0, maxIdx)
+  const next: RuntimeState = {
+    ...state,
+    currentIndex: idx,
+    remainingSec: items[idx]?.durationSec ?? 0,
+  }
+  if (state.phase === 'running') {
+    return {
+      ...next,
+      phase: 'stopped',
+      startedAtMs: null,
+    }
+  }
+  return next
+}
+
 export function initialRuntimeState(params: { items: ProgramItem[]; uid?: string | null }): RuntimeState {
   const first = params.items[0]
   const nowMs = Date.now()

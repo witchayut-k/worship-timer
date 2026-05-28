@@ -22,6 +22,7 @@ export function EventSessionLoadingGate({ children }: Props) {
     session.status,
     session.hasSetupDraft,
     route,
+    session.programItemsHydrated,
   )
 
   if (loading) {

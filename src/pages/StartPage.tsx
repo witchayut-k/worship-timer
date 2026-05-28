@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { usePlan } from "../context/PlanProvider";
 import { isSessionRoomId, sessionRoomControlPath } from "../lib/freeSession";
@@ -29,8 +29,8 @@ import {
   watchRuntimeState,
   writeRuntimeState,
 } from "../lib/firestoreRepo";
-import { draftItemsToProgramItems } from "../lib/eventSessionDraft";
 import {
+  clampRuntimeIndex,
   deriveLocalDisplay,
   initialRuntimeState,
   normalizeRuntimeState,
@@ -49,13 +49,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const { setActiveControl, isProductionForEvent } = useActiveControl();
   const session = useEventSession();
   const eventMeta = session.event;
-  const items = useMemo(
-    () =>
-      session.setupDraft
-        ? draftItemsToProgramItems(session.setupDraft.items)
-        : session.programItems,
-    [session.setupDraft, session.programItems],
-  );
+  const items = session.programItems;
   const title = session.event?.title ?? "";
   const [outputLinksOpen, setOutputLinksOpen] = useState(false);
 
@@ -127,6 +121,18 @@ function StartPageInner({ eventId }: { eventId: string }) {
       unsubState();
     };
   }, [eventId, cloudReady]);
+
+  useEffect(() => {
+    if (!items.length) return;
+    if (state.currentIndex < items.length) return;
+    const clamped = clampRuntimeIndex(state, items);
+    if (clamped === state) return;
+    hydratingRef.current = true;
+    dispatch({ type: "hydrate", state: clamped });
+    queueMicrotask(() => {
+      hydratingRef.current = false;
+    });
+  }, [items, state]);
 
   useEffect(() => {
     if (!cloudReady) return;

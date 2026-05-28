@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ProgramItem } from '../domain/types'
-import { initialRuntimeState, reduceRuntimeState } from './runtimeEngine'
+import { initialRuntimeState, reduceRuntimeState, clampRuntimeIndex } from './runtimeEngine'
 
 function item(durationSec: number, order: number): ProgramItem {
   return {
@@ -66,5 +66,42 @@ describe('reduceRuntimeState jumpTo', () => {
 
     expect(next.phase).toBe('stopped')
     expect(next.startedAtMs).toBeNull()
+  })
+})
+
+describe('clampRuntimeIndex', () => {
+  it('returns unchanged state when index is in range', () => {
+    const state = initialRuntimeState({ items })
+    state.currentIndex = 1
+    expect(clampRuntimeIndex(state, items)).toBe(state)
+  })
+
+  it('returns unchanged state when items are empty', () => {
+    const state = initialRuntimeState({ items: [] })
+    state.currentIndex = 3
+    expect(clampRuntimeIndex(state, [])).toBe(state)
+  })
+
+  it('clamps out-of-bounds index and stops running phase', () => {
+    const state = initialRuntimeState({ items })
+    state.currentIndex = 5
+    state.phase = 'running'
+    state.startedAtMs = 1000
+    state.remainingSec = 42
+
+    const next = clampRuntimeIndex(state, items)
+    expect(next.currentIndex).toBe(2)
+    expect(next.remainingSec).toBe(120)
+    expect(next.phase).toBe('stopped')
+    expect(next.startedAtMs).toBeNull()
+  })
+
+  it('clamps negative index to zero', () => {
+    const state = initialRuntimeState({ items })
+    state.currentIndex = -1
+
+    const next = clampRuntimeIndex(state, items)
+    expect(next.currentIndex).toBe(0)
+    expect(next.remainingSec).toBe(300)
   })
 })
