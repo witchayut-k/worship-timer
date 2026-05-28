@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import {
   computeSegmentPlannedStartMs,
   formatWallClockShort,
@@ -27,6 +35,10 @@ type Props = BaseProps & {
   onJumpTo?: (index: number) => void
 }
 
+function padOrder(order: number): string {
+  return String(order).padStart(2, '0')
+}
+
 function CrewNotes({ item }: { item: ProgramItem }) {
   const { t } = useLocale()
   const lights = item.roomLights?.trim()
@@ -50,6 +62,111 @@ function CrewNotes({ item }: { item: ProgramItem }) {
     </div>
   )
 }
+
+type RowProps = {
+  item: ProgramItem
+  idx: number
+  isCurrent: boolean
+  isPast: boolean
+  phase: RuntimePhase
+  displayRemainingSec?: number
+  segmentStartLabel: string | null
+  showCrewNotes: boolean
+  readOnly: boolean
+  onJumpTo?: (index: number) => void
+  rowRef?: RefObject<HTMLDivElement | null>
+}
+
+const ProgramScheduleRow = memo(function ProgramScheduleRow({
+  item,
+  idx,
+  isCurrent,
+  isPast,
+  phase,
+  displayRemainingSec,
+  segmentStartLabel,
+  showCrewNotes,
+  readOnly,
+  onJumpTo,
+  rowRef,
+}: RowProps) {
+  const { t } = useLocale()
+  const isRunning = isCurrent && phase === 'running'
+  const isPaused = isCurrent && phase === 'paused'
+
+  const aside = isPast ? (
+    <span className="programScheduleStatusLabel programScheduleStatusLabelDone">
+      {t('control.scheduleDone')}
+    </span>
+  ) : isCurrent ? (
+    <div className="programScheduleAsideStack">
+      {isRunning ? (
+        <span className="programScheduleStatusLabel programScheduleStatusLabelLive">
+          {t('control.scheduleLive')}
+        </span>
+      ) : isPaused ? (
+        <span className="programScheduleStatusLabel programScheduleStatusLabelPaused">
+          {t('control.paused')}
+        </span>
+      ) : null}
+      {displayRemainingSec != null ? (
+        <span className="timeMono programScheduleTime">{formatSignedMMSS(displayRemainingSec)}</span>
+      ) : null}
+    </div>
+  ) : (
+    <div className="programScheduleAsideStack">
+      {segmentStartLabel ? (
+        <span className="timeMono muted programSchedulePlanned">{segmentStartLabel}</span>
+      ) : null}
+      <span className="timeMono muted programScheduleDuration">{formatSecToMmSs(item.durationSec)}</span>
+    </div>
+  )
+
+  const pickContent = (
+    <>
+      <span className="programScheduleOrder" aria-hidden>
+        {padOrder(item.order)}
+      </span>
+      <div className="programScheduleMain">
+        <div className="programScheduleItemTitle">{item.name}</div>
+        <div className="programScheduleLeader muted">{item.leaderName || '—'}</div>
+        {showCrewNotes ? <CrewNotes item={item} /> : null}
+      </div>
+      <div className="programScheduleAside">{aside}</div>
+    </>
+  )
+
+  const rowClass = [
+    'programScheduleRow',
+    isCurrent ? 'active' : '',
+    isPast ? 'programScheduleRowPast' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  let pick: ReactNode
+  if (readOnly) {
+    pick = (
+      <div className="programSchedulePick programSchedulePickReadOnly">{pickContent}</div>
+    )
+  } else {
+    pick = (
+      <button
+        type="button"
+        className="programSchedulePick"
+        onClick={() => onJumpTo?.(idx)}
+      >
+        {pickContent}
+      </button>
+    )
+  }
+
+  return (
+    <div ref={rowRef} className={rowClass}>
+      {pick}
+    </div>
+  )
+})
 
 export function ProgramSchedulePanel({
   items,
@@ -90,65 +207,26 @@ export function ProgramSchedulePanel({
       <div className={listClass}>
         {items.map((it, idx) => {
           const isCurrent = idx === currentIndex
-          const isPast = idx < currentIndex
-          const isRunning = isCurrent && phase === 'running'
-          const isPaused = isCurrent && phase === 'paused'
           const segmentStartMs =
             plannedStartMs != null ? computeSegmentPlannedStartMs(plannedStartMs, items, idx) : null
           const segmentStartLabel =
             segmentStartMs != null ? formatWallClockShort(segmentStartMs) : null
 
-          const rowContent = (
-            <>
-              <div className="programScheduleRowTop">
-                <div className="listPickTitle">
-                  {it.order}. {it.name}
-                </div>
-                {isRunning ? (
-                  <span className="scheduleBadge scheduleBadgeCurrent">{t('control.current')}</span>
-                ) : isPaused ? (
-                  <span className="scheduleBadge scheduleBadgePaused">{t('control.paused')}</span>
-                ) : null}
-              </div>
-              <div className="programScheduleRowMeta">
-                <span className="muted">{it.leaderName || '—'}</span>
-                <span className="programScheduleRowTimes">
-                  {segmentStartLabel ? (
-                    <span className="timeMono muted programSchedulePlanned">{segmentStartLabel}</span>
-                  ) : null}
-                  {isCurrent ? (
-                    <span className="timeMono programScheduleTime">
-                      {formatSignedMMSS(displayRemainingSec)}
-                    </span>
-                  ) : (
-                    <span className="timeMono muted">{formatSecToMmSs(it.durationSec)}</span>
-                  )}
-                </span>
-              </div>
-              {showCrewNotes ? <CrewNotes item={it} /> : null}
-            </>
-          )
-
           return (
-            <div
+            <ProgramScheduleRow
               key={`${it.order}-${it.name}-${idx}`}
-              ref={isCurrent ? activeRowRef : undefined}
-              className={`programScheduleRow ${isCurrent ? 'active' : ''} ${isPast ? 'programScheduleRowPast' : ''}`}
-            >
-              {readOnly ? (
-                <div className="listPick programSchedulePick programSchedulePickReadOnly">
-                  {rowContent}
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="listPick programSchedulePick"
-                  onClick={() => onJumpTo?.(idx)}
-                >
-                  {rowContent}
-                </button>
-              )}
-            </div>
+              item={it}
+              idx={idx}
+              isCurrent={isCurrent}
+              isPast={idx < currentIndex}
+              phase={phase}
+              displayRemainingSec={isCurrent ? displayRemainingSec : undefined}
+              segmentStartLabel={segmentStartLabel}
+              showCrewNotes={showCrewNotes}
+              readOnly={readOnly}
+              onJumpTo={onJumpTo}
+              rowRef={isCurrent ? activeRowRef : undefined}
+            />
           )
         })}
       </div>

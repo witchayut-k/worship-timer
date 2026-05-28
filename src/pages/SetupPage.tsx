@@ -33,7 +33,14 @@ import {
   type PersistSetupOutcome,
 } from '../hooks/useSetupAutoSave'
 import { useLocale } from '../i18n/useLocale'
-import { newDraftItemId, snapshotFromDraftBundle } from '../lib/eventSessionDraft'
+import {
+  draftBundleFromEventProgram,
+  draftItemsToProgramItems,
+  draftProgramContentSnapshot,
+  newDraftItemId,
+  programItemsContentSnapshot,
+  snapshotFromDraftBundle,
+} from '../lib/eventSessionDraft'
 import { needsSetupPersistBeforeNav } from '../lib/setupNavigation'
 import { isOfflineEventId } from '../lib/eventSource'
 import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
@@ -68,17 +75,6 @@ function parsedRowsToDraftItems(rows: ParsedProgramRow[]): DraftItem[] {
     durationSec: row.durationSec,
     roomLights: row.roomLights,
     mediaNote: row.mediaNote,
-  }))
-}
-
-function draftItemsToProgramItems(items: DraftItem[]): ProgramItem[] {
-  return items.map((it) => ({
-    order: it.order,
-    name: it.name,
-    leaderName: it.leaderName,
-    durationSec: it.durationSec,
-    roomLights: it.roomLights ?? '',
-    mediaNote: it.mediaNote ?? '',
   }))
 }
 
@@ -185,9 +181,14 @@ function SetupPageInner({
   useEffect(() => {
     if (!session || !routeEventId || formHydrated) return
     if (session.status === 'error') return
-    if (session.status === 'loading' && !session.hasSetupDraft()) return
+    if (session.status === 'loading') return
+    if (!session.programItemsHydrated || !session.event) return
 
-    const draft = session.ensureSetupDraft()
+    const draft = draftBundleFromEventProgram({
+      event: session.event,
+      programItems: session.programItems,
+    })
+    session.replaceSetupDraft(draft)
     setTitle(draft.title)
     setDate(draft.date)
     setPlannedStartTime(draft.plannedStartTime)
@@ -196,7 +197,7 @@ function SetupPageInner({
     setItems(draft.items)
     setLastEventId(routeEventId)
     setFormHydrated(true)
-  }, [session, routeEventId, formHydrated, session?.status])
+  }, [session, routeEventId, formHydrated, session?.status, session?.programItemsHydrated, session?.event, session?.programItems])
 
   useEffect(() => {
     if (!session || !formHydrated) return
@@ -209,6 +210,24 @@ function SetupPageInner({
       items,
     })
   }, [session, formHydrated, title, date, plannedStartTime, settings, leaderNames, items])
+
+  useEffect(() => {
+    if (!session || !formHydrated || !session.setupDraft) return
+    if (session.isSetupDraftDirty()) return
+    const draft = session.setupDraft
+    if (
+      draftProgramContentSnapshot(draft) ===
+      programItemsContentSnapshot(draftItemsToProgramItems(items))
+    ) {
+      return
+    }
+    setTitle(draft.title)
+    setDate(draft.date)
+    setPlannedStartTime(draft.plannedStartTime)
+    setSettings(draft.settings)
+    setLeaderNames(draft.leaderNames)
+    setItems(draft.items)
+  }, [session, formHydrated, session?.setupDraft, items])
 
   useEffect(() => {
     if (!liveEventId) return
@@ -272,6 +291,9 @@ function SetupPageInner({
       },
     ])
     setNewlyAddedId(id)
+    // #region agent log
+    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:onAdd',message:'segment added',data:{newCount:items.length+1,routeEventId,lastEventId,productionMode},timestamp:Date.now(),hypothesisId:'A,B'})}).catch(()=>{});
+    // #endregion
   }
 
   const onResetClick = () => {
@@ -412,6 +434,9 @@ function SetupPageInner({
           )
         }
         const notice = cloudEventId ? t('setup.savedSynced') : t('setup.saved')
+        // #region agent log
+        fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:persistSetup',message:'persist ok',data:{itemCount:programItems.length,localId,cloudEventId,routeEventId,lastEventId},timestamp:Date.now(),hypothesisId:'B,C'})}).catch(()=>{});
+        // #endregion
         return { localId, cloudEventId, notice, isError: false }
       } catch (e) {
         const msg = e instanceof Error ? e.message : t('setup.saveFailed')
@@ -476,7 +501,7 @@ function SetupPageInner({
     baselineSeededRef.current = true
   }, [formHydrated, session, markSnapshotSaved, setupSnapshot])
 
-  const persistBeforeNav = needsSetupPersistBeforeNav(session, saveStatus)
+  const persistBeforeNav = needsSetupPersistBeforeNav(session, saveStatus, items)
 
   const onSpreadsheetImport = useCallback(
     (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
@@ -564,29 +589,51 @@ function SetupPageInner({
   const displayTitle = title.trim() || t('event.untitled')
   const controlEventId = productionMode ? setupEventId : null
 
-  const openControlRoom = async () => {
-    if (!controlEventId) return
-    if (!needsSetupPersistBeforeNav(session, saveStatus)) {
-      nav(`/start/${controlEventId}`)
-      return
-    }
+  const openControlRoom = useCallback(async () => {
+    if (!setupEventId) return
+    // #region agent log
+    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-1',hypothesisId:'H2',location:'SetupPage.tsx:openControlRoom:beforeFlush',message:'open control room before flush',data:{pathname:location.pathname,setupEventId,saveStatus,persistBeforeNav,itemsCount:items.length},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    // #region agent log
+    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:openControlRoom',message:'control nav flush',data:{setupEventId,saveStatus,itemsCount:items.length},timestamp:Date.now(),runId:'post-fix-2'})}).catch(()=>{});
+    // #endregion
     setNavSaving(true)
     cancelScheduled()
     try {
       await flush(false)
-      nav(`/start/${controlEventId}`)
     } finally {
       setNavSaving(false)
     }
-  }
+    // #region agent log
+    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-1',hypothesisId:'H2',location:'SetupPage.tsx:openControlRoom:beforeNavigate',message:'open control room before navigate',data:{pathname:location.pathname,setupEventId,saveStatus,navSaving:false},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    nav(`/start/${setupEventId}`)
+  }, [setupEventId, saveStatus, items.length, cancelScheduled, flush, nav])
 
   const controlShellNavProps =
-    controlEventId && persistBeforeNav
+    setupEventId && persistBeforeNav
       ? {
-          onControlNavigate: () => void openControlRoom(),
+          onControlNavigate: openControlRoom,
           controlNavigateDisabled: navSaving,
         }
       : {}
+
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-1',hypothesisId:'H4',location:'SetupPage.tsx:routeLifecycle',message:'setup page lifecycle tick',data:{pathname:location.pathname,routeEventId,setupEventId,persistBeforeNav,hasControlHandler:Boolean(controlShellNavProps.onControlNavigate)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    // #region agent log
+    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:controlNavState',message:'setup control nav state',data:{setupEventId,persistBeforeNav,saveStatus,navSaving,hasControlHandler:Boolean(controlShellNavProps.onControlNavigate)},timestamp:Date.now(),hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+  }, [location.pathname, routeEventId, setupEventId, persistBeforeNav, saveStatus, navSaving, controlShellNavProps.onControlNavigate])
+
+  useEffect(() => {
+    return () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-2',hypothesisId:'H8',location:'SetupPage.tsx:unmount',message:'setup page unmounted',data:{pathname:location.pathname,routeEventId,setupEventId},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    }
+  }, [location.pathname, routeEventId, setupEventId])
 
   const {
     leaveModalOpen,

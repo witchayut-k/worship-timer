@@ -1217,27 +1217,94 @@ textarea:focus {
 }
 
 .programSchedulePick {
-  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
   width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
 }
 
-.programScheduleRowTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+.programSchedulePickReadOnly {
+  cursor: default;
 }
 
-.programScheduleRowMeta {
+.programScheduleOrder {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.programScheduleMain {
+  min-width: 0;
+}
+
+.programScheduleItemTitle {
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.programScheduleLeader {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.programScheduleAside {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.programScheduleAsideStack {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.programScheduleStatusLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.programScheduleStatusLabelLive {
+  color: var(--brand);
+}
+
+.programScheduleStatusLabelPaused {
+  color: var(--muted);
+}
+
+.programScheduleStatusLabelDone {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .programScheduleTime {
   font-size: var(--text-base);
   font-weight: 500;
+}
+
+.programScheduleDuration {
+  font-size: var(--text-base);
 }
 
 .scheduleBadge {
@@ -1369,29 +1436,52 @@ textarea:focus {
 .programScheduleRow {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+}
+
+.programScheduleList .programScheduleRow:not(.active):not(.programScheduleRowPast) .programSchedulePick:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .programScheduleRow.active .programSchedulePick {
-  border-color: rgba(122, 162, 255, 0.45);
+  border-color: rgba(122, 162, 255, 0.7);
+  background: rgba(122, 162, 255, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(122, 162, 255, 0.18) inset,
+    0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.programScheduleRow.active .programSchedulePick:hover {
+  border-color: rgba(122, 162, 255, 0.85);
+  background: rgba(122, 162, 255, 0.26);
+}
+
+.programScheduleRow.active .programScheduleOrder {
+  border-radius: 8px;
+  border-color: transparent;
+  background: var(--brand);
+  color: #0b1020;
+}
+
+.programScheduleRow.active .programScheduleItemTitle {
+  color: var(--brand);
 }
 
 .programScheduleRowPast {
   opacity: 0.55;
 }
 
-.programScheduleRowPast .listPickTitle {
+.programScheduleRowPast .programScheduleItemTitle,
+.programScheduleRowPast .programScheduleLeader {
   text-decoration: line-through;
+}
+
+.programScheduleRowPast .programScheduleOrder {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .programScheduleRowPast:hover {
   opacity: 0.72;
-}
-
-.programScheduleRowTimes {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .programSchedulePlanned {
@@ -1793,6 +1883,16 @@ body.setupSplitResizing {
   font-feature-settings: 'tnum' 1;
   font-variant-numeric: tabular-nums;
   font-size: var(--text-base);
+}
+
+.timeMono.programScheduleTime {
+  font-family: var(--font-ui);
+  letter-spacing: 1px;
+}
+
+.programScheduleRow.active .timeMono.programScheduleTime {
+  color: #b8ccff;
+  font-weight: 600;
 }
 
 .segmentTable {

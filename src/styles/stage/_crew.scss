@@ -210,13 +210,13 @@
 }
 
 @media (max-width: 400px) {
-  .programScheduleCrew .programScheduleRowMeta {
-    flex-wrap: wrap;
-    align-items: flex-start;
+  .programScheduleCrew .programSchedulePick {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
   }
 
-  .programScheduleCrew .programScheduleRowTimes {
-    width: 100%;
-    justify-content: flex-end;
+  .programScheduleCrew .programScheduleAside {
+    grid-column: 2;
+    text-align: right;
   }
 }
