@@ -118,6 +118,10 @@ export const th: Messages = {
     loadSignInRequired: 'เข้าสู่ระบบเพื่อแก้ไขรอบ Cloud',
     loadFailed: 'โหลดไม่สำเร็จ',
     reorderBlockedRunning: 'พักเวลาในห้องควบคุมก่อนจัดลำดับช่วง',
+    workspaceCrashTitle: 'เกิดข้อผิดพลาดในหน้านี้',
+    workspaceCrashBody:
+      'หน้านี้เกิดข้อผิดพลาดที่ไม่คาดคิด ลองรีโหลดเพื่อกู้คืนและควบคุมรอบต่อ',
+    workspaceCrashReload: 'รีโหลดหน้า',
   },
   setupSegment: {
     liveNow: 'กำลังแสดงบนเวที',
