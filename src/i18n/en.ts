@@ -193,7 +193,6 @@ export const en = {
     resizeRail: 'Resize program panel',
   },
   crew: {
-    pageSubtitle: 'Read-only program rundown — room lights and media cues',
     nowPlaying: 'Now playing',
   },
   viewer: {

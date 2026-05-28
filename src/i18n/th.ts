@@ -193,7 +193,6 @@ export const th: Messages = {
     resizeRail: 'ปรับความกว้างแผงโปรแกรม',
   },
   crew: {
-    pageSubtitle: 'ตารางโปรแกรมแบบดูอย่างเดียว — ไฟห้องและคิวมีเดีย',
     nowPlaying: 'กำลังแสดง',
   },
   viewer: {

@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { CrewNowCard } from '../components/CrewNowCard'
 import { FullScreenLoading } from '../components/FullScreenLoading'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
+import { formatServiceDateLabel } from '../domain/serviceList'
 import { useEventLiveSync } from '../hooks/useEventLiveSync'
 import { useLocale } from '../i18n/useLocale'
 
@@ -11,7 +13,7 @@ export function CrewPage() {
 }
 
 function CrewPageInner({ eventId }: { eventId: string }) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const {
     eventMeta,
     items,
@@ -26,6 +28,15 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     next,
   } = useEventLiveSync(eventId)
 
+  const pageSubtitle = useMemo(() => {
+    const dateStr = eventMeta?.date?.trim()
+    const timeStr = eventMeta?.plannedStartTime?.trim()
+    const parts: string[] = []
+    if (dateStr) parts.push(formatServiceDateLabel(dateStr, locale))
+    if (timeStr) parts.push(timeStr)
+    return parts.length > 0 ? parts.join(' · ') : null
+  }, [eventMeta?.date, eventMeta?.plannedStartTime, locale])
+
   if (isCloud && cloudReady && !syncReady) {
     return <FullScreenLoading message={t('common.loading')} />
   }
@@ -34,7 +45,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     <div className="crewView">
       <header className="crewHeader">
         <h1 className="crewPageTitle">{displayTitle}</h1>
-        <p className="crewPageSubtitle muted">{t('crew.pageSubtitle')}</p>
+        {pageSubtitle ? <p className="crewPageSubtitle muted">{pageSubtitle}</p> : null}
       </header>
 
       {current ? (
