@@ -1,65 +1,81 @@
+import { useMemo } from 'react'
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { formatSignedMMSS } from '../domain/time'
 import { useLocale } from '../i18n/useLocale'
+import { computeRemainingRatio } from '../lib/stageProgress'
+import { CrewCueBox } from './CrewCueBox'
+import { HostCueIcon } from './CrewCueIcons'
 
 type Props = {
   current: ProgramItem
-  next: ProgramItem | null
   phase: RuntimePhase
   remainingSec: number
+  durationSec: number
 }
 
-export function CrewNowCard({ current, next, phase, remainingSec }: Props) {
+export function CrewNowCard({ current, phase, remainingSec, durationSec }: Props) {
   const { t } = useLocale()
   const isRunning = phase === 'running'
   const isPaused = phase === 'paused'
+
+  const isOvertime = remainingSec < 0
+  const timerLabel = isOvertime ? t('crew.overtime') : t('crew.remaining')
+  const progressStatus = isOvertime ? 'overtime' : isPaused ? 'paused' : 'remaining'
+
+  const fillPct = useMemo(() => {
+    const remainingRatio = computeRemainingRatio(remainingSec, durationSec)
+    const isOver = remainingSec < 0
+    return isOver ? 100 : Math.round((1 - remainingRatio) * 100)
+  }, [remainingSec, durationSec])
+
   const lights = current.roomLights?.trim()
   const media = current.mediaNote?.trim()
-  const nextLights = next?.roomLights?.trim()
-  const nextMedia = next?.mediaNote?.trim()
+  const hostName = current.leaderName?.trim() || '—'
 
   return (
-    <section className="crewNowSticky" aria-label={t('crew.nowPlaying')}>
-      <div className="crewNowHeader">
-        <span className="crewNowLabel">{t('control.current')}</span>
-        {isRunning ? (
-          <span className="scheduleBadge scheduleBadgeCurrent">{t('control.current')}</span>
-        ) : isPaused ? (
-          <span className="scheduleBadge scheduleBadgePaused">{t('control.paused')}</span>
-        ) : null}
-      </div>
-      <h2 className="crewNowTitle">{current.name}</h2>
-      {current.leaderName ? <p className="crewNowLeader muted">{current.leaderName}</p> : null}
-      <div className="crewNowTimer timeMono" aria-live="polite">
-        {formatSignedMMSS(remainingSec)}
-      </div>
-      {(lights || media) && (
-        <div className="crewNowCrewNotes">
-          {lights ? (
-            <div className="crewCrewNote">
-              <span className="crewCrewNoteLabel">{t('setupSegment.lights')}</span>
-              <span>{lights}</span>
-            </div>
-          ) : null}
-          {media ? (
-            <div className="crewCrewNote">
-              <span className="crewCrewNoteLabel">{t('setupSegment.media')}</span>
-              <span>{media}</span>
-            </div>
-          ) : null}
-        </div>
-      )}
-      {next ? (
-        <div className="crewNextTeaser">
-          <span className="crewNextLabel">{t('control.next')}</span>
-          <span className="crewNextName">{next.name}</span>
-          {(nextLights || nextMedia) && (
-            <span className="crewNextMeta muted">
-              {[nextLights, nextMedia].filter(Boolean).join(' · ')}
+    <section className="crewHero" aria-label={t('crew.nowPlaying')}>
+      <div className="crewHeroBody">
+        <div className="crewHeroBadges">
+          {isRunning ? (
+            <span className="scheduleBadge scheduleBadgeCurrent crewLiveBadge">
+              <span className="segmentLiveDot segmentLiveDotPulse" aria-hidden />
+              {t('control.scheduleLive')}
             </span>
-          )}
+          ) : isPaused ? (
+            <span className="scheduleBadge scheduleBadgePaused">{t('control.paused')}</span>
+          ) : null}
+          <p className="crewHeroHost" aria-label={t('crew.host')}>
+            <HostCueIcon className="crewHeroHostIcon" />
+            <span className="crewHeroHostName">{hostName}</span>
+          </p>
         </div>
-      ) : null}
+        <div className="crewHeroMain">
+          <div className="crewHeroInfo">
+            <h2 className="crewHeroTitle">{current.name}</h2>
+          </div>
+          <div className={`crewHeroTimerBlock${isOvertime ? ' crewHeroTimerBlock--overtime' : ''}`}>
+            <span className="crewHeroTimerLabel">{timerLabel}</span>
+            <div
+              className="crewHeroTimer timeMono"
+              aria-live="polite"
+              aria-label={isOvertime ? `${t('crew.overtime')}, ${formatSignedMMSS(remainingSec)}` : undefined}
+            >
+              {formatSignedMMSS(remainingSec)}
+            </div>
+          </div>
+        </div>
+        {(lights || media) && (
+          <div className="crewHeroCues">
+            {lights ? <CrewCueBox kind="lighting" text={lights} /> : null}
+            {media ? <CrewCueBox kind="media" text={media} /> : null}
+          </div>
+        )}
+      </div>
+      <div className={`crewHeroProgress crewHeroProgress--${progressStatus}`} aria-hidden>
+        <div className="crewHeroProgressTrack">
+          <div className="crewHeroProgressFill" style={{ width: `${fillPct}%` }} />
+        </div>
+      </div>
     </section>
   )
 }

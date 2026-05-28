@@ -15,6 +15,7 @@ import {
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { formatSecToMmSs, formatSignedMMSS } from '../domain/time'
 import { useLocale } from '../i18n/useLocale'
+import { LightingCueIcon, MediaCueIcon } from './CrewCueIcons'
 
 type BaseProps = {
   eventId: string
@@ -48,15 +49,21 @@ function CrewNotes({ item }: { item: ProgramItem }) {
   return (
     <div className="programScheduleCrewNotes">
       {lights ? (
-        <div className="programScheduleCrewNote">
-          <span className="programScheduleCrewNoteLabel">{t('setupSegment.lights')}</span>
-          <span>{lights}</span>
+        <div
+          className="programScheduleCrewNote programScheduleCrewNote--lighting"
+          aria-label={t('crew.lightingCue')}
+        >
+          <LightingCueIcon className="programScheduleCrewNoteIcon" />
+          <span className="programScheduleCrewNoteText">{lights}</span>
         </div>
       ) : null}
       {media ? (
-        <div className="programScheduleCrewNote">
-          <span className="programScheduleCrewNoteLabel">{t('setupSegment.media')}</span>
-          <span>{media}</span>
+        <div
+          className="programScheduleCrewNote programScheduleCrewNote--media"
+          aria-label={t('crew.mediaCue')}
+        >
+          <MediaCueIcon className="programScheduleCrewNoteIcon" />
+          <span className="programScheduleCrewNoteText">{media}</span>
         </div>
       ) : null}
     </div>

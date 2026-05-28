@@ -203,6 +203,17 @@ export const en = {
   },
   crew: {
     nowPlaying: 'Now playing',
+    remaining: 'Remaining',
+    overtime: 'Overtime',
+    segment: 'Segment {order}',
+    lead: 'Lead: {name}',
+    host: 'Program host',
+    upNext: 'Up next',
+    then: 'Then',
+    done: 'Done',
+    segmentContext: 'Program context',
+    lightingCue: 'Lighting cue',
+    mediaCue: 'Media cue',
   },
   viewer: {
     noProgram: 'No program items found',
@@ -237,7 +248,7 @@ export const en = {
     stageDesc:
       'Fullscreen display for the stage — shows timer, current segment, and next segment in kiosk mode (no menus).',
     crewDesc:
-      'Read-only program rundown for backstage — full schedule with room lights and media notes, synced in realtime. Optimized for phones (MC, lighting, media team).',
+      'Read-only dashboard for backstage — current segment with timer, upcoming cards with lighting and media cues, plus the full rundown below. Synced in realtime for MC, lighting, and media teams.',
   },
   import: {
     title: 'Import from Spreadsheet',

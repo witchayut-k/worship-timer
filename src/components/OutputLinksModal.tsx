@@ -45,9 +45,12 @@ function StageTabThumb() {
 function CrewTabThumb() {
   return (
     <div className="outputLinksTabThumb outputLinksTabThumbCrew" aria-hidden>
-      <span className="outputLinksTabThumbCrewRow outputLinksTabThumbCrewRowActive" />
-      <span className="outputLinksTabThumbCrewRow" />
-      <span className="outputLinksTabThumbCrewRow" />
+      <span className="outputLinksTabThumbCrewHero" />
+      <div className="outputLinksTabThumbCrewCards">
+        <span />
+        <span />
+        <span />
+      </div>
     </div>
   )
 }
@@ -55,15 +58,42 @@ function CrewTabThumb() {
 function CrewPreviewMock() {
   return (
     <div className="outputLinksCrewMock" aria-hidden>
-      <div className="outputLinksCrewMockNow">
-        <span className="outputLinksCrewMockLabel">Now</span>
-        <span className="outputLinksCrewMockTitle">Worship</span>
-        <span className="outputLinksCrewMockTimer">08:42</span>
+      <div className="outputLinksCrewMockDone">Done · Welcome</div>
+      <div className="outputLinksCrewMockHero">
+        <div className="outputLinksCrewMockHeroTop">
+          <span className="outputLinksCrewMockLive">LIVE</span>
+          <span className="outputLinksCrewMockHost">Sarah M.</span>
+        </div>
+        <div className="outputLinksCrewMockHeroMain">
+          <div className="outputLinksCrewMockHeroInfo">
+            <span className="outputLinksCrewMockTitle">Worship Set</span>
+            <span className="outputLinksCrewMockLeader">Lead: Sarah M.</span>
+          </div>
+          <div className="outputLinksCrewMockTimerBlock">
+            <span className="outputLinksCrewMockLabel">Remaining</span>
+            <span className="outputLinksCrewMockTimer">04:23</span>
+          </div>
+        </div>
+        <div className="outputLinksCrewMockProgress">
+          <span className="outputLinksCrewMockProgressFill" />
+        </div>
       </div>
-      <div className="outputLinksCrewMockList">
-        <span className="outputLinksCrewMockRow outputLinksCrewMockRowActive">1. Welcome</span>
-        <span className="outputLinksCrewMockRow">2. Worship</span>
-        <span className="outputLinksCrewMockRow">3. Message</span>
+      <div className="outputLinksCrewMockUpcoming">
+        <div className="outputLinksCrewMockCard">
+          <span className="outputLinksCrewMockCardLabel">Up next</span>
+          <span className="outputLinksCrewMockCardTitle">Prayer</span>
+          <div className="outputLinksCrewMockCardCues">
+            <span className="outputLinksCrewMockCue outputLinksCrewMockCueLighting">Dim house</span>
+            <span className="outputLinksCrewMockCue outputLinksCrewMockCueMedia">Hymn slide</span>
+          </div>
+        </div>
+        <div className="outputLinksCrewMockCard">
+          <span className="outputLinksCrewMockCardLabel">Then</span>
+          <span className="outputLinksCrewMockCardTitle">Sermon</span>
+          <div className="outputLinksCrewMockCardCues">
+            <span className="outputLinksCrewMockCue outputLinksCrewMockCueMedia">Intro vid</span>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -114,14 +144,14 @@ export function OutputLinksModal({
   onClose,
   eventId,
   stageTemplate,
-  remainingSec,
-  durationSec,
-  currentName,
-  currentLeader,
-  nextName,
-  nextLeader,
-  theme,
-  paused,
+  remainingSec: _remainingSec,
+  durationSec: _durationSec,
+  currentName: _currentName,
+  currentLeader: _currentLeader,
+  nextName: _nextName,
+  nextLeader: _nextLeader,
+  theme: _theme,
+  paused: _paused,
 }: Props) {
   const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<OutputLinkKind>('stage')

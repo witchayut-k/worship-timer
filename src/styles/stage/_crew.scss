@@ -2,27 +2,27 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--bg, #0f1115);
+  background: var(--bg, #0b111b);
   color: var(--text);
   padding:
     max(12px, env(safe-area-inset-top))
-    max(14px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-right))
     max(12px, env(safe-area-inset-bottom))
-    max(14px, env(safe-area-inset-left));
+    max(16px, env(safe-area-inset-left));
   margin: 0 auto;
   width: 100%;
-  max-width: 520px;
+  max-width: min(100%, 960px);
+  gap: 14px;
 }
 
 .crewHeader {
   flex-shrink: 0;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
 }
 
 .crewPageTitle {
   margin: 0;
-  font-size: 20px;
+  font-size: clamp(18px, 4vw, 22px);
   font-weight: 700;
   line-height: 1.25;
 }
@@ -32,16 +32,212 @@
   font-size: 13px;
 }
 
-.crewNowSticky {
+// Hero card — current segment
+.crewHero {
   flex-shrink: 0;
-  margin: 14px 0;
-  padding: 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(122, 162, 255, 0.35);
-  background: rgba(122, 162, 255, 0.1);
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid rgba(122, 162, 255, 0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(122, 162, 255, 0.12) 0%,
+    rgba(11, 17, 27, 0.95) 100%
+  );
+  overflow: hidden;
 }
 
-.crewNowHeader {
+.crewHeroBody {
+  padding: 16px 18px 18px;
+}
+
+.crewHeroBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 14px;
+}
+
+.crewLiveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+}
+
+.crewHeroHost {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.crewHeroHostIcon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.crewHeroHostName {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crewHeroMain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+
+.crewHeroInfo {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.crewHeroTitle {
+  margin: 0;
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.crewHeroCues {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.crewHeroTimerBlock {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.crewHeroTimerLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.crewHeroTimer {
+  font-size: clamp(40px, 12vw, 56px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #93c5fd;
+  line-height: 1;
+}
+
+.crewHeroTimerBlock--overtime .crewHeroTimerLabel,
+.crewHeroTimerBlock--overtime .crewHeroTimer {
+  color: #f87171;
+}
+
+.crewHeroProgress {
+  height: 4px;
+}
+
+.crewHeroProgressTrack {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.crewHeroProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(147, 197, 253, 0.7), #93c5fd);
+  box-shadow: 0 0 12px rgba(147, 197, 253, 0.45);
+  transition: width 0.4s linear, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crewHeroProgress--overtime .crewHeroProgressTrack {
+  background: rgba(248, 113, 113, 0.18);
+}
+
+.crewHeroProgress--overtime .crewHeroProgressFill {
+  background: linear-gradient(90deg, rgba(248, 113, 113, 0.75), #f87171);
+  box-shadow: 0 0 12px rgba(248, 113, 113, 0.45);
+}
+
+.crewHeroProgress--paused .crewHeroProgressTrack {
+  background: rgba(251, 191, 36, 0.14);
+}
+
+.crewHeroProgress--paused .crewHeroProgressFill {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.55), #fcd34d);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
+}
+
+// Done — compact bar above hero
+.crewDoneBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  min-width: 0;
+}
+
+.crewDoneBarLabel {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.crewDoneBarTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crewDoneBarDuration {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+// Upcoming segment cards
+.crewUpcomingGrid {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+
+.crewUpcomingCard {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.crewUpcomingCardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -49,90 +245,107 @@
   margin-bottom: 8px;
 }
 
-.crewNowLabel {
+.crewUpcomingCardLabel {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.crewNowTitle {
-  margin: 0;
-  font-size: 22px;
+.crewUpcomingCardDuration {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.crewUpcomingCardTitle {
+  margin: 0 0 10px;
+  font-size: 17px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
-.crewNowLeader {
-  margin: 6px 0 0;
-  font-size: 14px;
-}
-
-.crewNowTimer {
-  margin-top: 12px;
-  font-size: clamp(40px, 12vw, 56px);
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.crewNowCrewNotes {
-  margin-top: 14px;
-  display: flex;
-  flex-direction: column;
+.crewUpcomingCardCues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.crewCrewNote {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 15px;
-  line-height: 1.35;
+// Cue boxes
+.crewCueBox {
+  min-height: 44px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid;
 }
 
-.crewCrewNoteLabel {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+.crewCueBox--lighting {
+  grid-column: 1;
+  border-color: rgba(251, 146, 60, 0.45);
+  background: rgba(251, 146, 60, 0.08);
+}
+
+.crewCueBox--media {
+  grid-column: 2;
+  text-align: right;
+  border-color: rgba(74, 222, 128, 0.45);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.crewCueBoxHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.crewCueBoxIcon {
+  flex-shrink: 0;
+}
+
+.crewCueBox--lighting .crewCueBoxIcon,
+.crewCueBox--lighting .crewCueBoxLabel {
+  color: #fb923c;
+}
+
+.crewCueBox--media .crewCueBoxIcon,
+.crewCueBox--media .crewCueBoxLabel {
+  color: #4ade80;
+}
+
+.crewCueBox--lighting .crewCueBoxHeader {
+  justify-content: space-between;
+}
+
+.crewCueBox--media .crewCueBoxHeader {
+  justify-content: flex-end;
+}
+
+.crewCueBoxLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
 }
 
-.crewNextTeaser {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.crewCueBoxText {
+  margin: 0;
   font-size: 14px;
-}
-
-.crewNextLabel {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.crewNextName {
-  font-weight: 600;
-}
-
-.crewNextMeta {
-  font-size: 13px;
   line-height: 1.35;
+  color: var(--text);
 }
 
+// Full schedule section
 .crewScheduleWrap {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .programScheduleCrew {
@@ -142,8 +355,20 @@
   overflow: hidden;
 }
 
+.programScheduleCrew .programScheduleHeader {
+  padding-bottom: 10px;
+}
+
+.programScheduleCrew .programScheduleTitle {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .programScheduleListCrew {
   padding-right: 2px;
+  overflow-y: auto;
 }
 
 .programSchedulePickReadOnly {
@@ -152,26 +377,46 @@
 
 .programScheduleCrewNotes {
   margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 8px;
 }
 
 .programScheduleCrewNote {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  font-size: 13px;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+  font-size: 12px;
   line-height: 1.35;
 }
 
-.programScheduleCrewNoteLabel {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
+.programScheduleCrewNote--lighting {
+  grid-column: 1;
+}
+
+.programScheduleCrewNote--media {
+  grid-column: 2;
+}
+
+.programScheduleCrewNoteIcon {
   flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+}
+
+.programScheduleCrewNote--lighting .programScheduleCrewNoteIcon {
+  color: #fb923c;
+}
+
+.programScheduleCrewNote--media .programScheduleCrewNoteIcon {
+  color: #4ade80;
+}
+
+.programScheduleCrewNoteText {
+  min-width: 0;
+  color: var(--text);
 }
 
 .crewEmpty {
@@ -188,6 +433,19 @@
   font-size: 12px;
   line-height: 1.4;
   border-top: 1px solid var(--border);
+}
+
+@media (min-width: 640px) {
+  .crewUpcomingGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .crewHeroTimerBlock {
+    width: 100%;
+    text-align: left;
+  }
 }
 
 @media (max-width: 400px) {
