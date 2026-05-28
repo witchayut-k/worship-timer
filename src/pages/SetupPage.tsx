@@ -598,24 +598,6 @@ function SetupPageInner({
     leaveDestinationKey,
   } = useLeaveControl(productionMode)
 
-  if (isProgramLoading) {
-    return (
-      <ControlShell
-        activeNav="setup"
-        eventId={setupEventId}
-        eventTitle={title}
-        productionMode={productionMode}
-        sessionStatus={{
-          eventId: setupEventId,
-          productionMode,
-          eventTitle: title,
-        }}
-      >
-        <p className="muted">{t('setup.loadingProgram')}</p>
-      </ControlShell>
-    )
-  }
-
   return (
     <ControlShell
       activeNav="setup"

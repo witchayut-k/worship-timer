@@ -1,4 +1,5 @@
 import { Outlet, useMatch } from 'react-router-dom'
+import { EventSessionLoadingGate } from '../components/EventSessionLoadingGate'
 import { EventSessionProvider } from '../context/EventSessionProvider'
 import { EventWorkspaceRuntimeProvider } from '../context/EventWorkspaceRuntimeContext'
 
@@ -13,9 +14,11 @@ export function EventWorkspaceLayout() {
 
   return (
     <EventSessionProvider eventId={eventId}>
-      <EventWorkspaceRuntimeProvider eventId={eventId}>
-        <Outlet />
-      </EventWorkspaceRuntimeProvider>
+      <EventSessionLoadingGate>
+        <EventWorkspaceRuntimeProvider eventId={eventId}>
+          <Outlet />
+        </EventWorkspaceRuntimeProvider>
+      </EventSessionLoadingGate>
     </EventSessionProvider>
   )
 }

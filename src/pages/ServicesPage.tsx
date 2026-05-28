@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
+import { FullScreenLoading } from '../components/FullScreenLoading'
 import { SwitchControlModal } from '../components/LeaveControlModal'
 import {
   filterServiceEntries,
@@ -62,6 +63,8 @@ export function ServicesPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : t('services.loadFailed'))
       setEntries([])
+    } finally {
+      setLoading(false)
     }
   }, [cloudMode, t, uid])
 
@@ -95,6 +98,12 @@ export function ServicesPage() {
     setActiveControl(pendingSwitch.eventId, pendingSwitch.title)
     setPendingSwitch(null)
     nav(`/start/${pendingSwitch.eventId}`)
+  }
+
+  const showFullScreenLoading = !ready || (loading && entries.length === 0)
+
+  if (showFullScreenLoading) {
+    return <FullScreenLoading message={t('services.loadingList')} />
   }
 
   const authHeader = canUseAuth ? (
@@ -186,9 +195,7 @@ export function ServicesPage() {
 
       {error ? <p className="saveNotice saveNoticeError">{error}</p> : null}
 
-      {loading ? (
-        <p className="muted servicesLoading">{t('services.loadingList')}</p>
-      ) : groups.length === 0 ? (
+      {groups.length === 0 ? (
         <div className="servicesEmpty">
           <p className="muted">{t('services.empty')}</p>
           <Link className="btnPrimary" to="/setup">

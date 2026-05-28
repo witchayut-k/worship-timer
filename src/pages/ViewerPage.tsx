@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { FullScreenLoading } from '../components/FullScreenLoading'
 import { StageDisplay } from '../components/StageDisplay'
 import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
@@ -27,6 +28,8 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
     nowMs,
     isCloud,
     isLocal,
+    cloudReady,
+    syncReady,
     displayTitle,
     current,
     next,
@@ -47,6 +50,10 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [kiosk])
+
+  if (isCloud && cloudReady && !syncReady) {
+    return <FullScreenLoading message={t('common.loading')} />
+  }
 
   return (
     <div className={`viewer ${kiosk ? 'kiosk' : ''}`}>

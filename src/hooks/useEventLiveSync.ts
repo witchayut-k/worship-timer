@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ProgramItem, RuntimePhase, WorshipEvent } from '../domain/types'
 import { computeRemainingSec } from '../domain/time'
 import { hasFirebaseConfig } from '../lib/firebase'
@@ -6,6 +6,12 @@ import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
 import { subscribeLocalRuntime } from '../lib/localSync'
 import { watchEvent, watchProgramItems, watchRuntimeState } from '../lib/firestoreRepo'
 import { useLocale } from '../i18n/useLocale'
+
+function initialSyncReady(eventId: string): boolean {
+  if (isOfflineEventId(eventId)) return true
+  if (!hasFirebaseConfig()) return true
+  return false
+}
 
 export function useEventLiveSync(eventId: string) {
   const { t } = useLocale()
@@ -21,6 +27,7 @@ export function useEventLiveSync(eventId: string) {
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null)
   const [blackout, setBlackout] = useState(false)
   const [manualFlashUntilMs, setManualFlashUntilMs] = useState<number | null>(null)
+  const [syncReady, setSyncReady] = useState(() => initialSyncReady(eventId))
 
   const nowMs = useNowMs(200)
   const remainingSec = computeRemainingSec({
@@ -38,17 +45,34 @@ export function useEventLiveSync(eventId: string) {
   const current = items[currentIndex] ?? null
   const next = currentIndex + 1 < items.length ? items[currentIndex + 1] : null
 
+  const markSyncReady = useCallback(() => {
+    setSyncReady(true)
+  }, [])
+
+  useEffect(() => {
+    setSyncReady(initialSyncReady(eventId))
+    if (local) {
+      setTitle(local.event.title)
+      setEventMeta(local.event)
+      setItems(local.items)
+      setBaseRemainingSec(local.items[0]?.durationSec ?? 0)
+    }
+  }, [eventId, local])
+
   useEffect(() => {
     if (!cloudReady) return
     const unsubEvent = watchEvent(eventId, (ev) => {
+      markSyncReady()
       if (!ev) return
       setTitle(ev.title)
       setEventMeta(ev)
     })
     const unsubItems = watchProgramItems(eventId, (it) => {
+      markSyncReady()
       setItems(it)
     })
     const unsubState = watchRuntimeState(eventId, (s) => {
+      markSyncReady()
       if (!s) return
       setCurrentIndex(s.currentIndex)
       setPhase(s.phase)
@@ -62,7 +86,7 @@ export function useEventLiveSync(eventId: string) {
       unsubItems()
       unsubState()
     }
-  }, [eventId, cloudReady])
+  }, [eventId, cloudReady, markSyncReady])
 
   useEffect(() => {
     if (!isLocal) return
@@ -89,6 +113,7 @@ export function useEventLiveSync(eventId: string) {
     isCloud,
     cloudReady,
     isLocal,
+    syncReady,
     displayTitle,
     current,
     next,

@@ -1805,6 +1805,45 @@ body.setupSplitResizing {
   line-height: 1.4;
 }
 
+.fullScreenLoading {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(11, 16, 32, 0.94);
+}
+
+.fullScreenLoadingInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.fullScreenLoadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  animation: fullScreenLoadingSpin 0.75s linear infinite;
+}
+
+@keyframes fullScreenLoadingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fullScreenLoadingMessage {
+  margin: 0;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .modalOverlay {
   position: fixed;
   inset: 0;

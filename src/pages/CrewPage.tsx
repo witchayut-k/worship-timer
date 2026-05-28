@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { CrewNowCard } from '../components/CrewNowCard'
+import { FullScreenLoading } from '../components/FullScreenLoading'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
 import { useEventLiveSync } from '../hooks/useEventLiveSync'
 import { useLocale } from '../i18n/useLocale'
@@ -20,10 +21,16 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     remainingSec,
     isCloud,
     isLocal,
+    cloudReady,
+    syncReady,
     displayTitle,
     current,
     next,
   } = useEventLiveSync(eventId)
+
+  if (isCloud && cloudReady && !syncReady) {
+    return <FullScreenLoading message={t('common.loading')} />
+  }
 
   return (
     <div className="crewView">
