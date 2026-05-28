@@ -134,14 +134,6 @@ export function OutputLinksModal({
   onClose,
   eventId,
   stageTemplate,
-  remainingSec,
-  durationSec,
-  currentName,
-  currentLeader,
-  nextName,
-  nextLeader,
-  theme,
-  paused = false,
 }: Props) {
   const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<OutputLinkKind>('stage')

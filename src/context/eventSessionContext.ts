@@ -9,6 +9,8 @@ export type EventSessionContextValue = {
   status: EventSessionStatus
   event: WorshipEvent | null
   programItems: ProgramItem[]
+  programItemsHydrated: boolean
+  setupDraft: SetupDraftBundle | null
   error: string | null
   hasSetupDraft: () => boolean
   ensureSetupDraft: () => SetupDraftBundle

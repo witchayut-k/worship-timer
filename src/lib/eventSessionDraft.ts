@@ -73,3 +73,46 @@ export function isSetupDraftDirty(
 export function shouldRefreshDraftFromServer(isDirty: boolean): boolean {
   return !isDirty
 }
+
+export function draftItemsToProgramItems(items: DraftItem[]): ProgramItem[] {
+  return items.map((it) => ({
+    order: it.order,
+    name: it.name,
+    leaderName: it.leaderName,
+    durationSec: it.durationSec,
+    roomLights: it.roomLights ?? '',
+    mediaNote: it.mediaNote ?? '',
+  }))
+}
+
+export function programItemsContentSnapshot(items: ProgramItem[]): string {
+  return JSON.stringify(
+    [...items]
+      .sort((a, b) => a.order - b.order)
+      .map(({ order, name, leaderName, durationSec, roomLights, mediaNote }) => ({
+        order,
+        name,
+        leaderName,
+        durationSec,
+        roomLights: roomLights ?? '',
+        mediaNote: mediaNote ?? '',
+      })),
+  )
+}
+
+export function draftProgramContentSnapshot(draft: SetupDraftBundle): string {
+  return programItemsContentSnapshot(draftItemsToProgramItems(draft.items))
+}
+
+export function shouldRefreshDraftForProgramItems(
+  draft: SetupDraftBundle | null,
+  programItems: ProgramItem[],
+  lastSavedSnapshot: string | null,
+): boolean {
+  if (!draft) return true
+  const dirty = isSetupDraftDirty(draft, lastSavedSnapshot)
+  const contentMismatch =
+    programItemsContentSnapshot(programItems) !== draftProgramContentSnapshot(draft)
+  if (contentMismatch && !dirty) return true
+  return shouldRefreshDraftFromServer(dirty)
+}
