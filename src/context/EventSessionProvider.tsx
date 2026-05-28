@@ -198,9 +198,6 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
 
       const unsubItems = watchProgramItems(eventId, (items) => {
         if (cancelled) return
-        // #region agent log
-        fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'EventSessionProvider.tsx:watchProgramItems',message:'program items from server',data:{eventId,count:items.length},timestamp:Date.now(),hypothesisId:'C,D'})}).catch(()=>{});
-        // #endregion
         setProgramItems(items)
         setProgramItemsHydrated(true)
         if (sawEvent && eventRef.current) {
