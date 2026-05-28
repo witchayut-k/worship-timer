@@ -291,9 +291,6 @@ function SetupPageInner({
       },
     ])
     setNewlyAddedId(id)
-    // #region agent log
-    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:onAdd',message:'segment added',data:{newCount:items.length+1,routeEventId,lastEventId,productionMode},timestamp:Date.now(),hypothesisId:'A,B'})}).catch(()=>{});
-    // #endregion
   }
 
   const onResetClick = () => {
@@ -434,9 +431,6 @@ function SetupPageInner({
           )
         }
         const notice = cloudEventId ? t('setup.savedSynced') : t('setup.saved')
-        // #region agent log
-        fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:persistSetup',message:'persist ok',data:{itemCount:programItems.length,localId,cloudEventId,routeEventId,lastEventId},timestamp:Date.now(),hypothesisId:'B,C'})}).catch(()=>{});
-        // #endregion
         return { localId, cloudEventId, notice, isError: false }
       } catch (e) {
         const msg = e instanceof Error ? e.message : t('setup.saveFailed')
@@ -587,16 +581,10 @@ function SetupPageInner({
   }
 
   const displayTitle = title.trim() || t('event.untitled')
-  const controlEventId = productionMode ? setupEventId : null
+  // const controlEventId = productionMode ? setupEventId : null
 
   const openControlRoom = useCallback(async () => {
     if (!setupEventId) return
-    // #region agent log
-    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-1',hypothesisId:'H2',location:'SetupPage.tsx:openControlRoom:beforeFlush',message:'open control room before flush',data:{pathname:location.pathname,setupEventId,saveStatus,persistBeforeNav,itemsCount:items.length},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    // #region agent log
-    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:openControlRoom',message:'control nav flush',data:{setupEventId,saveStatus,itemsCount:items.length},timestamp:Date.now(),runId:'post-fix-2'})}).catch(()=>{});
-    // #endregion
     setNavSaving(true)
     cancelScheduled()
     try {
@@ -604,11 +592,8 @@ function SetupPageInner({
     } finally {
       setNavSaving(false)
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-1',hypothesisId:'H2',location:'SetupPage.tsx:openControlRoom:beforeNavigate',message:'open control room before navigate',data:{pathname:location.pathname,setupEventId,saveStatus,navSaving:false},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     nav(`/start/${setupEventId}`)
-  }, [setupEventId, saveStatus, items.length, cancelScheduled, flush, nav])
+  }, [setupEventId, cancelScheduled, flush, nav])
 
   const controlShellNavProps =
     setupEventId && persistBeforeNav
@@ -617,23 +602,6 @@ function SetupPageInner({
           controlNavigateDisabled: navSaving,
         }
       : {}
-
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-1',hypothesisId:'H4',location:'SetupPage.tsx:routeLifecycle',message:'setup page lifecycle tick',data:{pathname:location.pathname,routeEventId,setupEventId,persistBeforeNav,hasControlHandler:Boolean(controlShellNavProps.onControlNavigate)},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    // #region agent log
-    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'SetupPage.tsx:controlNavState',message:'setup control nav state',data:{setupEventId,persistBeforeNav,saveStatus,navSaving,hasControlHandler:Boolean(controlShellNavProps.onControlNavigate)},timestamp:Date.now(),hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
-  }, [location.pathname, routeEventId, setupEventId, persistBeforeNav, saveStatus, navSaving, controlShellNavProps.onControlNavigate])
-
-  useEffect(() => {
-    return () => {
-      // #region agent log
-      fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-2',hypothesisId:'H8',location:'SetupPage.tsx:unmount',message:'setup page unmounted',data:{pathname:location.pathname,routeEventId,setupEventId},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    }
-  }, [location.pathname, routeEventId, setupEventId])
 
   const {
     leaveModalOpen,
