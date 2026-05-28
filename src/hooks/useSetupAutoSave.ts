@@ -89,9 +89,6 @@ export function useSetupAutoSave({
     runPersistRef.current = async (touchRuntime: boolean) => {
       savingRef.current = true
       setSaveStatus('saving')
-      // #region agent log
-      fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'useSetupAutoSave.ts:runPersist',message:'persist start',data:{touchRuntime},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       try {
         const result = await persistSetupRef.current({ touchRuntime })
         lastSavedSnapshotRef.current = snapshotRef.current
@@ -163,9 +160,6 @@ export function useSetupAutoSave({
     if (!enabled || !hydrated) return
     if (snapshot === lastSavedSnapshotRef.current) return
 
-    // #region agent log
-    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'useSetupAutoSave.ts:scheduleSave',message:'save scheduled',data:{enabled,hydrated},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     setSaveStatus('pending')
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null
