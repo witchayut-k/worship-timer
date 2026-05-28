@@ -4,7 +4,6 @@ import { FullScreenLoading } from '../components/FullScreenLoading'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
 import { useEventLiveSync } from '../hooks/useEventLiveSync'
 import { useLocale } from '../i18n/useLocale'
-import { hasFirebaseConfig } from '../lib/firebase'
 
 export function CrewPage() {
   const { eventId = '' } = useParams()
@@ -20,7 +19,6 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     phase,
     remainingSec,
     isCloud,
-    isLocal,
     cloudReady,
     syncReady,
     displayTitle,
@@ -67,11 +65,6 @@ function CrewPageInner({ eventId }: { eventId: string }) {
       ) : (
         <div className="crewEmpty stageEmpty muted">{t('viewer.noProgram')}</div>
       )}
-
-      <footer className="crewFooter muted">
-        {isLocal ? t('viewer.localSyncHint') : t('viewer.cloudSyncHint')}
-        {isCloud && !hasFirebaseConfig() ? ` · ${t('viewer.firebaseRequired')}` : ''}
-      </footer>
     </div>
   )
 }

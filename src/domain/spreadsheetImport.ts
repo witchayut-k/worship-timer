@@ -31,7 +31,17 @@ type ColumnMap = {
   mediaNote?: number
 }
 
+/** Item | Leader | Time | Lights | Media (matches import template). */
 const DEFAULT_COLUMNS: ColumnMap = {
+  name: 0,
+  leaderName: 1,
+  minutes: 2,
+  roomLights: 3,
+  mediaNote: 4,
+}
+
+/** Start | End | Duration | Lights | Item | Leader | Media (optional leading column). */
+const LEGACY_COLUMNS: ColumnMap = {
   start: 1,
   end: 2,
   minutes: 3,
@@ -39,6 +49,17 @@ const DEFAULT_COLUMNS: ColumnMap = {
   name: 5,
   leaderName: 6,
   mediaNote: 7,
+}
+
+function isDurationHeader(h: string): boolean {
+  return (
+    h.includes('minute') ||
+    h.includes('duration') ||
+    h.includes('นาที') ||
+    h === 'time' ||
+    h.includes('เวลา') ||
+    (h.includes('time') && !h.includes('start') && !h.includes('end'))
+  )
 }
 
 const DEFAULT_DURATION_SEC = 300
@@ -64,12 +85,14 @@ function isHeaderRow(cells: string[]): boolean {
     joined.includes('start') ||
     joined.includes('duration') ||
     joined.includes('minutes') ||
+    joined.includes('time') ||
     joined.includes('lights') ||
     joined.includes('media') ||
     joined.includes('ที่') ||
     joined.includes('เริ่ม') ||
     joined.includes('รายการ') ||
-    joined.includes('ผู้รับพระพร')
+    joined.includes('ผู้รับพระพร') ||
+    joined.includes('เวลา')
   )
 }
 
@@ -85,7 +108,7 @@ function mapColumnsFromHeader(cells: string[]): ColumnMap {
       map.start = index
     } else if (h.includes('end') || h.includes('finish') || h.includes('สิ้นสุด') || h.includes('สิ้น')) {
       map.end = index
-    } else if (h.includes('minute') || h.includes('duration') || h.includes('นาที')) {
+    } else if (isDurationHeader(h)) {
       map.minutes = index
     } else if (h.includes('light') || h.includes('ไฟ')) {
       map.roomLights = index
@@ -185,6 +208,8 @@ export function parseSpreadsheetTsv(text: string): ParseResult {
       warnings.push({ key: 'missingNameColumn' })
       cols = { ...DEFAULT_COLUMNS, ...cols }
     }
+  } else if (rawRows[0].length >= 7) {
+    cols = LEGACY_COLUMNS
   }
 
   const rows: ParsedProgramRow[] = []
