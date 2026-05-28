@@ -26,6 +26,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     displayTitle,
     current,
     next,
+    serviceEnded,
   } = useEventLiveSync(eventId)
 
   const pageSubtitle = useMemo(() => {
@@ -50,11 +51,17 @@ function CrewPageInner({ eventId }: { eventId: string }) {
 
       {current ? (
         <>
+          {serviceEnded ? (
+            <div className="crewServiceEndedBanner" role="status">
+              {t('crew.serviceEnded')}
+            </div>
+          ) : null}
           <CrewNowCard
             current={current}
             next={next}
             phase={phase}
             remainingSec={remainingSec}
+            serviceEnded={serviceEnded}
           />
           <div className="crewScheduleWrap">
             <ProgramSchedulePanel

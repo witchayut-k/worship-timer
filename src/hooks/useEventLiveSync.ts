@@ -27,6 +27,7 @@ export function useEventLiveSync(eventId: string) {
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null)
   const [blackout, setBlackout] = useState(false)
   const [manualFlashUntilMs, setManualFlashUntilMs] = useState<number | null>(null)
+  const [serviceEnded, setServiceEnded] = useState(false)
   const [syncReady, setSyncReady] = useState(() => initialSyncReady(eventId))
 
   const nowMs = useNowMs(200)
@@ -80,6 +81,7 @@ export function useEventLiveSync(eventId: string) {
       setStartedAtMs(s.startedAtMs)
       setBlackout(s.blackout ?? false)
       setManualFlashUntilMs(s.manualFlashUntilMs ?? null)
+      setServiceEnded(s.serviceEnded ?? false)
     })
     return () => {
       unsubEvent()
@@ -97,6 +99,7 @@ export function useEventLiveSync(eventId: string) {
       setStartedAtMs(s.startedAtMs)
       setBlackout(s.blackout ?? false)
       setManualFlashUntilMs(s.manualFlashUntilMs ?? null)
+      setServiceEnded(s.serviceEnded ?? false)
     })
   }, [eventId, isLocal])
 
@@ -109,6 +112,7 @@ export function useEventLiveSync(eventId: string) {
     remainingSec,
     blackout,
     manualFlashUntilMs,
+    serviceEnded,
     nowMs,
     isCloud,
     cloudReady,

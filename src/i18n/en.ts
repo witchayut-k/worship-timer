@@ -194,12 +194,16 @@ export const en = {
     transport: 'Transport',
     autoStartOnNext: 'Auto-start on navigate',
     autoStartOnNextHint: 'Starts the timer when you use Prev, Next, or pick a segment in the schedule.',
+    endService: 'End Service',
+    endServiceEnded: 'Service ended',
   },
   crew: {
     nowPlaying: 'Now playing',
+    serviceEnded: 'Service ended',
   },
   viewer: {
     noProgram: 'No program items found',
+    serviceEnded: 'Service ended',
     localSyncHint: 'Local demo: open Controller in another tab for realtime sync',
     cloudSyncHint: 'Realtime via Firebase — open Controller to control',
     firebaseRequired: 'Firebase config required for cloud',
@@ -214,6 +218,9 @@ export const en = {
     goToServices: 'Library',
     goToSetup: 'Program Setup',
     endControl: 'End Control',
+    endServiceTitle: 'End service?',
+    endServiceBody:
+      'Pauses the timer, blacks out the stage display, and shows “service ended” on crew devices. Resume with Start or by changing segment.',
     switchTitle: 'Switch Control Room?',
     switchBody: 'Switch from «{from}» to «{to}»?',
     switchConfirm: 'Switch Control Room',
