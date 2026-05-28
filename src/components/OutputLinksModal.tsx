@@ -4,6 +4,7 @@ import type { StageTheme } from '../lib/displayTheme'
 import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
 import { getStagePreviewImageSrc } from '../lib/stagePreviewImages'
+import { MonitorIcon } from './SetupIcons'
 
 type Props = {
   open: boolean
@@ -18,27 +19,6 @@ type Props = {
   nextLeader: string | null
   theme: StageTheme
   paused?: boolean
-}
-
-function MonitorIcon() {
-  return (
-    <svg
-      className="controlTopActionIcon"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <rect x="2" y="3" width="20" height="14" rx="2" />
-      <path d="M8 21h8" />
-      <path d="M12 17v4" />
-    </svg>
-  )
 }
 
 function ControllerTabThumb() {
@@ -311,5 +291,3 @@ export function OutputLinksModal({
     </div>
   )
 }
-
-export { MonitorIcon }

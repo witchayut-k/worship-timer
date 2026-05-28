@@ -16,7 +16,7 @@ export const th: Messages = {
     controlRoom: 'ห้องควบคุม',
     controlRoomDisabled: 'เพิ่มอย่างน้อย 1 ช่วงก่อน',
     programSetup: 'ตั้งค่าโปรแกรม',
-    stageDisplay: 'จอ Stage',
+    stageDisplay: 'จอเวที',
     stageDisabled: 'เพิ่มอย่างน้อย 1 ช่วงก่อน',
     goToServices: 'ไปไลบรารี…',
     services: 'ไลบรารี',
@@ -147,7 +147,7 @@ export const th: Messages = {
     importSpreadsheet: 'นำเข้าจากตาราง',
     autoAdvance: 'เลื่อนอัตโนมัติ',
     comingSoon: 'เร็วๆ นี้',
-    stageDisplay: 'จอ Stage',
+    stageDisplay: 'จอเวที',
     templateCircle: 'วงกลม',
     templateCircleDesc: 'แหวนความคืบหน้า ตัวจับเวลาตรงกลาง',
     templateMinimal: 'มินิมอล',
@@ -162,7 +162,7 @@ export const th: Messages = {
   },
   control: {
     pageTitle: 'ห้องควบคุม',
-    desc: 'ควบคุมตัวจับเวลาและจอ Stage สำหรับ «{title}»',
+    desc: 'ควบคุมตัวจับเวลาและจอเวที สำหรับ «{title}»',
     firebaseRequired: 'Cloud mode ต้องตั้งค่า Firebase',
     firebaseHint:
       'สร้างไฟล์ {envFile} จาก {envExample} แล้วเติมค่า Firebase config จากนั้นรีเฟรชหน้า หรือใช้',
@@ -180,8 +180,8 @@ export const th: Messages = {
     start: 'เริ่ม',
     pause: 'หยุด',
     reset: 'รีเซ็ต',
-    stageControl: 'ควบคุมจอ Stage',
-    stageLabel: 'จอ Stage',
+    stageControl: 'ควบคุมจอเวที',
+    stageLabel: 'จอเวที',
     blackout: 'ปิดหน้าจอ',
     flash: 'กระพริบ',
     programSchedule: 'ตารางโปรแกรม',
@@ -190,9 +190,9 @@ export const th: Messages = {
     editProgram: 'แก้ไขโปรแกรม',
     active: 'Active',
     paused: 'Paused',
-    stagePreview: 'Preview จอ Stage',
+    stagePreview: 'Preview จอเวที',
     emptyStageTitle: 'ยังไม่มีรายการโปรแกรม',
-    emptyStageDesc: 'เพิ่มอย่างน้อย 1 ช่วงใน Program Setup ก่อนเริ่มควบคุมจอ Stage',
+    emptyStageDesc: 'เพิ่มอย่างน้อย 1 ช่วงใน Program Setup ก่อนเริ่มควบคุมจอเวที',
     emptyStageCta: 'ไปที่ Program Setup',
     openFullscreen: 'เปิดจอเต็ม',
     openStage: 'เปิดจอเวที',
@@ -210,13 +210,14 @@ export const th: Messages = {
     cloudSyncHint: 'Realtime ผ่าน Firebase — เปิด Controller เพื่อควบคุม',
     firebaseRequired: 'ต้องตั้งค่า Firebase สำหรับ cloud',
     kioskFullscreen: 'กด F เพื่อ fullscreen',
+    backToControl: 'ห้องควบคุม',
   },
   modal: {
     leaveTitle: 'ออกจากหน้าควบคุม?',
     leaveBody:
-      'กำลังควบคุม «{title}» — Timer และจอ Stage ยังทำงานอยู่ คุณสามารถกลับมาควบคุมได้จากไลบรารี',
+      'กำลังควบคุม «{title}» — Timer และจอเวที ยังทำงานอยู่ คุณสามารถกลับมาควบคุมได้จากไลบรารี',
     leaveBodyFree:
-      'กำลังควบคุม «{title}» — Timer และจอ Stage ยังทำงานอยู่ คุณกลับไปตั้งค่าโปรแกรมได้ตลอด',
+      'กำลังควบคุม «{title}» — Timer และจอเวที ยังทำงานอยู่ คุณกลับไปตั้งค่าโปรแกรมได้ตลอด',
     goToServices: 'ไลบรารี',
     goToSetup: 'ตั้งค่าโปรแกรม',
     endControl: 'จบการควบคุม',
@@ -232,7 +233,7 @@ export const th: Messages = {
     stagePreview: 'Stage Preview',
     crewPreview: 'ตัวอย่างทีมงาน',
     controllerDesc:
-      'ห้องควบคุม timer และโปรแกรม — ใช้สำหรับผู้ควบคุมที่ต้อง Start/Pause, เปลี่ยน segment และจัดการจอ Stage',
+      'ห้องควบคุม timer และโปรแกรม — ใช้สำหรับผู้ควบคุมที่ต้อง Start/Pause, เปลี่ยน segment และจัดการจอเวที',
     stageDesc:
       'จอแสดงผลเต็มหน้าจอสำหรับคนดูบนเวที — แสดง timer, segment ปัจจุบัน และ segment ถัดไป ในโหมด kiosk (ไม่มีเมนู)',
     crewDesc:

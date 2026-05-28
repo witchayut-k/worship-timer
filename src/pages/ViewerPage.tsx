@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { FullScreenLoading } from '../components/FullScreenLoading'
+import { SlidersIcon } from '../components/SetupIcons'
 import { StageDisplay } from '../components/StageDisplay'
 import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
@@ -73,6 +74,17 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
             </button>
           </div>
         </div>
+      ) : null}
+
+      {kiosk ? (
+        <Link
+          className="viewerKioskBack"
+          to={`/start/${eventId}`}
+          title={t('viewer.backToControl')}
+        >
+          <SlidersIcon />
+          <span>{t('viewer.backToControl')}</span>
+        </Link>
       ) : null}
 
       <div className="viewerMain">

@@ -22,6 +22,7 @@ import {
   type WorshipEvent,
 } from '../domain/types'
 import { formatSecToHhMmSs } from '../domain/time'
+import { getOutputLink } from '../lib/outputLinks'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
@@ -604,11 +605,25 @@ function SetupPageInner({
     nav(`/start/${setupEventId}`)
   }, [setupEventId, cancelScheduled, flush, nav])
 
+  const openStageView = useCallback(async () => {
+    if (!setupEventId) return
+    setNavSaving(true)
+    cancelScheduled()
+    try {
+      await flush(false)
+    } finally {
+      setNavSaving(false)
+    }
+    nav(getOutputLink(setupEventId, 'stage').path)
+  }, [setupEventId, cancelScheduled, flush, nav])
+
   const controlShellNavProps =
     setupEventId && persistBeforeNav
       ? {
           onControlNavigate: openControlRoom,
           controlNavigateDisabled: navSaving,
+          onStageNavigate: openStageView,
+          stageNavigateDisabled: navSaving,
         }
       : {}
 

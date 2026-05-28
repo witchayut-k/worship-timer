@@ -210,6 +210,7 @@ export const en = {
     cloudSyncHint: 'Realtime via Firebase — open Controller to control',
     firebaseRequired: 'Firebase config required for cloud',
     kioskFullscreen: 'Press F for fullscreen',
+    backToControl: 'Control Room',
   },
   modal: {
     leaveTitle: 'Leave Control Room?',

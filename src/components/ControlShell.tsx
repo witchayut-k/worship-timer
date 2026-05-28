@@ -8,10 +8,11 @@ import { useWorkspaceSessionTitle } from '../hooks/useWorkspaceSessionTitle'
 import { AppHeaderClock } from './AppHeaderClock'
 import { LanguageToggle } from './LanguageToggle'
 import { SessionStatusBadge } from './SessionStatusBadge'
-import { BookIcon, ListIcon, SlidersIcon } from './SetupIcons'
+import { getOutputLink } from '../lib/outputLinks'
+import { BookIcon, ListIcon, MonitorIcon, SlidersIcon } from './SetupIcons'
 import { useLocale } from '../i18n/useLocale'
 
-export type ControlNav = 'setup' | 'control' | 'services'
+export type ControlNav = 'setup' | 'control' | 'services' | 'stage'
 
 export type SessionStatusProps = {
   eventId: string | null
@@ -28,6 +29,8 @@ type ControlShellProps = {
   onLeaveToLibrary?: () => void
   onControlNavigate?: () => void | Promise<void>
   controlNavigateDisabled?: boolean
+  onStageNavigate?: () => void | Promise<void>
+  stageNavigateDisabled?: boolean
   centerSessionStatusBadge?: boolean
   sessionBarCenterContent?: ReactNode
   sessionBarRightContent?: ReactNode
@@ -68,6 +71,8 @@ export function ControlShell({
   onLeaveToLibrary,
   onControlNavigate,
   controlNavigateDisabled = false,
+  onStageNavigate,
+  stageNavigateDisabled = false,
   centerSessionStatusBadge = false,
   sessionBarCenterContent,
   sessionBarRightContent,
@@ -106,6 +111,7 @@ export function ControlShell({
 
   const setupTo = eventId ? `/setup/${eventId}` : isFree ? homePath : '/setup'
   const controlTo = eventId ? `/start/${eventId}` : null
+  const stageTo = eventId ? getOutputLink(eventId, 'stage').path : null
 
   const libraryNav = isPaid ? (
     productionMode ? (
@@ -167,6 +173,35 @@ export function ControlShell({
     </NavTab>
   )
 
+  const stageNav = stageTo ? (
+    onStageNavigate ? (
+      <button
+        className={`appTopNavItem appTopNavItemLink appTopNavItemButton${activeNav === 'stage' ? ' appTopNavItemActive' : ''}`}
+        type="button"
+        disabled={stageNavigateDisabled}
+        onClick={() => {
+          void onStageNavigate()
+        }}
+      >
+        <MonitorIcon />
+        <span>{t('nav.stageDisplay')}</span>
+      </button>
+    ) : (
+      <Link
+        className={`appTopNavItem appTopNavItemLink${activeNav === 'stage' ? ' appTopNavItemActive' : ''}`}
+        to={stageTo}
+      >
+        <MonitorIcon />
+        <span>{t('nav.stageDisplay')}</span>
+      </Link>
+    )
+  ) : (
+    <NavTab active={false} disabled title={t('nav.stageDisabled')}>
+      <MonitorIcon />
+      <span>{t('nav.stageDisplay')}</span>
+    </NavTab>
+  )
+
   return (
     <div className="appShell">
       <header className="appHeader">
@@ -185,6 +220,7 @@ export function ControlShell({
             <>
               {controlNav}
               {setupNav}
+              {stageNav}
               <span className="appTopNavDivider" role="separator" />
               {libraryNav}
             </>
@@ -192,6 +228,7 @@ export function ControlShell({
             <>
               {setupNav}
               {controlNav}
+              {stageNav}
             </>
           )}
         </nav>
