@@ -12,7 +12,7 @@ import { hasFirebaseConfig } from '../lib/firebase'
 import {
   draftBundleFromEventProgram,
   isSetupDraftDirty as computeDraftDirty,
-  shouldRefreshDraftFromServer,
+  shouldRefreshDraftForProgramItems,
   snapshotFromDraftBundle,
   type SetupDraftBundle,
 } from '../lib/eventSessionDraft'
@@ -37,6 +37,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
   const [status, setStatus] = useState<EventSessionStatus>('loading')
   const [event, setEvent] = useState<WorshipEvent | null>(null)
   const [programItems, setProgramItems] = useState<ProgramItem[]>([])
+  const [programItemsHydrated, setProgramItemsHydrated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [setupDraft, setSetupDraft] = useState<SetupDraftBundle | null>(null)
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState<string | null>(null)
@@ -67,8 +68,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
       if (!nextEvent) return
       const draft = setupDraftRef.current
       const saved = lastSavedSnapshotRef.current
-      const dirty = draft !== null && computeDraftDirty(draft, saved)
-      if (!shouldRefreshDraftFromServer(dirty)) return
+      if (!shouldRefreshDraftForProgramItems(draft, nextItems, saved)) return
       const nextDraft = draftBundleFromEventProgram({
         event: nextEvent,
         programItems: nextItems,
@@ -91,6 +91,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
     setError(null)
     setEvent(null)
     setProgramItems([])
+    setProgramItemsHydrated(false)
     setSetupDraft(null)
     setLastSavedSnapshot(null)
 
@@ -112,6 +113,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
       setProgramItems(entry.items)
       setSetupDraft(nextDraft)
       setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+      setProgramItemsHydrated(true)
       setStatus('ready')
       return
     }
@@ -134,6 +136,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
       setProgramItems(payload.items)
       setSetupDraft(nextDraft)
       setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+      setProgramItemsHydrated(true)
       setStatus('ready')
       return
     }
@@ -195,7 +198,11 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
 
       const unsubItems = watchProgramItems(eventId, (items) => {
         if (cancelled) return
+        // #region agent log
+        fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'EventSessionProvider.tsx:watchProgramItems',message:'program items from server',data:{eventId,count:items.length},timestamp:Date.now(),hypothesisId:'C,D'})}).catch(()=>{});
+        // #endregion
         setProgramItems(items)
+        setProgramItemsHydrated(true)
         if (sawEvent && eventRef.current) {
           refreshDraftFromServer(eventRef.current, items)
         }
@@ -266,6 +273,8 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
       status,
       event,
       programItems,
+      programItemsHydrated,
+      setupDraft,
       error,
       hasSetupDraft,
       ensureSetupDraft,
@@ -279,6 +288,8 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
       status,
       event,
       programItems,
+      programItemsHydrated,
+      setupDraft,
       error,
       hasSetupDraft,
       ensureSetupDraft,

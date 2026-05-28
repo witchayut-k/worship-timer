@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useOptionalEventWorkspaceRuntime } from '../context/EventWorkspaceRuntimeContext'
 import { usePlan } from '../context/PlanProvider'
 import { useResizableAside } from '../hooks/useResizableAside'
@@ -70,6 +70,7 @@ export function ControlShell({
   children,
 }: ControlShellProps) {
   const { t } = useLocale()
+  const location = useLocation()
   const resizable = useResizableAside()
   const { isPaid, isFree, homePath } = usePlan()
 
@@ -134,6 +135,11 @@ export function ControlShell({
       <Link
         className={`appTopNavItem appTopNavItemLink${activeNav === 'control' ? ' appTopNavItemActive' : ''}`}
         to={controlTo}
+        onClick={(e) => {
+          // #region agent log
+          fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-3',hypothesisId:'H9',location:'ControlShell.tsx:controlLinkClick:event',message:'control link click event payload',data:{pathname:location.pathname,controlTo,defaultPrevented:e.defaultPrevented,button:e.button,metaKey:e.metaKey,ctrlKey:e.ctrlKey,shiftKey:e.shiftKey,altKey:e.altKey},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
+        }}
       >
         <SlidersIcon />
         <span>{t('nav.controlRoom')}</span>
