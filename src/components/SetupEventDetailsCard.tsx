@@ -22,10 +22,10 @@ export function SetupEventDetailsCard({
   const { t } = useLocale()
 
   return (
-    <section className="card setupEventCard">
-      <div className="cardHeader">
-        <h2 className="cardTitle">{t('setup.eventDetails')}</h2>
-      </div>
+    <section className="card setupEventCard setupAsideSection">
+      {/* <div className="cardHeader">
+        <h2 className="cardTitle setupAsideSectionTitle">{t('setup.eventDetails')}</h2>
+      </div> */}
       <div className="setupEventGrid">
         <label className="field setupEventTitleField">
           <div className="label">{t('setup.eventTitle')}</div>
@@ -42,9 +42,10 @@ export function SetupEventDetailsCard({
           <input type="date" value={date} onChange={(e) => onDateChange(e.target.value)} />
         </label>
         <label className="field setupEventTimeField">
-          <div className="label labelWithTag">
+          {/* <div className="label labelWithTag"> */}
+          <div className="label">
             <span>{t('setup.plannedStart')}</span>
-            <span className="labelTag">{t('common.optional')}</span>
+            {/* <span className="labelTag">{t('common.optional')}</span> */}
           </div>
           <input
             type="time"

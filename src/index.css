@@ -1,6 +1,6 @@
 :root {
   --bg: #0b1020;
-  --card: rgba(255, 255, 255, 0.06);
+  --card: rgba(255, 255, 255, 0.04);
   --border: rgba(255, 255, 255, 0.12);
   --text: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.66);
@@ -21,11 +21,15 @@
   --font-timer: var(--font-ui);
 
   /* Global typography scale */
-  --text-xs: 11px;
-  --text-sm: 12px;
+  --text-xs: 12px;
+  --text-sm: 13px;
   --text-base: 14px;
   --text-md: 15px;
   --text-lg: 17px;
+  --text-2xs: 11px;
+  --text-2xl: 24px;
+  --text-title: 16px;
+  --text-stat: 18px;
 
   font-family: var(--font-ui);
   color: var(--text);
@@ -186,7 +190,7 @@ textarea:focus {
 }
 .cardTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
@@ -202,7 +206,7 @@ textarea:focus {
 }
 
 .field .label {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--muted);
   margin: 0 0 6px;
 }
@@ -879,10 +883,10 @@ textarea:focus {
   justify-content: flex-end;
   gap: 8px;
   min-height: 32px;
-  padding: 0 8px;
+  padding: 0 4px 0 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
 }
 
@@ -916,7 +920,7 @@ textarea:focus {
 .languageToggleBtn {
   flex: 1;
   border: 0;
-  border-radius: 10px;
+  border-radius: 7px;
   padding: 6px 8px;
   font: inherit;
   font-size: 12px;
@@ -1146,7 +1150,6 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.12);
   height: 100%;
   max-height: 100%;
   min-height: 0;
@@ -1175,7 +1178,7 @@ textarea:focus {
   width: 100%;
   justify-content: center;
   flex-wrap: nowrap;
-  padding: 4px;
+  padding: 10px 4px;
   background: transparent;
 }
 
@@ -1249,7 +1252,7 @@ textarea:focus {
   width: 100%;
   min-width: 0;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text);
@@ -1268,7 +1271,7 @@ textarea:focus {
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: 999px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -1453,16 +1456,22 @@ textarea:focus {
   flex-direction: column;
 }
 
+.programScheduleRow:not(.active) .programSchedulePick {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .programScheduleList .programScheduleRow:not(.active):not(.programScheduleRowPast) .programSchedulePick:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
 .programScheduleRow.active .programSchedulePick {
+  border-width: 2px;
   border-color: rgba(122, 162, 255, 0.7);
   background: rgba(122, 162, 255, 0.2);
   box-shadow:
     0 0 0 1px rgba(122, 162, 255, 0.18) inset,
     0 4px 14px rgba(0, 0, 0, 0.28);
+    
 }
 
 .programScheduleRow.active .programSchedulePick:hover {
@@ -1557,19 +1566,53 @@ body.setupSplitResizing {
   padding: 24px 24px 48px 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  background: rgba(0, 0, 0, 0.12);
+  gap: 12px;
   min-height: 0;
   min-width: 0;
   overflow-y: auto;
+  transform: translateX(-2px);
 }
 
 .setupAside .setupEventCard {
   margin: 0;
+  padding: 12px;
+}
+
+.setupAside .setupEventCard .cardHeader {
+  margin-bottom: 10px;
+}
+
+.setupAside .setupEventCard input:not([type='radio']):not([type='checkbox']) {
+  min-height: 40px;
+  padding: 9px 11px;
+  font-size: var(--text-base);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.setupAside .setupEventCard input:not([type='radio']):not([type='checkbox']):focus {
+  border-color: rgba(82, 168, 255, 0.92);
+  box-shadow: 0 0 0 3px rgba(64, 151, 255, 0.2);
 }
 
 .setupAside .setupEventGrid {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.setupAside .setupEventTitleField {
+  grid-column: 1 / -1;
+}
+
+.setupAsideSection {
+  margin: 0;
+}
+
+.setupAsideSectionTitle {
+  /* font-size: var(--text-sm); */
+  font-weight: 600;
+  /* letter-spacing: 0.06em; */
+  /* text-transform: uppercase; */
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .setupPage {
@@ -1599,14 +1642,14 @@ body.setupSplitResizing {
 
 .setupPageTitle {
   margin: 0 0;
-  font-size: 26px;
+  font-size: var(--text-2xl);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .setupPageDesc {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 300;
   line-height: 1.45;
   color: var(--muted);
@@ -1647,7 +1690,6 @@ body.setupSplitResizing {
 }
 
 .setupToolbarBtn {
-  font-size: 13px;
   padding: 8px 12px;
   white-space: nowrap;
 }
@@ -1665,13 +1707,15 @@ body.setupSplitResizing {
 .setupEventGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(148px, 180px) minmax(128px, 156px);
-  gap: 12px;
+  gap: 10px;
   align-items: start;
 }
 
 .setupEventGrid .field > .label {
   min-height: 18px;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .setupEventGrid .labelWithTag {
@@ -1683,7 +1727,7 @@ body.setupSplitResizing {
 }
 
 .labelTag {
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1764,13 +1808,13 @@ body.setupSplitResizing {
 
 .setupProgramTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
 .setupProgramMeta {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .setupProgramStats {
@@ -1792,7 +1836,7 @@ body.setupSplitResizing {
 }
 
 .setupDurationChipLabel {
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1800,7 +1844,7 @@ body.setupSplitResizing {
 }
 
 .setupDurationChipValue {
-  font-size: 18px;
+  font-size: var(--text-stat);
   font-weight: 600;
   line-height: 1.1;
 }
@@ -1809,7 +1853,7 @@ body.setupSplitResizing {
   margin: 0;
   padding: 36px 20px;
   text-align: center;
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.5;
   color: var(--muted);
   border: 1px dashed rgba(255, 255, 255, 0.16);
@@ -1842,19 +1886,19 @@ body.setupSplitResizing {
 
 .setupAsideMeta .saveNotice {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .setupAsideSecondary {
   width: 100%;
-  font-size: 12px;
+  font-size: var(--text-sm);
   padding: 8px 10px;
   text-align: center;
 }
 
 .setupAsideMeta .muted {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.45;
 }
 
@@ -1886,7 +1930,7 @@ body.setupSplitResizing {
   grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
   gap: 10px;
   padding: 0 10px 6px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1965,7 +2009,7 @@ body.setupSplitResizing {
   cursor: grab;
   touch-action: none;
   user-select: none;
-  font-size: 16px;
+  font-size: var(--text-title);
   letter-spacing: -2px;
 }
 
@@ -1976,11 +2020,11 @@ body.setupSplitResizing {
 .segmentRowDelete {
   height: 42px;
   padding: 0 8px;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .segmentTable input:not([type='checkbox']):not([type='radio']) {
-  font-size: 14px;
+  font-size: var(--text-base);
   line-height: 1.4;
 }
 
@@ -2299,14 +2343,15 @@ body.setupSplitResizing {
   padding: 16px;
 }
 
-.outputLinksPreviewScale {
-  position: relative;
+.outputLinksPreviewFrameImage {
+  padding: 0;
 }
 
-.outputLinksPreviewDisplayWrap {
-  position: absolute;
-  top: 0;
-  left: 0;
+.outputLinksPreviewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .outputLinksControllerMock {
@@ -2634,47 +2679,68 @@ body.setupSplitResizing {
 .asideCard {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 12px;
   margin: 0;
 }
 
 .asideCardTitle {
-  margin: 0 0 12px;
-  font-size: 13px;
+  margin: 0 0 10px;
+  font-size: var(--text-sm);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--muted);
 }
 
 .toolGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
 .toolTile {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 88px;
-  padding: 12px;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 0;
+  width: 100%;
+  padding: 11px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text);
-  font-weight: 500;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: var(--text-base);
+  line-height: 1.2;
   cursor: pointer;
   font-family: inherit;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.toolTile:not(:disabled):hover {
+  border-color: rgba(122, 162, 255, 0.45);
+  background: rgba(122, 162, 255, 0.15);
+}
+
+.toolTile:not(:disabled):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(122, 162, 255, 0.2);
+}
+
+.toolTileAction {
+  justify-content: center;
 }
 
 .toolTileIcon {
-  font-size: 22px;
-  opacity: 0.85;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
 }
 
 .toolTileDisabled {
@@ -2690,35 +2756,52 @@ body.setupSplitResizing {
 
 .stageTemplateOption {
   display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  gap: 2px 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 12px;
   align-items: center;
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   text-align: left;
   cursor: pointer;
   font-family: inherit;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.stageTemplateOption:hover {
+  border-color: rgba(122, 162, 255, 0.35);
+  background: rgba(122, 162, 255, 0.1);
+}
+
+.stageTemplateOption:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(122, 162, 255, 0.22);
 }
 
 .stageTemplateOptionSelected {
   border-color: var(--brand);
   box-shadow: 0 0 0 1px var(--brand);
+  background: rgba(38, 124, 255, 0.18);
+}
+
+.stageTemplateOptionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .stageTemplateOptionLabel {
-  grid-column: 2;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .stageTemplateOptionDesc {
-  grid-column: 2;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--muted);
   line-height: 1.35;
 }
@@ -2808,10 +2891,10 @@ body.setupSplitResizing {
 
 .alertSettingRow {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -2826,15 +2909,15 @@ body.setupSplitResizing {
 }
 
 .alertSettingTitle {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .alertSettingDesc {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .switch {
@@ -2888,7 +2971,7 @@ body.setupSplitResizing {
 
 .saveNotice {
   margin-top: 10px;
-  font-size: 13px;
+  font-size: var(--text-base);
   color: var(--brand);
   font-weight: 600;
 }

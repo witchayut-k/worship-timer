@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { getStageLayoutDimensions } from '../config/stageTemplates.config'
 import type { StageDisplayTemplate } from '../domain/types'
-import { useStageDisplayScale } from '../hooks/useStageDisplayScale'
 import type { StageTheme } from '../lib/displayTheme'
-import { StageDisplay } from './StageDisplay'
 import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
+import { getStagePreviewImageSrc } from '../lib/stagePreviewImages'
 
 type Props = {
   open: boolean
@@ -111,45 +109,22 @@ function ControllerPreviewMock() {
   )
 }
 
-function StagePreviewFrame({
-  stageTemplate,
-  remainingSec,
-  durationSec,
-  currentName,
-  currentLeader,
-  nextName,
-  nextLeader,
-  theme,
-  paused,
-}: Omit<Props, 'open' | 'onClose' | 'eventId'>) {
-  const { width, height } = getStageLayoutDimensions(stageTemplate)
-  const { frameRef, scaleRef, displayRef } = useStageDisplayScale(width, height, [
-    remainingSec,
-    currentName,
-    currentLeader,
-    nextName,
-    nextLeader,
-    durationSec,
-    stageTemplate,
-  ])
+function StagePreviewImage({ stageTemplate }: { stageTemplate: StageDisplayTemplate }) {
+  const { t } = useLocale()
+  const alt =
+    stageTemplate === 'minimal'
+      ? t('setupAside.templateMinimal')
+      : stageTemplate === 'bar'
+        ? t('setupAside.templateBar')
+        : t('setupAside.templateCircle')
 
   return (
-    <div className="outputLinksPreviewFrame" ref={frameRef}>
-      <div className="outputLinksPreviewScale" ref={scaleRef}>
-        <div ref={displayRef} className="outputLinksPreviewDisplayWrap">
-          <StageDisplay
-            template={stageTemplate}
-            remainingSec={remainingSec}
-            durationSec={durationSec}
-            currentName={currentName}
-            currentLeader={currentLeader}
-            nextName={nextName}
-            nextLeader={nextLeader}
-            theme={theme}
-            paused={paused}
-          />
-        </div>
-      </div>
+    <div className="outputLinksPreviewFrame outputLinksPreviewFrameImage">
+      <img
+        className="outputLinksPreviewImage"
+        src={getStagePreviewImageSrc(stageTemplate)}
+        alt={alt}
+      />
     </div>
   )
 }
@@ -286,17 +261,7 @@ export function OutputLinksModal({
           <div className="outputLinksPreviewCol">
             <div className="outputLinksPreviewLabel">{previewLabel}</div>
             {activeTab === 'stage' ? (
-              <StagePreviewFrame
-                stageTemplate={stageTemplate}
-                remainingSec={remainingSec}
-                durationSec={durationSec}
-                currentName={currentName}
-                currentLeader={currentLeader}
-                nextName={nextName}
-                nextLeader={nextLeader}
-                theme={theme}
-                paused={paused}
-              />
+              <StagePreviewImage stageTemplate={stageTemplate} />
             ) : (
               <div className="outputLinksPreviewFrame outputLinksPreviewFrameMock">
                 {activeTab === 'crew' ? <CrewPreviewMock /> : <ControllerPreviewMock />}
