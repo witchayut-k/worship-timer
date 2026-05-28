@@ -174,6 +174,7 @@ function SetupPageInner({
   }, [productionMode, liveRuntime, nowMs, settings])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormHydrated(false)
     baselineSeededRef.current = false
   }, [routeEventId])
@@ -189,6 +190,7 @@ function SetupPageInner({
       programItems: session.programItems,
     })
     session.replaceSetupDraft(draft)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTitle(draft.title)
     setDate(draft.date)
     setPlannedStartTime(draft.plannedStartTime)
@@ -221,6 +223,7 @@ function SetupPageInner({
     ) {
       return
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTitle(draft.title)
     setDate(draft.date)
     setPlannedStartTime(draft.plannedStartTime)
