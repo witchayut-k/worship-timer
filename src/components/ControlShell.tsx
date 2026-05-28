@@ -28,6 +28,9 @@ type ControlShellProps = {
   onLeaveToLibrary?: () => void
   onControlNavigate?: () => void | Promise<void>
   controlNavigateDisabled?: boolean
+  centerSessionStatusBadge?: boolean
+  sessionBarCenterContent?: ReactNode
+  sessionBarRightContent?: ReactNode
   headerEnd?: ReactNode
   aside?: ReactNode
   children: ReactNode
@@ -65,6 +68,9 @@ export function ControlShell({
   onLeaveToLibrary,
   onControlNavigate,
   controlNavigateDisabled = false,
+  centerSessionStatusBadge = false,
+  sessionBarCenterContent,
+  sessionBarRightContent,
   headerEnd,
   aside,
   children,
@@ -82,6 +88,21 @@ export function ControlShell({
   const fallbackRuntime = useRuntimePhase(workspaceRuntime ? null : statusEventId)
   const { phase, ready } = workspaceRuntime ?? fallbackRuntime
   const showSessionBar = Boolean(statusEventId || eventId || eventTitle)
+  const defaultSessionBadge = statusEventId ? (
+    <SessionStatusBadge
+      productionMode={statusProduction}
+      phase={phase}
+      ready={ready}
+    />
+  ) : null
+  const sessionBarCenter =
+    centerSessionStatusBadge ? null : (sessionBarCenterContent ?? null)
+  const sessionBarRight = (
+    <>
+      {sessionBarRightContent}
+      {defaultSessionBadge}
+    </>
+  )
 
   const setupTo = eventId ? `/setup/${eventId}` : isFree ? homePath : '/setup'
   const controlTo = eventId ? `/start/${eventId}` : null
@@ -196,13 +217,8 @@ export function ControlShell({
               <div className="appSessionBarTitle">{statusTitle}</div>
             </div>
           </div>
-          {statusEventId ? (
-            <SessionStatusBadge
-              productionMode={statusProduction}
-              phase={phase}
-              ready={ready}
-            />
-          ) : null}
+          <div className="appSessionBarCenter">{sessionBarCenter}</div>
+          <div className="appSessionBarRight">{sessionBarRight}</div>
         </div>
       ) : null}
 
