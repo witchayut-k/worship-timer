@@ -22,9 +22,9 @@ export function SetupEventDetailsCard({
   const { t } = useLocale()
 
   return (
-    <section className="card setupEventCard">
+    <section className="card setupEventCard setupAsideSection">
       <div className="cardHeader">
-        <h2 className="cardTitle">{t('setup.eventDetails')}</h2>
+        <h2 className="cardTitle setupAsideSectionTitle">{t('setup.eventDetails')}</h2>
       </div>
       <div className="setupEventGrid">
         <label className="field setupEventTitleField">

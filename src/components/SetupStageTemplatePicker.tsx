@@ -66,8 +66,10 @@ export function SetupStageTemplatePicker({ value, onChange }: Props) {
             onClick={() => onChange(template)}
           >
             <StageTemplateThumb template={template} />
-            <span className="stageTemplateOptionLabel">{t(labelKey(template))}</span>
-            <span className="stageTemplateOptionDesc">{t(descKey(template))}</span>
+            <span className="stageTemplateOptionText">
+              <span className="stageTemplateOptionLabel">{t(labelKey(template))}</span>
+              <span className="stageTemplateOptionDesc">{t(descKey(template))}</span>
+            </span>
           </button>
         )
       })}
