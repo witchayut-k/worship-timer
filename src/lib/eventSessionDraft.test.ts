@@ -4,6 +4,7 @@ import {
   draftBundleFromEventProgram,
   isSetupDraftDirty,
   programToDraftItems,
+  shouldRefreshDraftForProgramItems,
   shouldRefreshDraftFromServer,
   snapshotFromDraftBundle,
 } from './eventSessionDraft'
@@ -65,5 +66,23 @@ describe('eventSessionDraft', () => {
   it('does not refresh draft from server when dirty', () => {
     expect(shouldRefreshDraftFromServer(true)).toBe(false)
     expect(shouldRefreshDraftFromServer(false)).toBe(true)
+  })
+
+  it('refreshes draft when program content mismatches but draft is not dirty', () => {
+    const draft = draftBundleFromEventProgram({
+      event: {
+        title: 'Sunday',
+        date: '2026-05-28',
+        status: 'active',
+        updatedAtMs: 1,
+        leaderNames: [],
+      },
+      programItems: [],
+      newId: () => 'a',
+    })
+    const saved = snapshotFromDraftBundle(draft)
+    expect(
+      shouldRefreshDraftForProgramItems(draft, [programItem(1)], saved),
+    ).toBe(true)
   })
 })

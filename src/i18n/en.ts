@@ -181,6 +181,8 @@ export const en = {
     blackout: 'Blackout',
     flash: 'Flash',
     programSchedule: 'Program Schedule',
+    scheduleLive: 'LIVE',
+    scheduleDone: 'DONE',
     editProgram: 'Edit Program',
     active: 'Active',
     paused: 'Paused',

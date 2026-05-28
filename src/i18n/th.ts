@@ -181,6 +181,8 @@ export const th: Messages = {
     blackout: 'Blackout',
     flash: 'Flash',
     programSchedule: 'ตารางโปรแกรม',
+    scheduleLive: 'สด',
+    scheduleDone: 'เสร็จแล้ว',
     editProgram: 'แก้ไขโปรแกรม',
     active: 'Active',
     paused: 'Paused',
