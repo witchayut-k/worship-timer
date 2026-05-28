@@ -7,7 +7,6 @@ import { ControlShell } from "../components/ControlShell";
 import { ControlStageOutput } from "../components/ControlStageOutput";
 import { ControlTransportDock } from "../components/ControlTransportDock";
 import { ControlTimerProgress } from "../components/ControlTimerProgress";
-import { EndServiceModal } from "../components/EndServiceModal";
 import { LeaveControlModal } from "../components/LeaveControlModal";
 import { MonitorIcon, OutputLinksModal } from "../components/OutputLinksModal";
 import { ProgramSchedulePanel } from "../components/ProgramSchedulePanel";
@@ -58,8 +57,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
     [session.setupDraft, session.programItems],
   );
   const title = session.event?.title ?? "";
-  const [outputLinksOpen, setOutputLinksOpen] = useState(false)
-  const [endServiceOpen, setEndServiceOpen] = useState(false);
+  const [outputLinksOpen, setOutputLinksOpen] = useState(false);
 
   const [state, dispatch] = useReducer(
     reduceRuntimeState,
@@ -231,11 +229,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
     dispatch({ type: "triggerManualFlash", nowMs: Date.now() });
   };
 
-  const endService = () => {
-    dispatch({ type: "endService", nowMs: Date.now() });
-    setEndServiceOpen(false);
-  };
-
   if (isFree && !isSessionRoomId(eventId)) {
     return <Navigate to={sessionRoomControlPath()} replace />;
   }
@@ -288,14 +281,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     onBlackoutChange={setBlackout}
                     onFlashTrigger={triggerFlash}
                   />
-                  <button
-                    className={`btnDanger controlTopActionBtn${state.serviceEnded ? ' controlEndServiceBtnEnded' : ''}`}
-                    type="button"
-                    disabled={state.serviceEnded}
-                    onClick={() => setEndServiceOpen(true)}
-                  >
-                    {state.serviceEnded ? t('control.endServiceEnded') : t('control.endService')}
-                  </button>
                 </div>
               ) : null}
             </header>
@@ -465,12 +450,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
           ) : null}
         </div>
       </div>
-
-      <EndServiceModal
-        open={endServiceOpen}
-        onConfirm={endService}
-        onCancel={() => setEndServiceOpen(false)}
-      />
 
       <LeaveControlModal
         open={leaveModalOpen}

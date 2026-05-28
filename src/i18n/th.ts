@@ -196,16 +196,12 @@ export const th: Messages = {
     transport: 'ควบคุมการเล่น',
     autoStartOnNext: 'เริ่มจับเวลาเมื่อเปลี่ยนรายการ',
     autoStartOnNextHint: 'เริ่มนับเวลาทันทีเมื่อกด Prev, Next หรือเลือกรายการในตารางโปรแกรม',
-    endService: 'จบรอบ',
-    endServiceEnded: 'จบรอบแล้ว',
   },
   crew: {
     nowPlaying: 'กำลังแสดง',
-    serviceEnded: 'จบรอบแล้ว',
   },
   viewer: {
     noProgram: 'ไม่พบรายการโปรแกรม',
-    serviceEnded: 'จบรอบแล้ว',
     localSyncHint: 'Local demo: เปิด Controller ในอีกแท็บเพื่อ sync realtime',
     cloudSyncHint: 'Realtime ผ่าน Firebase — เปิด Controller เพื่อควบคุม',
     firebaseRequired: 'ต้องตั้งค่า Firebase สำหรับ cloud',
@@ -220,9 +216,6 @@ export const th: Messages = {
     goToServices: 'ไลบรารี',
     goToSetup: 'ตั้งค่าโปรแกรม',
     endControl: 'จบการควบคุม',
-    endServiceTitle: 'จบรอบ?',
-    endServiceBody:
-      'หยุดจับเวลา ปิดจอ Stage และแสดง “จบรอบแล้ว” บนอุปกรณ์ทีมงาน กด Start หรือเปลี่ยนรายการในตารางเพื่อเริ่มใหม่',
     switchTitle: 'สลับห้องควบคุม?',
     switchBody: 'สลับจาก «{from}» ไป «{to}»?',
     switchConfirm: 'สลับห้องควบคุม',

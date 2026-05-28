@@ -60,18 +60,16 @@ describe('reconcileRuntimeAfterProgramChange', () => {
     expect(next.remainingSec).toBe(0)
     expect(next.blackout).toBe(false)
     expect(next.manualFlashUntilMs).toBeNull()
-    expect(next.serviceEnded).toBe(false)
   })
 
   it('reset with items goes to first item duration', () => {
     const next = reconcileRuntimeAfterProgramChange({
-      prev: state({ currentIndex: 2, phase: 'paused', remainingSec: 90, serviceEnded: true }),
+      prev: state({ currentIndex: 2, phase: 'paused', remainingSec: 90 }),
       nextItems: [item(111, 1), item(222, 2)],
       change: { type: 'reset' },
     })
     expect(next.currentIndex).toBe(0)
     expect(next.remainingSec).toBe(111)
-    expect(next.serviceEnded).toBe(false)
   })
 
   it('import replace behaves like reset', () => {

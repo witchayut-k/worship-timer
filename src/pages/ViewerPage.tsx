@@ -25,7 +25,6 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
     remainingSec,
     blackout,
     manualFlashUntilMs,
-    serviceEnded,
     nowMs,
     isCloud,
     isLocal,
@@ -90,15 +89,7 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
               theme={stageTheme}
               paused={phase === 'paused'}
             />
-            {blackout ? (
-              <div className="viewerBlackout" aria-hidden={!serviceEnded}>
-                {serviceEnded ? (
-                  <p className="viewerServiceEnded" role="status">
-                    {t('viewer.serviceEnded')}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+            {blackout ? <div className="viewerBlackout" aria-hidden /> : null}
           </>
         ) : (
           <div className="stageEmpty muted">{t('viewer.noProgram')}</div>

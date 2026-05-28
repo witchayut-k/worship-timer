@@ -7,10 +7,9 @@ type Props = {
   next: ProgramItem | null
   phase: RuntimePhase
   remainingSec: number
-  serviceEnded?: boolean
 }
 
-export function CrewNowCard({ current, next, phase, remainingSec, serviceEnded = false }: Props) {
+export function CrewNowCard({ current, next, phase, remainingSec }: Props) {
   const { t } = useLocale()
   const isRunning = phase === 'running'
   const isPaused = phase === 'paused'
@@ -20,15 +19,10 @@ export function CrewNowCard({ current, next, phase, remainingSec, serviceEnded =
   const nextMedia = next?.mediaNote?.trim()
 
   return (
-    <section
-      className={`crewNowSticky${serviceEnded ? ' crewNowSticky--ended' : ''}`}
-      aria-label={serviceEnded ? t('crew.serviceEnded') : t('crew.nowPlaying')}
-    >
+    <section className="crewNowSticky" aria-label={t('crew.nowPlaying')}>
       <div className="crewNowHeader">
         <span className="crewNowLabel">{t('control.current')}</span>
-        {serviceEnded ? (
-          <span className="scheduleBadge scheduleBadgeEnded">{t('crew.serviceEnded')}</span>
-        ) : isRunning ? (
+        {isRunning ? (
           <span className="scheduleBadge scheduleBadgeCurrent">{t('control.current')}</span>
         ) : isPaused ? (
           <span className="scheduleBadge scheduleBadgePaused">{t('control.paused')}</span>
@@ -36,11 +30,9 @@ export function CrewNowCard({ current, next, phase, remainingSec, serviceEnded =
       </div>
       <h2 className="crewNowTitle">{current.name}</h2>
       {current.leaderName ? <p className="crewNowLeader muted">{current.leaderName}</p> : null}
-      {!serviceEnded ? (
-        <div className="crewNowTimer timeMono" aria-live="polite">
-          {formatSignedMMSS(remainingSec)}
-        </div>
-      ) : null}
+      <div className="crewNowTimer timeMono" aria-live="polite">
+        {formatSignedMMSS(remainingSec)}
+      </div>
       {(lights || media) && (
         <div className="crewNowCrewNotes">
           {lights ? (
