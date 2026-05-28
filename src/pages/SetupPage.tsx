@@ -201,14 +201,21 @@ function SetupPageInner({
 
   useEffect(() => {
     if (!session || !formHydrated) return
-    session.replaceSetupDraft({
+    const nextDraft = {
       title,
       date,
       plannedStartTime,
       settings,
       leaderNames,
       items,
-    })
+    }
+    if (
+      session.setupDraft &&
+      snapshotFromDraftBundle(session.setupDraft) === snapshotFromDraftBundle(nextDraft)
+    ) {
+      return
+    }
+    session.replaceSetupDraft(nextDraft)
   }, [session, formHydrated, title, date, plannedStartTime, settings, leaderNames, items])
 
   useEffect(() => {
