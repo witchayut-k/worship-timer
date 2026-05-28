@@ -1026,7 +1026,7 @@ textarea:focus {
 }
 
 .controlWorkspace--empty {
-  align-items: center;
+  /* align-items: center; */
   justify-content: center;
 }
 
@@ -1042,14 +1042,19 @@ textarea:focus {
 }
 
 .controlEmptyStage {
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
-  padding: 48px 32px;
-  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  /* max-width: 440px; */
+  /* margin: 0 auto; */
+  /* padding: 48px 32px; */
+  text-align: center;
+  /* display: flex;
+  flex-direction: column;
+  align-items: center; */
   gap: 16px;
   border: 1px dashed rgba(255, 255, 255, 0.16);
   border-radius: 16px;
