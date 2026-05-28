@@ -241,6 +241,19 @@ function StartPageInner({ eventId }: { eventId: string }) {
   }
 
   const displayTitle = title.trim() || t("event.untitled");
+  const sessionBarAutoStart = (
+    <label className="controlSessionAutoStart" title={t('control.autoStartOnNextHint')}>
+      <span className="controlSessionAutoStartTitle">{t('control.autoStartOnNext')}</span>
+      <span className="switch">
+        <input
+          type="checkbox"
+          checked={autoStartOnNext}
+          onChange={(e) => setAutoStartOnNext(e.target.checked)}
+        />
+        <span className="switchSlider" />
+      </span>
+    </label>
+  )
 
   return (
     <ControlShell
@@ -253,6 +266,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
         productionMode,
         eventTitle: title,
       }}
+      sessionBarRightContent={sessionBarAutoStart}
       onLeaveToLibrary={requestLeave}
     >
       <div className="controlPage">
@@ -439,6 +453,15 @@ function StartPageInner({ eventId }: { eventId: string }) {
                 onPointerDown={onResizerPointerDown}
               />
               <aside className="controlRightRail" style={{ width: railWidth }}>
+                <ControlTransportDock
+                  phase={state.phase}
+                  currentIndex={state.currentIndex}
+                  itemCount={items.length}
+                  onPrev={() => jumpTo(state.currentIndex - 1)}
+                  onStart={start}
+                  onPause={pause}
+                  onNext={goNext}
+                />
                 <ProgramSchedulePanel
                   eventId={eventId}
                   items={items}
@@ -448,17 +471,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   eventDate={eventMeta?.date}
                   plannedStartTime={eventMeta?.plannedStartTime}
                   onJumpTo={jumpTo}
-                />
-                <ControlTransportDock
-                  phase={state.phase}
-                  currentIndex={state.currentIndex}
-                  itemCount={items.length}
-                  autoStartOnNext={autoStartOnNext}
-                  onAutoStartOnNextChange={setAutoStartOnNext}
-                  onPrev={() => jumpTo(state.currentIndex - 1)}
-                  onStart={start}
-                  onPause={pause}
-                  onNext={goNext}
                 />
               </aside>
             </>
