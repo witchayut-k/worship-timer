@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { usePlan } from "../context/PlanProvider";
 import { isSessionRoomId, sessionRoomControlPath } from "../lib/freeSession";
@@ -72,21 +72,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
       return initialRuntimeState({ items: programItems });
     },
   );
-
-  useLayoutEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-5',hypothesisId:'H11',location:'StartPage.tsx:layoutMounted',message:'start page layout effect mounted',data:{eventId,itemsCount:items.length,sessionStatus:session.status},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-  }, [eventId, items.length, session.status]);
-
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7911/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6ed48'},body:JSON.stringify({sessionId:'a6ed48',runId:'control-nav-debug-1',hypothesisId:'H3',location:'StartPage.tsx:routeMounted',message:'start page route mounted',data:{eventId,itemsCount:items.length,sessionStatus:session.status,currentIndex:state.currentIndex},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    // #region agent log
-    fetch('http://127.0.0.1:7648/ingest/ade2f5ed-8b4a-4f68-b283-300d7f0a4588',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'816df6'},body:JSON.stringify({sessionId:'816df6',location:'StartPage.tsx:programItems',message:'control room items',data:{eventId,count:items.length,currentIndex:state.currentIndex},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
-    // #endregion
-  }, [eventId, items.length, state.currentIndex]);
 
   const flashPending = state.manualFlashUntilMs != null;
   const nowMs = useNowMs(
