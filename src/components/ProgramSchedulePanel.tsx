@@ -123,9 +123,9 @@ const ProgramScheduleRow = memo(function ProgramScheduleRow({
   ) : (
     <div className="programScheduleAsideStack">
       {segmentStartLabel ? (
-        <span className="timeMono muted programSchedulePlanned">{segmentStartLabel}</span>
+        <span className="muted programSchedulePlanned">{segmentStartLabel}</span>
       ) : null}
-      <span className="timeMono muted programScheduleDuration">{formatSecToMmSs(item.durationSec)}</span>
+      <span className="muted programScheduleDuration">{formatSecToMmSs(item.durationSec)}</span>
     </div>
   )
 

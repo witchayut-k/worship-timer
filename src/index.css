@@ -1493,6 +1493,8 @@ textarea:focus {
 
 .programScheduleRow.active .programScheduleItemTitle {
   color: var(--brand);
+  font-size: var(--text-md);
+  font-weight: 700;
 }
 
 .programScheduleRowPast {
@@ -1502,6 +1504,7 @@ textarea:focus {
 .programScheduleRowPast .programScheduleItemTitle,
 .programScheduleRowPast .programScheduleLeader {
   text-decoration: line-through;
+  font-weight: 400;
 }
 
 .programScheduleRowPast .programScheduleOrder {
@@ -1567,6 +1570,12 @@ body.setupSplitResizing {
   overflow-y: auto;
 }
 
+.setupMainColumn:has(.setupPage) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .setupAside {
   padding: 24px 24px 48px 24px;
   display: flex;
@@ -1623,12 +1632,18 @@ body.setupSplitResizing {
 .setupPage {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   gap: 0;
-  padding-bottom: 24px;
+  overflow: hidden;
 }
 
 .setupPage > .card {
-  margin: 0 0 16px;
+  margin: 0;
+}
+
+.setupPage > .saveNotice {
+  flex-shrink: 0;
 }
 
 .setupPageHeader {
@@ -1638,6 +1653,7 @@ body.setupSplitResizing {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .setupPageHeaderText {
@@ -1793,7 +1809,13 @@ body.setupSplitResizing {
 }
 
 .setupProgramCard {
-  padding-bottom: 16px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
+  padding-right: 0;
 }
 
 .setupProgramHead {
@@ -1802,9 +1824,26 @@ body.setupSplitResizing {
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 14px;
+  /* margin-bottom: 14px; */
   padding-bottom: 14px;
+  padding-right: 14px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.setupProgramTableScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+.setupProgramTableScroll .segmentTableHead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  /* background: var(--card); */
+  background: #2e3346;
 }
 
 .setupProgramHeadText {
@@ -1834,7 +1873,7 @@ body.setupSplitResizing {
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-  padding: 8px 14px;
+  padding: 4px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.22);
@@ -1849,8 +1888,8 @@ body.setupSplitResizing {
 }
 
 .setupDurationChipValue {
-  font-size: var(--text-stat);
-  font-weight: 600;
+  font-size: var(--text-base) !important;
+  font-weight: 500;
   line-height: 1.1;
 }
 
@@ -1927,18 +1966,17 @@ body.setupSplitResizing {
 .segmentTable {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 .segmentTableHead {
   display: grid;
   grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
   gap: 10px;
-  padding: 0 10px 6px;
+  padding: 6px 10px;
   font-size: var(--text-xs);
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--muted);
 }
 
@@ -1947,10 +1985,10 @@ body.setupSplitResizing {
   grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
   gap: 10px;
   align-items: start;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.18);
+  padding: 6px 12px 6px 2px;
+  border-top: 1px solid #2e3346;
+  /* border-radius: 12px; */
+  /* background: rgba(0, 0, 0, 0.18); */
   border-left-width: 3px;
   border-left-color: transparent;
 }

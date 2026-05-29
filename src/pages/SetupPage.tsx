@@ -753,19 +753,21 @@ function SetupPageInner({
               </button>
             </div>
           </div>
-          <SetupSegmentList
-            items={items}
-            autoFocusId={autoFocusId}
-            onAutoFocusDone={onAutoFocusDone}
-            liveIndex={productionMode ? liveIndex : null}
-            livePhase={productionMode ? livePhase : null}
-            liveDotTheme={productionMode ? liveDotTheme : null}
-            reorderDisabled={productionMode && livePhase === 'running'}
-            reorderDisabledTitle={t('setup.reorderBlockedRunning')}
-            onReorder={onReorder}
-            onUpdate={onUpdate}
-            onRemove={onRemove}
-          />
+          <div className="setupProgramTableScroll">
+            <SetupSegmentList
+              items={items}
+              autoFocusId={autoFocusId}
+              onAutoFocusDone={onAutoFocusDone}
+              liveIndex={productionMode ? liveIndex : null}
+              livePhase={productionMode ? livePhase : null}
+              liveDotTheme={productionMode ? liveDotTheme : null}
+              reorderDisabled={productionMode && livePhase === 'running'}
+              reorderDisabledTitle={t('setup.reorderBlockedRunning')}
+              onReorder={onReorder}
+              onUpdate={onUpdate}
+              onRemove={onRemove}
+            />
+          </div>
         </section>
       </div>
 

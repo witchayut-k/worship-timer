@@ -56,7 +56,7 @@ export function CrewNowCard({ current, phase, remainingSec, durationSec }: Props
           <div className={`crewHeroTimerBlock${isOvertime ? ' crewHeroTimerBlock--overtime' : ''}`}>
             <span className="crewHeroTimerLabel">{timerLabel}</span>
             <div
-              className="crewHeroTimer timeMono"
+              className="crewHeroTimer"
               aria-live="polite"
               aria-label={isOvertime ? `${t('crew.overtime')}, ${formatSignedMMSS(remainingSec)}` : undefined}
             >
