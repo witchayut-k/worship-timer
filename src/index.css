@@ -2156,7 +2156,7 @@ body.setupSplitResizing {
   flex-direction: column;
   overflow: hidden;
   padding-bottom: 0;
-  padding-right: 0;
+  /* padding-right: 0; */
 }
 
 .setupProgramHead {
