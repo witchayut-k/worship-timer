@@ -70,6 +70,9 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     <div className="crewView">
       <header className="crewHeader">
         <div className="crewHeaderMain">
+          <div className="crewBrand" aria-label={t('app.name')}>
+            <img className="appBrandLogo" src="/logo.png" alt="" width={458} height={70} />
+          </div>
           <h1 className="crewPageTitle">{displayTitle}</h1>
           {pageSubtitle ? <p className="crewPageSubtitle muted">{pageSubtitle}</p> : null}
         </div>

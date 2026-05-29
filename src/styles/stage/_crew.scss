@@ -2,7 +2,7 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--bg, #0b111b);
+  background: rgba(0, 0, 0, 0.75);
   color: var(--text);
   padding:
     max(12px, env(safe-area-inset-top))
@@ -27,6 +27,17 @@
 .crewHeaderMain {
   min-width: 0;
   flex: 1;
+}
+
+.crewBrand {
+  margin-bottom: 8px;
+  line-height: 0;
+}
+
+.crewBrand .appBrandLogo {
+  height: 22px;
+  max-width: 140px;
+  opacity: 0.88;
 }
 
 .crewHeaderActions {
