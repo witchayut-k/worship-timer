@@ -721,7 +721,7 @@ function SetupPageInner({
             ) : null}
             <div className="setupToolbarGroup">
               <button
-                className="btnGhost setupToolbarBtn setupToolbarBtnDanger btnWithIcon"
+                className="btnGhost controlTopActionBtn setupToolbarBtnDanger"
                 type="button"
                 onClick={onResetClick}
                 disabled={!items.length || (productionMode && livePhase === 'running')}

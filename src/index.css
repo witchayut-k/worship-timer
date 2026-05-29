@@ -1693,7 +1693,8 @@ body.setupSplitResizing {
 
 .setupToolbarDivider {
   width: 1px;
-  height: 28px;
+  align-self: stretch;
+  min-height: 28px;
   background: var(--border);
   flex-shrink: 0;
 }
@@ -1723,6 +1724,11 @@ body.setupSplitResizing {
 .setupToolbarBtnDanger:not(:disabled):hover {
   border-color: rgba(255, 77, 77, 0.6);
   background: rgba(255, 77, 77, 0.08);
+}
+
+.controlTopActionBtn.setupToolbarBtnDanger .setupIcon {
+  width: 18px;
+  height: 18px;
 }
 
 .setupEventGrid {
