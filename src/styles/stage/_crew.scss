@@ -4,11 +4,8 @@
   flex-direction: column;
   background: rgba(0, 0, 0, 0.75);
   color: var(--text);
-  padding:
-    max(12px, env(safe-area-inset-top))
-    max(16px, env(safe-area-inset-right))
-    max(12px, env(safe-area-inset-bottom))
-    max(16px, env(safe-area-inset-left));
+  padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   margin: 0 auto;
   width: 100%;
   max-width: min(100%, 960px);
@@ -35,9 +32,10 @@
 }
 
 .crewBrand .appBrandLogo {
-  height: 22px;
-  max-width: 140px;
-  opacity: 0.88;
+  height: 18px;
+  max-width: 120px;
+  margin: 8px 0px;
+  transform: translateX(-10px);
 }
 
 .crewHeaderActions {
@@ -49,19 +47,19 @@
 
 .crewPageTitle {
   margin: 0;
+  margin-top: 12px;
   font-size: clamp(18px, 4vw, 22px);
   font-weight: 700;
   line-height: 1.25;
 }
 
 .crewPageSubtitle {
-  margin: 6px 0 0;
+  margin: 0;
   font-size: 13px;
 }
 
 .crewServiceEndedBanner {
   flex-shrink: 0;
-  margin: 14px 0 0;
   padding: 14px 16px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -78,21 +76,13 @@
   position: relative;
   border-radius: 16px;
   border: 1px solid rgba(122, 162, 255, 0.28);
-  background: linear-gradient(
-    180deg,
-    rgba(122, 162, 255, 0.12) 0%,
-    rgba(11, 17, 27, 0.95) 100%
-  );
+  background: linear-gradient(180deg, rgba(122, 162, 255, 0.12) 0%, rgba(11, 17, 27, 0.95) 100%);
   overflow: hidden;
 }
 
 .crewHero--ended {
   border-color: rgba(255, 255, 255, 0.18);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(11, 17, 27, 0.95) 100%
-  );
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(11, 17, 27, 0.95) 100%);
   opacity: 0.85;
 }
 
@@ -210,7 +200,10 @@
   height: 100%;
   background: linear-gradient(90deg, rgba(147, 197, 253, 0.7), #93c5fd);
   box-shadow: 0 0 12px rgba(147, 197, 253, 0.45);
-  transition: width 0.4s linear, background 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    width 0.4s linear,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .crewHeroProgress--overtime .crewHeroProgressTrack {
