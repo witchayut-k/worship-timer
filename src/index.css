@@ -1340,6 +1340,196 @@ textarea:focus {
   font-size: var(--text-base);
 }
 
+.programScheduleEndsChip {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.programTimeline {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-right: 4px;
+}
+
+.programTimelineRow {
+  display: grid;
+  grid-template-columns: 52px 28px minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.programTimelineTime {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding-top: 12px;
+  text-align: right;
+}
+
+.programTimelineTimeStart {
+  font-size: var(--text-xs) !important;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.programTimelineTimeEnd {
+  font-size: var(--text-xs) !important;
+  line-height: 1.2;
+}
+
+.programTimelineTimePlaceholder {
+  visibility: hidden;
+}
+
+.programTimelineRail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 14px;
+  min-height: 100%;
+}
+
+.programTimelineDot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.programTimelineDot--upcoming {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+}
+
+.programTimelineDot--current {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow:
+    0 0 0 4px rgba(122, 162, 255, 0.22),
+    0 0 14px rgba(122, 162, 255, 0.55);
+}
+
+.programTimelineDot--past {
+  display: flex;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.programTimelineLine {
+  flex: 1;
+  width: 2px;
+  min-height: 12px;
+  margin-top: 6px;
+  border-radius: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(122, 162, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.12) 100%
+  );
+}
+
+.programTimelineRow--current .programTimelineLine {
+  background: linear-gradient(
+    180deg,
+    rgba(122, 162, 255, 0.75) 0%,
+    rgba(122, 162, 255, 0.2) 55%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+}
+
+.programTimelineRail--last .programTimelineLine {
+  display: none;
+}
+
+.programTimelineCard {
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.programTimelinePick {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.programTimelinePick .programScheduleMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.programTimelinePick .programScheduleAside {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.programScheduleTimelineRowPast .programTimelineTimeStart,
+.programScheduleTimelineRowPast .programTimelineTimeEnd {
+  opacity: 0.55;
+}
+
+.programScheduleTimelineRowActive .programTimelineCard .programScheduleRow.active .programSchedulePick {
+  border-width: 2px;
+  border-color: rgba(122, 162, 255, 0.7);
+  background: rgba(122, 162, 255, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(122, 162, 255, 0.18) inset,
+    0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.programScheduleTimelineRowActive .programTimelineCard .programScheduleRow.active .programScheduleItemTitle {
+  color: var(--brand);
+}
+
+.programScheduleTimelineRow .programScheduleRow {
+  margin: 0;
+}
+
+.programScheduleTimelineRow .programSchedulePick {
+  width: 100%;
+}
+
+.setupTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.setupTimelineRow {
+  padding-bottom: 4px;
+}
+
+.setupTimelineCard.segmentRow {
+  border-top: none;
+  border-left-width: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 8px 12px 8px 10px;
+}
+
+.setupTimelineCard.segmentRow:focus-within {
+  border-color: rgba(122, 162, 255, 0.55);
+  background: rgba(122, 162, 255, 0.1);
+}
+
+.setupTimelineCard.segmentRowLive {
+  border-color: rgba(122, 162, 255, 0.45);
+  box-shadow: 0 0 0 1px rgba(122, 162, 255, 0.12) inset;
+}
+
 .scheduleBadge {
   font-size: 10px;
   font-weight: 600;
@@ -3487,7 +3677,8 @@ body.setupSplitResizing {
     display: none;
   }
 
-  .segmentRow {
+  .segmentRow,
+  .setupTimelineCard.segmentRow {
     grid-template-columns: 28px 1fr;
     grid-template-areas:
       'handle name'
@@ -3496,6 +3687,11 @@ body.setupSplitResizing {
       'handle lights'
       'handle media'
       'handle delete';
+  }
+
+  .programTimelineRow {
+    grid-template-columns: 44px 22px minmax(0, 1fr);
+    gap: 8px;
   }
 
   .segmentColName {

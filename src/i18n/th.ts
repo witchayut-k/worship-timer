@@ -104,6 +104,7 @@ export const th: Messages = {
     date: 'วันที่',
     plannedStart: 'เวลาเริ่ม',
     totalDuration: 'รวมเวลาโปรแกรม',
+    programEnd: 'จบงาน',
     startSection: 'เริ่มงาน',
     start: 'เริ่ม',
     preparing: 'กำลังเตรียม…',
@@ -297,6 +298,10 @@ export const th: Messages = {
       fewColumns: 'แถว {rowNum}: คอลัมน์น้อยกว่าที่คาดไว้ ({count})',
       noRowsWithName: 'ไม่พบแถวที่มีชื่อรายการ — ตรวจสอบว่า copy ครบคอลัมน์ «รายการ»',
     },
+  },
+  schedule: {
+    programEndsAt: 'จบประมาณ {time}',
+    plannedRange: '{start} – {end}',
   },
   duration: {
     aria: 'ระยะเวลา',

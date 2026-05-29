@@ -104,6 +104,7 @@ export const en = {
     date: 'Date',
     plannedStart: 'Start Time',
     totalDuration: 'Total Program Time',
+    programEnd: 'Program end',
     startSection: 'Start',
     start: 'Start',
     preparing: 'Preparing…',
@@ -297,6 +298,10 @@ export const en = {
       fewColumns: 'Row {rowNum}: fewer columns than expected ({count})',
       noRowsWithName: 'No rows with item names — check that the «Item» column was copied',
     },
+  },
+  schedule: {
+    programEndsAt: 'Ends ~ {time}',
+    plannedRange: '{start} – {end}',
   },
   duration: {
     aria: 'Duration',

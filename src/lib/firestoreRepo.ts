@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -20,6 +21,15 @@ import { eventsCol, eventDoc, programItemsCol, runtimeStateDoc } from './firesto
 function assertData<T>(data: DocumentData | undefined): T {
   if (!data) throw new Error('Missing document data')
   return data as T
+}
+
+/** Merge-safe event payload: clears optional fields in Firestore when omitted or empty. */
+export function worshipEventToFirestoreData(event: WorshipEvent): DocumentData {
+  const { plannedStartTime, ...rest } = event
+  const data: DocumentData = { ...rest }
+  const trimmedStart = plannedStartTime?.trim()
+  data.plannedStartTime = trimmedStart ? trimmedStart : deleteField()
+  return data
 }
 
 export async function loadEvent(eventId: string) {
@@ -97,7 +107,7 @@ export async function upsertEventProgram(params: {
   const existingDocIds = await listProgramItemDocIds(eventId)
   const batch = writeBatch(db)
 
-  batch.set(doc(db, eventDoc(eventId)), event, { merge: true })
+  batch.set(doc(db, eventDoc(eventId)), worshipEventToFirestoreData(event), { merge: true })
   applyProgramItemsToBatch(batch, eventId, items, existingDocIds)
 
   await batch.commit()
@@ -114,7 +124,7 @@ export async function upsertEventWithItems(params: {
   const existingDocIds = await listProgramItemDocIds(eventId)
   const batch = writeBatch(db)
 
-  batch.set(doc(db, eventDoc(eventId)), event, { merge: true })
+  batch.set(doc(db, eventDoc(eventId)), worshipEventToFirestoreData(event), { merge: true })
   batch.set(doc(db, runtimeStateDoc(eventId)), initialState, { merge: true })
   applyProgramItemsToBatch(batch, eventId, items, existingDocIds)
 

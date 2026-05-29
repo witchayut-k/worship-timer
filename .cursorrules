@@ -1,0 +1,16 @@
+# Git commit messages (including "Generate Commit Message" in Source Control)
+
+Generated git commit messages MUST be short. One line only unless breaking change or security.
+
+- Format: `type(scope): imperative summary` (scope optional)
+- Types: feat, fix, refactor, perf, docs, test, chore, build, ci, style, revert
+- Subject MAX 50 characters (hard cap 72). Imperative mood. No trailing period.
+- NO commit body. NO multi-sentence subject. Do not list files or describe "improvements".
+- Never start with "This commit", "Update", "Enhance", or restate the whole diff.
+
+Examples:
+- `fix(setup): align toolbar divider`
+- `refactor(crew): compact upcoming grid`
+
+Bad (never output this style):
+- `Refactor CSS styles for setup toolbar components to improve layout and responsiveness...`

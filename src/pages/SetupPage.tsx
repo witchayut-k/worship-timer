@@ -11,6 +11,7 @@ import {
   type SpreadsheetImportMode,
 } from '../components/SpreadsheetImportModal'
 import { SetupSegmentList, type DraftItem } from '../components/SetupSegmentList'
+import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
 import { BookIcon, PlusIcon, RotateCcwIcon } from '../components/SetupIcons'
 import type { ParsedProgramRow } from '../domain/spreadsheetImport'
 import {
@@ -155,6 +156,7 @@ function SetupPageInner({
   const canStart = useMemo(() => items.length > 0, [items.length])
   const totalSec = useMemo(() => items.reduce((s, it) => s + it.durationSec, 0), [items])
   const totalLabel = formatSecToHhMmSs(totalSec)
+  const plannedSchedule = usePlannedSegmentSchedule(items, date, plannedStartTime)
   const setupEventId = routeEventId ?? lastEventId ?? null
   const productionMode = isProductionForEvent(setupEventId)
   const liveEventId = useMemo(() => {
@@ -747,6 +749,14 @@ function SetupPageInner({
                 <span className="setupDurationChipLabel">{t('setup.totalDuration')}</span>
                 <span className="setupDurationChipValue timeMono">{totalLabel}</span>
               </div>
+              {plannedSchedule.enabled ? (
+                <div className="setupDurationChip setupEndsChip">
+                  <span className="setupDurationChipLabel">{t('setup.programEnd')}</span>
+                  <span className="setupDurationChipValue timeMono">
+                    {plannedSchedule.programEndLabel}
+                  </span>
+                </div>
+              ) : null}
               <button className="btnPrimary btnWithIcon" type="button" onClick={onAdd}>
                 <PlusIcon />
                 <span>{t('setup.addItem')}</span>
@@ -756,6 +766,8 @@ function SetupPageInner({
           <div className="setupProgramTableScroll">
             <SetupSegmentList
               items={items}
+              eventDate={date}
+              plannedStartTime={plannedStartTime}
               autoFocusId={autoFocusId}
               onAutoFocusDone={onAutoFocusDone}
               liveIndex={productionMode ? liveIndex : null}

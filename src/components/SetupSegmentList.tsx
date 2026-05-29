@@ -19,12 +19,16 @@ import { CSS } from '@dnd-kit/utilities'
 import { DurationInput } from './DurationInput'
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { useLocale } from '../i18n/useLocale'
+import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
+import { ProgramTimeline, ProgramTimelineRow } from './ProgramTimeline'
 import type { StageTheme } from '../lib/displayTheme'
 
 export type DraftItem = ProgramItem & { id: string }
 
 type SetupSegmentListProps = {
   items: DraftItem[]
+  eventDate?: string
+  plannedStartTime?: string
   autoFocusId: string | null
   onAutoFocusDone: () => void
   liveIndex?: number | null
@@ -59,6 +63,7 @@ type SortableRowProps = {
   rowIndex: number
   reorderDisabled: boolean
   reorderDisabledTitle: string | undefined
+  timelineEnabled: boolean
   onUpdate: (id: string, patch: Partial<DraftItem>) => void
   onRemove: (id: string, index: number) => void
   onAutoFocusDone: () => void
@@ -73,6 +78,7 @@ function SortableRow({
   rowIndex,
   reorderDisabled,
   reorderDisabledTitle,
+  timelineEnabled,
   onUpdate,
   onRemove,
   onAutoFocusDone,
@@ -93,7 +99,6 @@ function SortableRow({
     if (!autoFocus) return
     const el = nameInputRef.current
     if (!el) return
-    // Focus + select so user can immediately type over the default name.
     el.focus()
     el.select()
     onAutoFocusDone()
@@ -108,11 +113,20 @@ function SortableRow({
         }
       : undefined
 
+  const rowClass = [
+    'segmentRow',
+    timelineEnabled ? 'setupTimelineCard' : '',
+    isLive ? 'segmentRowLive setupTimelineCardLive' : '',
+    isDragging ? 'segmentRowDragging' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`segmentRow ${isLive ? 'segmentRowLive' : ''} ${isDragging ? 'segmentRowDragging' : ''}`}
+      className={rowClass}
       aria-current={isLive ? 'step' : undefined}
     >
       <div
@@ -188,6 +202,8 @@ function SortableRow({
 
 export function SetupSegmentList({
   items,
+  eventDate,
+  plannedStartTime,
   autoFocusId,
   onAutoFocusDone,
   liveIndex = null,
@@ -200,6 +216,7 @@ export function SetupSegmentList({
   onRemove,
 }: SetupSegmentListProps) {
   const { t } = useLocale()
+  const schedule = usePlannedSegmentSchedule(items, eventDate, plannedStartTime)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -218,37 +235,77 @@ export function SetupSegmentList({
     return <p className="setupEmptyProgram">{t('setup.emptyProgram')}</p>
   }
 
+  const renderRow = (it: DraftItem, idx: number) => {
+    const isLive = liveIndex != null && idx === liveIndex
+    const rowState =
+      liveIndex != null
+        ? idx < liveIndex
+          ? 'past'
+          : idx === liveIndex
+            ? 'current'
+            : 'upcoming'
+        : 'upcoming'
+    const plannedRow = schedule.enabled ? schedule.rows[idx] : null
+
+    const sortable = (
+      <SortableRow
+        item={it}
+        autoFocus={it.id === autoFocusId}
+        isLive={isLive}
+        livePhase={livePhase}
+        liveDotTheme={liveDotTheme}
+        rowIndex={idx}
+        reorderDisabled={reorderDisabled}
+        reorderDisabledTitle={reorderDisabledTitle}
+        timelineEnabled={schedule.enabled}
+        onUpdate={onUpdate}
+        onRemove={onRemove}
+        onAutoFocusDone={onAutoFocusDone}
+      />
+    )
+
+    if (!schedule.enabled) {
+      return <div key={it.id}>{sortable}</div>
+    }
+
+    return (
+      <ProgramTimelineRow
+        key={it.id}
+        rowState={rowState}
+        startLabel={plannedRow?.startLabel ?? null}
+        endLabel={plannedRow?.endLabel ?? null}
+        isLast={idx === items.length - 1}
+        className="setupTimelineRow"
+      >
+        {sortable}
+      </ProgramTimelineRow>
+    )
+  }
+
+  const listBody = (
+    <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
+      {items.map((it, idx) => renderRow(it, idx))}
+    </SortableContext>
+  )
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-      <div className="segmentTable">
-        <div className="segmentTableHead" aria-hidden>
-          <span />
-          <span>{t('setupSegment.colName')}</span>
-          <span>{t('setupSegment.colLeader')}</span>
-          <span>{t('setupSegment.colDuration')}</span>
-          <span>{t('setupSegment.colLights')}</span>
-          <span>{t('setupSegment.colMedia')}</span>
-          <span />
+      {schedule.enabled ? (
+        <ProgramTimeline className="setupTimeline">{listBody}</ProgramTimeline>
+      ) : (
+        <div className="segmentTable">
+          <div className="segmentTableHead" aria-hidden>
+            <span />
+            <span>{t('setupSegment.colName')}</span>
+            <span>{t('setupSegment.colLeader')}</span>
+            <span>{t('setupSegment.colDuration')}</span>
+            <span>{t('setupSegment.colLights')}</span>
+            <span>{t('setupSegment.colMedia')}</span>
+            <span />
+          </div>
+          {listBody}
         </div>
-        <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
-          {items.map((it, idx) => (
-            <SortableRow
-              key={it.id}
-              item={it}
-              autoFocus={it.id === autoFocusId}
-              isLive={liveIndex != null && idx === liveIndex}
-              livePhase={livePhase}
-              liveDotTheme={liveDotTheme}
-              rowIndex={idx}
-              reorderDisabled={reorderDisabled}
-              reorderDisabledTitle={reorderDisabledTitle}
-              onUpdate={onUpdate}
-              onRemove={onRemove}
-              onAutoFocusDone={onAutoFocusDone}
-            />
-          ))}
-        </SortableContext>
-      </div>
+      )}
     </DndContext>
   )
 }

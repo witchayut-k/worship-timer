@@ -1,0 +1,27 @@
+---
+description: Commit message สั้นเสมอ — Conventional Commits, subject ≤50 ตัวอักษร, ไม่มี body ยาว
+alwaysApply: true
+---
+
+# Short commits
+
+When the user asks to commit, or you draft a commit message for this repo, **always use a short message**. Do not write paragraph-length subjects or multi-sentence bodies by default.
+
+## Format
+
+- `type(scope): imperative summary` — scope optional
+- Types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `chore`, `build`, `ci`, `style`, `revert`
+- Imperative mood: `add`, `fix`, `remove` — not `added` / `adding`
+- **Subject ≤50 characters** when possible (hard cap 72)
+- No trailing period on the subject
+
+## Body
+
+- **Omit the body** when the subject is self-explanatory (most commits)
+- Add a body **only** for breaking changes, security fixes, or data migrations
+
+## Examples
+
+✅ `refactor(setup): tighten toolbar layout`
+
+❌ `Refactor CSS styles for setup toolbar components to improve layout and responsiveness...`

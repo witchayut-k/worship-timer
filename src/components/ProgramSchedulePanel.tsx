@@ -1,20 +1,15 @@
 import {
   memo,
   useEffect,
-  useMemo,
   useRef,
-  useState,
   type ReactNode,
   type RefObject,
 } from 'react'
-import {
-  computeSegmentPlannedStartMs,
-  formatWallClockShort,
-  parsePlannedStartMs,
-} from '../domain/schedule'
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { formatSecToMmSs, formatSignedMMSS } from '../domain/time'
 import { useLocale } from '../i18n/useLocale'
+import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
+import { ProgramTimeline, ProgramTimelineRow } from './ProgramTimeline'
 import { LightingCueIcon, MediaCueIcon } from './CrewCueIcons'
 
 type BaseProps = {
@@ -70,18 +65,70 @@ function CrewNotes({ item }: { item: ProgramItem }) {
   )
 }
 
-type RowProps = {
+type RowContentProps = {
   item: ProgramItem
   idx: number
   isCurrent: boolean
   isPast: boolean
   phase: RuntimePhase
   displayRemainingSec?: number
-  segmentStartLabel: string | null
   showCrewNotes: boolean
+  showDurationFallback: boolean
+}
+
+function ScheduleRowAside({
+  isPast,
+  isCurrent,
+  phase,
+  displayRemainingSec,
+  item,
+  showDurationFallback,
+}: Omit<RowContentProps, 'idx' | 'showCrewNotes' | 'item'> & { item: ProgramItem }) {
+  const { t } = useLocale()
+  const isRunning = isCurrent && phase === 'running'
+  const isPaused = isCurrent && phase === 'paused'
+
+  if (isPast) {
+    return (
+      <span className="programScheduleStatusLabel programScheduleStatusLabelDone">
+        {t('control.scheduleDone')}
+      </span>
+    )
+  }
+
+  if (isCurrent) {
+    return (
+      <div className="programScheduleAsideStack">
+        {isRunning ? (
+          <span className="programScheduleStatusLabel programScheduleStatusLabelLive">
+            {t('control.scheduleLive')}
+          </span>
+        ) : isPaused ? (
+          <span className="programScheduleStatusLabel programScheduleStatusLabelPaused">
+            {t('control.paused')}
+          </span>
+        ) : null}
+        {displayRemainingSec != null ? (
+          <span className="timeMono programScheduleTime">{formatSignedMMSS(displayRemainingSec)}</span>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (showDurationFallback) {
+    return (
+      <span className="muted programScheduleDuration">{formatSecToMmSs(item.durationSec)}</span>
+    )
+  }
+
+  return null
+}
+
+type ScheduleRowProps = RowContentProps & {
   readOnly: boolean
   onJumpTo?: (index: number) => void
   rowRef?: RefObject<HTMLDivElement | null>
+  useTimelineLayout: boolean
 }
 
 const ProgramScheduleRow = memo(function ProgramScheduleRow({
@@ -91,57 +138,56 @@ const ProgramScheduleRow = memo(function ProgramScheduleRow({
   isPast,
   phase,
   displayRemainingSec,
-  segmentStartLabel,
   showCrewNotes,
+  showDurationFallback,
   readOnly,
   onJumpTo,
   rowRef,
-}: RowProps) {
-  const { t } = useLocale()
-  const isRunning = isCurrent && phase === 'running'
-  const isPaused = isCurrent && phase === 'paused'
-
-  const aside = isPast ? (
-    <span className="programScheduleStatusLabel programScheduleStatusLabelDone">
-      {t('control.scheduleDone')}
-    </span>
-  ) : isCurrent ? (
-    <div className="programScheduleAsideStack">
-      {isRunning ? (
-        <span className="programScheduleStatusLabel programScheduleStatusLabelLive">
-          {t('control.scheduleLive')}
-        </span>
-      ) : isPaused ? (
-        <span className="programScheduleStatusLabel programScheduleStatusLabelPaused">
-          {t('control.paused')}
-        </span>
-      ) : null}
-      {displayRemainingSec != null ? (
-        <span className="timeMono programScheduleTime">{formatSignedMMSS(displayRemainingSec)}</span>
-      ) : null}
-    </div>
-  ) : (
-    <div className="programScheduleAsideStack">
-      {segmentStartLabel ? (
-        <span className="muted programSchedulePlanned">{segmentStartLabel}</span>
-      ) : null}
-      <span className="muted programScheduleDuration">{formatSecToMmSs(item.durationSec)}</span>
-    </div>
-  )
-
-  const pickContent = (
+  useTimelineLayout,
+}: ScheduleRowProps) {
+  const pickBody = (
     <>
-      <span className="programScheduleOrder" aria-hidden>
-        {padOrder(item.order)}
-      </span>
+      {!useTimelineLayout ? (
+        <span className="programScheduleOrder" aria-hidden>
+          {padOrder(item.order)}
+        </span>
+      ) : null}
       <div className="programScheduleMain">
         <div className="programScheduleItemTitle">{item.name}</div>
         <div className="programScheduleLeader muted">{item.leaderName || '—'}</div>
         {showCrewNotes ? <CrewNotes item={item} /> : null}
       </div>
-      <div className="programScheduleAside">{aside}</div>
+      <div className="programScheduleAside">
+        <ScheduleRowAside
+          item={item}
+          isPast={isPast}
+          isCurrent={isCurrent}
+          phase={phase}
+          displayRemainingSec={displayRemainingSec}
+          showDurationFallback={showDurationFallback}
+        />
+      </div>
     </>
   )
+
+  const pickClass = [
+    'programSchedulePick',
+    useTimelineLayout ? 'programTimelinePick' : '',
+    readOnly ? 'programSchedulePickReadOnly' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  let pick: ReactNode
+  if (readOnly) {
+    pick = <div className={pickClass}>{pickBody}</div>
+  } else {
+    pick = (
+      <button type="button" className={pickClass} onClick={() => onJumpTo?.(idx)}>
+        {pickBody}
+      </button>
+    )
+  }
 
   const rowClass = [
     'programScheduleRow',
@@ -150,23 +196,6 @@ const ProgramScheduleRow = memo(function ProgramScheduleRow({
   ]
     .filter(Boolean)
     .join(' ')
-
-  let pick: ReactNode
-  if (readOnly) {
-    pick = (
-      <div className="programSchedulePick programSchedulePickReadOnly">{pickContent}</div>
-    )
-  } else {
-    pick = (
-      <button
-        type="button"
-        className="programSchedulePick"
-        onClick={() => onJumpTo?.(idx)}
-      >
-        {pickContent}
-      </button>
-    )
-  }
 
   return (
     <div ref={rowRef} className={rowClass}>
@@ -190,12 +219,8 @@ export function ProgramSchedulePanel({
   listClassName,
 }: Props) {
   const { t } = useLocale()
-  const [nowMs] = useState(() => Date.now())
   const activeRowRef = useRef<HTMLDivElement>(null)
-  const plannedStartMs = useMemo(() => {
-    if (!eventDate?.trim() || !plannedStartTime?.trim()) return null
-    return parsePlannedStartMs(eventDate, plannedStartTime, nowMs)
-  }, [eventDate, plannedStartTime, nowMs])
+  const schedule = usePlannedSegmentSchedule(items, eventDate, plannedStartTime)
 
   useEffect(() => {
     if (!scrollActiveIntoView) return
@@ -205,38 +230,71 @@ export function ProgramSchedulePanel({
   const sectionClass = ['programSchedule', className].filter(Boolean).join(' ')
   const listClass = ['programScheduleList', listClassName].filter(Boolean).join(' ')
 
+  const renderRow = (idx: number) => {
+    const it = items[idx]
+    if (!it) return null
+
+    const isCurrent = idx === currentIndex
+    const isPast = idx < currentIndex
+    const rowState = isPast ? 'past' : isCurrent ? 'current' : 'upcoming'
+    const plannedRow = schedule.enabled ? schedule.rows[idx] : null
+
+    const rowProps: ScheduleRowProps = {
+      item: it,
+      idx,
+      isCurrent,
+      isPast,
+      phase,
+      displayRemainingSec: isCurrent ? displayRemainingSec : undefined,
+      showCrewNotes,
+      showDurationFallback: !schedule.enabled,
+      readOnly,
+      onJumpTo,
+      rowRef: isCurrent ? activeRowRef : undefined,
+      useTimelineLayout: schedule.enabled,
+    }
+
+    if (!schedule.enabled) {
+      return <ProgramScheduleRow key={`${it.order}-${it.name}-${idx}`} {...rowProps} />
+    }
+
+    return (
+      <ProgramTimelineRow
+        key={`${it.order}-${it.name}-${idx}`}
+        rowState={rowState}
+        startLabel={plannedRow?.startLabel ?? null}
+        endLabel={plannedRow?.endLabel ?? null}
+        isLast={idx === items.length - 1}
+        rowRef={isCurrent ? activeRowRef : undefined}
+        className={[
+          'programScheduleTimelineRow',
+          isCurrent ? 'programScheduleTimelineRowActive' : '',
+          isPast ? 'programScheduleTimelineRowPast' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <ProgramScheduleRow {...rowProps} />
+      </ProgramTimelineRow>
+    )
+  }
+
   return (
     <section className={sectionClass} aria-label={t('control.programSchedule')}>
       <div className="programScheduleHeader">
         <h2 className="programScheduleTitle">{t('control.programSchedule')}</h2>
+        {schedule.enabled ? (
+          <span className="programScheduleEndsChip muted">
+            {t('schedule.programEndsAt', { time: schedule.programEndLabel })}
+          </span>
+        ) : null}
       </div>
 
-      <div className={listClass}>
-        {items.map((it, idx) => {
-          const isCurrent = idx === currentIndex
-          const segmentStartMs =
-            plannedStartMs != null ? computeSegmentPlannedStartMs(plannedStartMs, items, idx) : null
-          const segmentStartLabel =
-            segmentStartMs != null ? formatWallClockShort(segmentStartMs) : null
-
-          return (
-            <ProgramScheduleRow
-              key={`${it.order}-${it.name}-${idx}`}
-              item={it}
-              idx={idx}
-              isCurrent={isCurrent}
-              isPast={idx < currentIndex}
-              phase={phase}
-              displayRemainingSec={isCurrent ? displayRemainingSec : undefined}
-              segmentStartLabel={segmentStartLabel}
-              showCrewNotes={showCrewNotes}
-              readOnly={readOnly}
-              onJumpTo={onJumpTo}
-              rowRef={isCurrent ? activeRowRef : undefined}
-            />
-          )
-        })}
-      </div>
+      {schedule.enabled ? (
+        <ProgramTimeline className={listClass}>{items.map((_, idx) => renderRow(idx))}</ProgramTimeline>
+      ) : (
+        <div className={listClass}>{items.map((_, idx) => renderRow(idx))}</div>
+      )}
     </section>
   )
 }

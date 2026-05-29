@@ -69,6 +69,72 @@ export function computeSegmentPlannedStartMs(
   return plannedStartMs + offsetSec * 1000
 }
 
+export function computeSegmentPlannedEndMs(
+  plannedStartMs: number,
+  items: ProgramItem[],
+  index: number,
+): number | null {
+  const startMs = computeSegmentPlannedStartMs(plannedStartMs, items, index)
+  if (startMs == null) return null
+  const durationSec = Math.max(0, items[index]?.durationSec ?? 0)
+  return startMs + durationSec * 1000
+}
+
+export function computeProgramPlannedEndMs(plannedStartMs: number, items: ProgramItem[]): number {
+  return plannedStartMs + sumDurationSec(items) * 1000
+}
+
+export type PlannedSegmentRow = {
+  startMs: number
+  endMs: number
+  startLabel: string
+  endLabel: string
+}
+
+export type PlannedSegmentSchedule =
+  | { enabled: false }
+  | {
+      enabled: true
+      plannedStartMs: number
+      programEndMs: number
+      programEndLabel: string
+      rows: PlannedSegmentRow[]
+    }
+
+export function buildPlannedSegmentSchedule(
+  items: ProgramItem[],
+  eventDate: string | undefined,
+  plannedStartTime: string | undefined,
+  nowMs: number = Date.now(),
+): PlannedSegmentSchedule {
+  if (!plannedStartTime?.trim() || !eventDate?.trim()) {
+    return { enabled: false }
+  }
+
+  const plannedStartMs = parsePlannedStartMs(eventDate, plannedStartTime, nowMs)
+  if (plannedStartMs == null) return { enabled: false }
+
+  const rows: PlannedSegmentRow[] = items.map((_, idx) => {
+    const startMs = computeSegmentPlannedStartMs(plannedStartMs, items, idx)!
+    const endMs = computeSegmentPlannedEndMs(plannedStartMs, items, idx)!
+    return {
+      startMs,
+      endMs,
+      startLabel: formatWallClockShort(startMs),
+      endLabel: formatWallClockShort(endMs),
+    }
+  })
+
+  const programEndMs = computeProgramPlannedEndMs(plannedStartMs, items)
+  return {
+    enabled: true,
+    plannedStartMs,
+    programEndMs,
+    programEndLabel: formatWallClockShort(programEndMs),
+    rows,
+  }
+}
+
 export function getTimezoneLabel(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local'
