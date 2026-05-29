@@ -231,17 +231,15 @@ export function ControlShell({
           {isPaid ? <span className="planBadge planBadgePro">{t('plan.proBadge')}</span> : null}
           <span className="appHeaderDivider" aria-hidden />
           <AppHeaderClock />
+          {isPaid && !productionMode ? libraryNav : null}
         </div>
 
         <nav className="appTopNav" aria-label={t('nav.mainMenu')}>
-          {isPaid && !productionMode ? libraryNav : null}
           {isPaid && productionMode ? (
             <>
               {controlNav}
               {setupNav}
               {stageNav}
-              <span className="appTopNavDivider" role="separator" />
-              {libraryNav}
             </>
           ) : (
             <>
@@ -253,6 +251,7 @@ export function ControlShell({
         </nav>
 
         <div className="appHeaderEnd">
+          {isPaid && productionMode ? libraryNav : null}
           {headerEnd}
           <ScheduleViewSettingsButton
             variant={settingsVariantForNav(activeNav)}
