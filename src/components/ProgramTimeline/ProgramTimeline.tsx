@@ -30,6 +30,7 @@ type ProgramTimelineRowProps = {
   rowRef?: RefObject<HTMLDivElement | null>
   className?: string
   currentDotStyle?: CSSProperties
+  hideTimeColumn?: boolean
 }
 
 function TimelineDot({
@@ -77,29 +78,37 @@ export function ProgramTimelineRow({
   rowRef,
   className,
   currentDotStyle,
+  hideTimeColumn = false,
 }: ProgramTimelineRowProps) {
   const rangeAria =
     startLabel && endLabel ? `${startLabel} – ${endLabel}` : (startLabel ?? undefined)
 
-  const rowClass = ['programTimelineRow', `programTimelineRow--${rowState}`, className]
+  const rowClass = [
+    'programTimelineRow',
+    `programTimelineRow--${rowState}`,
+    hideTimeColumn ? 'programTimelineRow--noTime' : '',
+    className,
+  ]
     .filter(Boolean)
     .join(' ')
 
   return (
     <div ref={rowRef} className={rowClass}>
-      <div className="programTimelineTime" aria-label={rangeAria}>
-        {startLabel ? (
-          <span className="programTimelineTimeStart">{startLabel}</span>
-        ) : (
-          <span
-            className="programTimelineTimeStart programTimelineTimePlaceholder"
-            aria-hidden
-          >
-            ···
-          </span>
-        )}
-        {endLabel ? <span className="programTimelineTimeEnd">{endLabel}</span> : null}
-      </div>
+      {hideTimeColumn ? null : (
+        <div className="programTimelineTime" aria-label={rangeAria}>
+          {startLabel ? (
+            <span className="programTimelineTimeStart">{startLabel}</span>
+          ) : (
+            <span
+              className="programTimelineTimeStart programTimelineTimePlaceholder"
+              aria-hidden
+            >
+              ···
+            </span>
+          )}
+          {endLabel ? <span className="programTimelineTimeEnd">{endLabel}</span> : null}
+        </div>
+      )}
       <div className="programTimelineRail">
         <TimelineDot rowState={rowState} style={currentDotStyle} />
       </div>

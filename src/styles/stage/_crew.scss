@@ -18,6 +18,22 @@
 .crewHeader {
   flex-shrink: 0;
   padding-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.crewHeaderMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.crewHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .crewPageTitle {

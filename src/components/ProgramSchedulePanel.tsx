@@ -9,7 +9,9 @@ import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { formatSecToMmSs, formatSignedMMSS } from '../domain/time'
 import { useLocale } from '../i18n/useLocale'
 import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
+import { useScheduleViewPrefs } from '../hooks/useScheduleViewPrefs'
 import { getLiveDotStyle, type StageTheme } from '../lib/displayTheme'
+import { resolveScheduleViewLayout } from '../lib/scheduleViewLayout'
 import { ProgramTimeline, ProgramTimelineRow } from './ProgramTimeline'
 import { LightingCueIcon, MediaCueIcon } from './CrewCueIcons'
 
@@ -76,6 +78,7 @@ type RowContentProps = {
   displayRemainingSec?: number
   showCrewNotes: boolean
   showDurationFallback: boolean
+  showRowTimes: boolean
 }
 
 function ScheduleRowAside({
@@ -85,6 +88,7 @@ function ScheduleRowAside({
   displayRemainingSec,
   item,
   showDurationFallback,
+  showRowTimes,
 }: Omit<RowContentProps, 'idx' | 'showCrewNotes' | 'item'> & { item: ProgramItem }) {
   const { t } = useLocale()
   const isRunning = isCurrent && phase === 'running'
@@ -110,14 +114,14 @@ function ScheduleRowAside({
             {t('control.paused')}
           </span>
         ) : null}
-        {displayRemainingSec != null ? (
+        {showRowTimes && displayRemainingSec != null ? (
           <span className="timeMono programScheduleTime">{formatSignedMMSS(displayRemainingSec)}</span>
         ) : null}
       </div>
     )
   }
 
-  if (showDurationFallback) {
+  if (showRowTimes && showDurationFallback) {
     return (
       <span className="muted programScheduleDuration">{formatSecToMmSs(item.durationSec)}</span>
     )
@@ -142,6 +146,7 @@ const ProgramScheduleRow = memo(function ProgramScheduleRow({
   displayRemainingSec,
   showCrewNotes,
   showDurationFallback,
+  showRowTimes,
   readOnly,
   onJumpTo,
   rowRef,
@@ -167,6 +172,7 @@ const ProgramScheduleRow = memo(function ProgramScheduleRow({
           phase={phase}
           displayRemainingSec={displayRemainingSec}
           showDurationFallback={showDurationFallback}
+          showRowTimes={showRowTimes}
         />
       </div>
     </>
@@ -222,8 +228,11 @@ export function ProgramSchedulePanel({
   liveDotTheme = null,
 }: Props) {
   const { t } = useLocale()
+  const { prefs } = useScheduleViewPrefs()
   const activeRowRef = useRef<HTMLDivElement>(null)
   const schedule = usePlannedSegmentSchedule(items, eventDate, plannedStartTime)
+  const layout = resolveScheduleViewLayout(schedule.enabled, prefs)
+  const effectiveShowCrewNotes = showCrewNotes && prefs.showCrewNotes
 
   useEffect(() => {
     if (!scrollActiveIntoView) return
@@ -249,15 +258,16 @@ export function ProgramSchedulePanel({
       isPast,
       phase,
       displayRemainingSec: isCurrent ? displayRemainingSec : undefined,
-      showCrewNotes,
-      showDurationFallback: !schedule.enabled,
+      showCrewNotes: effectiveShowCrewNotes,
+      showDurationFallback: layout.showDurationFallback,
+      showRowTimes: layout.showRowTimes,
       readOnly,
       onJumpTo,
       rowRef: isCurrent ? activeRowRef : undefined,
-      useTimelineLayout: schedule.enabled,
+      useTimelineLayout: layout.useTimelinePickLayout,
     }
 
-    if (!schedule.enabled) {
+    if (!layout.useTimelineWrapper) {
       return <ProgramScheduleRow key={`${it.order}-${it.name}-${idx}`} {...rowProps} />
     }
 
@@ -267,6 +277,7 @@ export function ProgramSchedulePanel({
         rowState={rowState}
         startLabel={plannedRow?.startLabel ?? null}
         endLabel={plannedRow?.endLabel ?? null}
+        hideTimeColumn={!layout.showPlannedTimes}
         rowRef={isCurrent ? activeRowRef : undefined}
         className={[
           'programScheduleTimelineRow',
@@ -286,14 +297,14 @@ export function ProgramSchedulePanel({
     <section className={sectionClass} aria-label={t('control.programSchedule')}>
       <div className="programScheduleHeader">
         <h2 className="programScheduleTitle">{t('control.programSchedule')}</h2>
-        {schedule.enabled ? (
+        {layout.showPlannedTimes && schedule.enabled ? (
           <span className="programScheduleEndsChip muted">
             {t('schedule.programEndsAt', { time: schedule.programEndLabel })}
           </span>
         ) : null}
       </div>
 
-      {schedule.enabled ? (
+      {layout.useTimelineWrapper ? (
         <ProgramTimeline className={listClass}>{items.map((_, idx) => renderRow(idx))}</ProgramTimeline>
       ) : (
         <div className={listClass}>{items.map((_, idx) => renderRow(idx))}</div>

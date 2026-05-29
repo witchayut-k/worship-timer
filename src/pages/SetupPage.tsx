@@ -687,6 +687,7 @@ function SetupPageInner({
       activeNav="setup"
       eventId={setupEventId}
       eventTitle={title}
+      timelineAvailable={Boolean(date.trim() && plannedStartTime.trim())}
       productionMode={productionMode}
       sessionStatus={{
         eventId: setupEventId,

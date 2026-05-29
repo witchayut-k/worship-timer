@@ -7,6 +7,8 @@ import { useRuntimePhase } from '../hooks/useRuntimePhase'
 import { useWorkspaceSessionTitle } from '../hooks/useWorkspaceSessionTitle'
 import { AppHeaderClock } from './AppHeaderClock'
 import { LanguageToggle } from './LanguageToggle'
+import { ScheduleViewSettingsButton } from './ScheduleViewSettingsButton'
+import type { ScheduleViewSettingsVariant } from './ScheduleViewSettingsModal'
 import { SessionStatusBadge } from './SessionStatusBadge'
 import { getOutputLink } from '../lib/outputLinks'
 import { BookIcon, ListIcon, MonitorIcon, SlidersIcon } from './SetupIcons'
@@ -35,8 +37,15 @@ type ControlShellProps = {
   sessionBarCenterContent?: ReactNode
   sessionBarRightContent?: ReactNode
   headerEnd?: ReactNode
+  timelineAvailable?: boolean
   aside?: ReactNode
   children: ReactNode
+}
+
+function settingsVariantForNav(activeNav: ControlNav): ScheduleViewSettingsVariant {
+  if (activeNav === 'control') return 'control'
+  if (activeNav === 'setup') return 'setup'
+  return 'default'
 }
 
 function NavTab({
@@ -77,6 +86,7 @@ export function ControlShell({
   sessionBarCenterContent,
   sessionBarRightContent,
   headerEnd,
+  timelineAvailable = false,
   aside,
   children,
 }: ControlShellProps) {
@@ -243,6 +253,10 @@ export function ControlShell({
 
         <div className="appHeaderEnd">
           {headerEnd}
+          <ScheduleViewSettingsButton
+            variant={settingsVariantForNav(activeNav)}
+            timelineAvailable={timelineAvailable}
+          />
           {isFree ? (
             <a className="btnGhost btnSm planUpgradeBtn" href="#upgrade">
               {t('plan.upgradeCta')}

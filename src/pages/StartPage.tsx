@@ -104,7 +104,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const controlWorkspaceRef = useRef<HTMLDivElement>(null);
   const { railWidth, minRailWidth, maxRailWidth, onResizerPointerDown } =
     useControlRailWidth(controlWorkspaceRef);
-  const { autoStartOnNext, setAutoStartOnNext } = useAutoStartOnNext();
+  const { autoStartOnNext } = useAutoStartOnNext();
 
   useEffect(() => {
     if (!cloudReady) return;
@@ -240,32 +240,22 @@ function StartPageInner({ eventId }: { eventId: string }) {
   }
 
   const displayTitle = title.trim() || t("event.untitled");
-  const sessionBarAutoStart = (
-    <label className="controlSessionAutoStart" title={t('control.autoStartOnNextHint')}>
-      <span className="controlSessionAutoStartTitle">{t('control.autoStartOnNext')}</span>
-      <span className="switch">
-        <input
-          type="checkbox"
-          checked={autoStartOnNext}
-          onChange={(e) => setAutoStartOnNext(e.target.checked)}
-        />
-        <span className="switchSlider" />
-      </span>
-    </label>
-  )
+  const timelineAvailable = Boolean(
+    eventMeta?.date?.trim() && eventMeta?.plannedStartTime?.trim(),
+  );
 
   return (
     <ControlShell
       activeNav="control"
       eventId={eventId}
       eventTitle={title}
+      timelineAvailable={timelineAvailable}
       productionMode={productionMode}
       sessionStatus={{
         eventId,
         productionMode,
         eventTitle: title,
       }}
-      sessionBarRightContent={sessionBarAutoStart}
       onLeaveToLibrary={requestLeave}
     >
       <div className="controlPage">

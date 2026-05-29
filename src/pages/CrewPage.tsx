@@ -11,6 +11,9 @@ import { resolveEventSettings } from '../domain/types'
 import { formatServiceDateLabel } from '../domain/serviceList'
 import { getStageTheme } from '../lib/displayTheme'
 import { useEventLiveSync } from '../hooks/useEventLiveSync'
+import { LanguageToggle } from '../components/LanguageToggle'
+import { ScheduleViewSettingsButton } from '../components/ScheduleViewSettingsButton'
+import { useScheduleViewPrefs } from '../hooks/useScheduleViewPrefs'
 import { useLocale } from '../i18n/useLocale'
 
 export function CrewPage() {
@@ -34,6 +37,10 @@ function CrewPageInner({ eventId }: { eventId: string }) {
   } = useEventLiveSync(eventId)
 
   const settings = resolveEventSettings(eventMeta)
+  const { prefs } = useScheduleViewPrefs()
+  const timelineAvailable = Boolean(
+    eventMeta?.date?.trim() && eventMeta?.plannedStartTime?.trim(),
+  )
   const liveDotTheme = useMemo(
     () => getStageTheme({ remainingSec, settings }),
     [remainingSec, settings],
@@ -61,8 +68,14 @@ function CrewPageInner({ eventId }: { eventId: string }) {
   return (
     <div className="crewView">
       <header className="crewHeader">
-        <h1 className="crewPageTitle">{displayTitle}</h1>
-        {pageSubtitle ? <p className="crewPageSubtitle muted">{pageSubtitle}</p> : null}
+        <div className="crewHeaderMain">
+          <h1 className="crewPageTitle">{displayTitle}</h1>
+          {pageSubtitle ? <p className="crewPageSubtitle muted">{pageSubtitle}</p> : null}
+        </div>
+        <div className="crewHeaderActions">
+          <ScheduleViewSettingsButton variant="crew" timelineAvailable={timelineAvailable} />
+          <LanguageToggle />
+        </div>
       </header>
 
       {current ? (
@@ -87,7 +100,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
               liveDotTheme={liveDotTheme}
               readOnly
               showCrewNotes
-              scrollActiveIntoView
+              scrollActiveIntoView={prefs.scrollActiveIntoView}
               className="programScheduleCrew"
               listClassName="programScheduleListCrew"
             />

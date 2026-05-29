@@ -21,8 +21,10 @@ import { TrashIcon } from './SetupIcons'
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { useLocale } from '../i18n/useLocale'
 import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
+import { useScheduleViewPrefs } from '../hooks/useScheduleViewPrefs'
 import { ProgramTimeline, ProgramTimelineRow } from './ProgramTimeline'
 import { getLiveDotStyle, type StageTheme } from '../lib/displayTheme'
+import { resolveScheduleViewLayout } from '../lib/scheduleViewLayout'
 
 export type DraftItem = ProgramItem & { id: string }
 
@@ -205,7 +207,9 @@ export function SetupSegmentList({
   onRemove,
 }: SetupSegmentListProps) {
   const { t } = useLocale()
+  const { prefs } = useScheduleViewPrefs()
   const schedule = usePlannedSegmentSchedule(items, eventDate, plannedStartTime)
+  const layout = resolveScheduleViewLayout(schedule.enabled, prefs)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -245,14 +249,14 @@ export function SetupSegmentList({
         rowIndex={idx}
         reorderDisabled={reorderDisabled}
         reorderDisabledTitle={reorderDisabledTitle}
-        timelineEnabled={schedule.enabled}
+        timelineEnabled={layout.useTimelinePickLayout}
         onUpdate={onUpdate}
         onRemove={onRemove}
         onAutoFocusDone={onAutoFocusDone}
       />
     )
 
-    if (!schedule.enabled) {
+    if (!layout.useTimelineWrapper) {
       return <div key={it.id}>{sortable}</div>
     }
 
@@ -262,6 +266,7 @@ export function SetupSegmentList({
         rowState={rowState}
         startLabel={plannedRow?.startLabel ?? null}
         endLabel={plannedRow?.endLabel ?? null}
+        hideTimeColumn={!layout.showPlannedTimes}
         className="setupTimelineRow"
         currentDotStyle={rowState === 'current' ? getLiveDotStyle(liveDotTheme) : undefined}
       >
@@ -278,7 +283,7 @@ export function SetupSegmentList({
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-      {schedule.enabled ? (
+      {layout.useTimelineWrapper ? (
         <ProgramTimeline className="setupTimeline">{listBody}</ProgramTimeline>
       ) : (
         <div className="segmentTable">{listBody}</div>
