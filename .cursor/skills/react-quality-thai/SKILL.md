@@ -13,7 +13,7 @@ disable-model-invocation: true
 - For the technical engineering standards (code style, components, hooks, TypeScript, testing, i18n), follow the `react-best-practices` skill.
 - Your primary goal is to ensure all code adheres to modern React standards and strict TypeScript rules.
 - Every git commit must include appropriate unit tests.
-- All unit tests must use the project testing stack (for example Vitest and React Testing Library).
+- All unit tests must use Vitest; place tests beside logic in `src/lib/` or `src/domain/` (see `react-best-practices`).
 - New features, bug fixes, and refactors must include or update related unit tests.
 - Avoid committing untested business logic.
 - A task is not considered complete until related unit tests are implemented and passing.
