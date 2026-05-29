@@ -3,14 +3,12 @@ import type {
   StageDisplayTemplate,
 } from "../domain/types";
 import type { SetupSaveStatus } from "../hooks/useSetupAutoSave";
-import { TableIcon } from "./SetupIcons";
 import { SetupStageTemplatePicker } from "./SetupStageTemplatePicker";
 import { useLocale } from "../i18n/useLocale";
 
 type SetupAsidePanelProps = {
   settings: EventDisplaySettings;
   onSettingsChange: (patch: Partial<EventDisplaySettings>) => void;
-  onOpenSpreadsheetImport: () => void;
   canStart: boolean;
   saving: boolean;
   saveStatus: SetupSaveStatus;
@@ -25,7 +23,6 @@ type SetupAsidePanelProps = {
 export function SetupAsidePanel({
   settings,
   onSettingsChange,
-  onOpenSpreadsheetImport,
   // canStart,
   // saving,
   // saveStatus,
@@ -72,24 +69,6 @@ export function SetupAsidePanel({
           </div>
         ) : null}
       </section> */}
-
-      <section className="asideCard setupAsideSection setupAsideSectionTools">
-        <h2 className="asideCardTitle setupAsideSectionTitle">
-          {t("setupAside.tools")}
-        </h2>
-        <div className="toolGrid">
-          <button
-            className="toolTile toolTileAction"
-            type="button"
-            onClick={onOpenSpreadsheetImport}
-          >
-            <span className="toolTileIcon" aria-hidden>
-              <TableIcon />
-            </span>
-            {t("setupAside.importSpreadsheet")}
-          </button>
-        </div>
-      </section>
 
       <section className="asideCard setupAsideSection setupAsideSectionStage">
         <h2 className="asideCardTitle setupAsideSectionTitle">

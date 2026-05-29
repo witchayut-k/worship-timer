@@ -14,7 +14,7 @@ import {
 } from '../components/SpreadsheetImportModal'
 import { SetupSegmentList, type DraftItem } from '../components/SetupSegmentList'
 import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
-import { BookIcon, PlusIcon, RotateCcwIcon } from '../components/SetupIcons'
+import { BookIcon, PlusIcon, RotateCcwIcon, TableIcon } from '../components/SetupIcons'
 import type { ParsedProgramRow } from '../domain/spreadsheetImport'
 import {
   DEFAULT_EVENT_DISPLAY_SETTINGS,
@@ -713,7 +713,6 @@ function SetupPageInner({
           <SetupAsidePanel
             settings={settings}
             onSettingsChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
-            onOpenSpreadsheetImport={() => setImportOpen(true)}
             canStart={canStart}
             saving={saving}
             saveStatus={saveStatus}
@@ -792,6 +791,14 @@ function SetupPageInner({
                   </span>
                 </div>
               ) : null}
+              <button
+                className="btnGhost btnWithIcon"
+                type="button"
+                onClick={() => setImportOpen(true)}
+              >
+                <TableIcon />
+                <span>{t('setup.import')}</span>
+              </button>
               <button className="btnPrimary btnWithIcon" type="button" onClick={onAdd}>
                 <PlusIcon />
                 <span>{t('setup.addItem')}</span>

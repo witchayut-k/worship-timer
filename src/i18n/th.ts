@@ -93,6 +93,7 @@ export const th: Messages = {
     saveFailed: 'บันทึกไม่สำเร็จ',
     saveCloudPermission: 'บันทึก Cloud ไม่สำเร็จ — ต้องมีสิทธิ์ controller ใน Firebase',
     addItem: 'เพิ่มรายการ',
+    import: 'นำเข้าจากตาราง',
     loadingProgram: 'กำลังโหลดโปรแกรม…',
     creatingEvent: 'กำลังเตรียม workspace…',
     eventDetails: 'รายละเอียดงาน',
@@ -141,8 +142,6 @@ export const th: Messages = {
     deleteBlockedRunning: 'พักเวลาในห้องควบคุมก่อนลบช่วงที่กำลังใช้งาน',
   },
   setupAside: {
-    tools: 'เครื่องมือ',
-    importSpreadsheet: 'นำเข้าจากตาราง',
     autoAdvance: 'เลื่อนอัตโนมัติ',
     comingSoon: 'เร็วๆ นี้',
     stageDisplay: 'จอเวที',

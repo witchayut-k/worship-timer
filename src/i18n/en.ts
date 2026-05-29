@@ -93,6 +93,7 @@ export const en = {
     saveFailed: 'Save failed',
     saveCloudPermission: 'Cloud save failed — controller permission required in Firebase',
     addItem: 'Add Segment',
+    import: 'Import from Table',
     loadingProgram: 'Loading program…',
     creatingEvent: 'Preparing your workspace…',
     eventDetails: 'Event Details',
@@ -141,8 +142,6 @@ export const en = {
     deleteBlockedRunning: 'Pause in Control Room before deleting the live segment',
   },
   setupAside: {
-    tools: 'Tools',
-    importSpreadsheet: 'Import from Spreadsheet',
     autoAdvance: 'Auto Advance',
     comingSoon: 'Coming Soon',
     stageDisplay: 'Stage display',
