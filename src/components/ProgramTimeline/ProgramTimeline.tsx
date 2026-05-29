@@ -1,4 +1,4 @@
-import { useRef, type ReactNode, type RefObject } from 'react'
+import { useRef, type CSSProperties, type ReactNode, type RefObject } from 'react'
 import { useTimelineTrackBounds } from '../../hooks/useTimelineTrackBounds'
 
 export type ProgramTimelineRowState = 'past' | 'current' | 'upcoming'
@@ -29,9 +29,16 @@ type ProgramTimelineRowProps = {
   children: ReactNode
   rowRef?: RefObject<HTMLDivElement | null>
   className?: string
+  currentDotStyle?: CSSProperties
 }
 
-function TimelineDot({ rowState }: { rowState: ProgramTimelineRowState }) {
+function TimelineDot({
+  rowState,
+  style,
+}: {
+  rowState: ProgramTimelineRowState
+  style?: CSSProperties
+}) {
   if (rowState === 'past') {
     return (
       <span className="programTimelineDot programTimelineDot--past" aria-hidden>
@@ -50,7 +57,13 @@ function TimelineDot({ rowState }: { rowState: ProgramTimelineRowState }) {
   }
 
   if (rowState === 'current') {
-    return <span className="programTimelineDot programTimelineDot--current" aria-hidden />
+    return (
+      <span
+        className="programTimelineDot programTimelineDot--current"
+        style={style}
+        aria-hidden
+      />
+    )
   }
 
   return <span className="programTimelineDot programTimelineDot--upcoming" aria-hidden />
@@ -63,6 +76,7 @@ export function ProgramTimelineRow({
   children,
   rowRef,
   className,
+  currentDotStyle,
 }: ProgramTimelineRowProps) {
   const rangeAria =
     startLabel && endLabel ? `${startLabel} – ${endLabel}` : (startLabel ?? undefined)
@@ -87,7 +101,7 @@ export function ProgramTimelineRow({
         {endLabel ? <span className="programTimelineTimeEnd">{endLabel}</span> : null}
       </div>
       <div className="programTimelineRail">
-        <TimelineDot rowState={rowState} />
+        <TimelineDot rowState={rowState} style={currentDotStyle} />
       </div>
       <div className="programTimelineCard">{children}</div>
     </div>

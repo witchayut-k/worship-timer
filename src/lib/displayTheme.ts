@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { EventDisplaySettings } from '../domain/types'
 
 export type StageThemeVariant = 'normal' | 'warning' | 'over' | 'overFlash'
@@ -44,6 +45,16 @@ const STAGE_COLORS: Record<
     secondary: '#ff9070',
     secondaryGlow: 'rgba(255, 144, 112, 0.45)',
   },
+}
+
+export function getLiveDotStyle(
+  theme: StageTheme | null | undefined,
+): CSSProperties | undefined {
+  if (!theme) return undefined
+  return {
+    ['--live-dot-accent' as string]: theme.accent,
+    ['--live-dot-glow' as string]: theme.glow,
+  }
 }
 
 export function getStageTheme(params: {

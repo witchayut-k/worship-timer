@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -22,7 +22,7 @@ import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { useLocale } from '../i18n/useLocale'
 import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
 import { ProgramTimeline, ProgramTimelineRow } from './ProgramTimeline'
-import type { StageTheme } from '../lib/displayTheme'
+import { getLiveDotStyle, type StageTheme } from '../lib/displayTheme'
 
 export type DraftItem = ProgramItem & { id: string }
 
@@ -60,7 +60,6 @@ type SortableRowProps = {
   autoFocus: boolean
   isLive: boolean
   livePhase: RuntimePhase | null
-  liveDotTheme: StageTheme | null
   rowIndex: number
   reorderDisabled: boolean
   reorderDisabledTitle: string | undefined
@@ -75,7 +74,6 @@ function SortableRow({
   autoFocus,
   isLive,
   livePhase,
-  liveDotTheme,
   rowIndex,
   reorderDisabled,
   reorderDisabledTitle,
@@ -105,15 +103,6 @@ function SortableRow({
     onAutoFocusDone()
   }, [autoFocus, onAutoFocusDone])
 
-  const pulse = isLive && livePhase === 'running'
-  const liveDotStyle: CSSProperties | undefined =
-    isLive && liveDotTheme
-      ? {
-          ['--live-dot-accent' as string]: liveDotTheme.accent,
-          ['--live-dot-glow' as string]: liveDotTheme.glow,
-        }
-      : undefined
-
   const rowClass = [
     'segmentRow',
     timelineEnabled ? 'setupTimelineCard' : '',
@@ -138,14 +127,6 @@ function SortableRow({
         aria-label={t('setupSegment.dragHandle')}
         title={reorderDisabled ? reorderDisabledTitle : undefined}
       >
-        {isLive ? (
-          <span
-            className={`segmentLiveDot${pulse ? ' segmentLiveDotPulse' : ''}`}
-            style={liveDotStyle}
-            role="img"
-            aria-label={t('setupSegment.liveNow')}
-          />
-        ) : null}
         ⋮⋮
       </div>
       <div className="field segmentColName" onClick={(e) => e.stopPropagation()}>
@@ -261,7 +242,6 @@ export function SetupSegmentList({
         autoFocus={it.id === autoFocusId}
         isLive={isLive}
         livePhase={livePhase}
-        liveDotTheme={liveDotTheme}
         rowIndex={idx}
         reorderDisabled={reorderDisabled}
         reorderDisabledTitle={reorderDisabledTitle}
@@ -283,6 +263,7 @@ export function SetupSegmentList({
         startLabel={plannedRow?.startLabel ?? null}
         endLabel={plannedRow?.endLabel ?? null}
         className="setupTimelineRow"
+        currentDotStyle={rowState === 'current' ? getLiveDotStyle(liveDotTheme) : undefined}
       >
         {sortable}
       </ProgramTimelineRow>

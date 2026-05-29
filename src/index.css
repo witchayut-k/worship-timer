@@ -1357,7 +1357,7 @@ textarea:focus {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 0;
 }
 
 .programTimelineContent {
@@ -1448,10 +1448,26 @@ textarea:focus {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: var(--brand);
-  box-shadow:
-    0 0 0 4px rgba(122, 162, 255, 0.22),
-    0 0 14px rgba(122, 162, 255, 0.55);
+  background: var(--live-dot-accent, var(--brand));
+  animation: programTimelineDotPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes programTimelineDotPulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--live-dot-accent, var(--brand)) 22%, transparent),
+      0 0 10px var(--live-dot-glow, rgba(122, 162, 255, 0.4));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--live-dot-accent, var(--brand)) 40%, transparent),
+      0 0 18px var(--live-dot-glow, rgba(122, 162, 255, 0.75));
+  }
 }
 
 .programTimelineDot--past {
@@ -1540,7 +1556,7 @@ textarea:focus {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.18);
-  padding: 8px 12px 8px 10px;
+  padding: 8px 8px 8px 10px;
 }
 
 .setupTimelineCard.segmentRow:focus-within {
@@ -2182,10 +2198,10 @@ body.setupSplitResizing {
 
 .segmentRow {
   display: grid;
-  grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
+  grid-template-columns: 32px minmax(140px, 1.5fr) minmax(110px, 1.2fr) 96px minmax(88px, 1fr) minmax(88px, 1fr) 42px;
   gap: 10px;
   align-items: start;
-  padding: 6px 12px 6px 2px;
+  padding: 6px 6px 6px 2px;
   border-top: 1px solid #2e3346;
   /* border-radius: 12px; */
   /* background: rgba(0, 0, 0, 0.18); */
@@ -2201,6 +2217,26 @@ body.setupSplitResizing {
 .segmentRowDragging {
   opacity: 0.85;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.segmentRow > .segmentColHandle,
+.segmentRow > .field,
+.segmentRow > .segmentColDuration,
+.segmentRow > .segmentColDelete {
+  min-width: 0;
+}
+
+.segmentRow .field,
+.segmentRow .segmentColDuration .field {
+  width: 100%;
+}
+
+.segmentColDuration {
+  width: 100%;
+}
+
+.segmentColDelete {
+  justify-self: end;
 }
 
 .segmentColHandle {
@@ -2240,6 +2276,15 @@ body.setupSplitResizing {
 @media (prefers-reduced-motion: reduce) {
   .segmentLiveDotPulse {
     animation: none;
+  }
+
+  .programTimelineDot--current {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--live-dot-accent, var(--brand)) 28%, transparent),
+      0 0 14px var(--live-dot-glow, rgba(122, 162, 255, 0.55));
   }
 }
 
@@ -3642,7 +3687,7 @@ body.setupSplitResizing {
   }
 
   .segmentRow {
-    grid-template-columns: 28px minmax(100px, 1.2fr) minmax(80px, 1fr) 90px minmax(70px, 0.7fr) minmax(70px, 0.7fr) 44px;
+    grid-template-columns: 28px minmax(120px, 1.4fr) minmax(90px, 1.1fr) 90px minmax(75px, 0.9fr) minmax(75px, 0.9fr) 42px;
   }
 }
 
@@ -3714,5 +3759,6 @@ body.setupSplitResizing {
   }
   .segmentColDelete {
     grid-area: delete;
+    justify-self: end;
   }
 }

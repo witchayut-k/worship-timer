@@ -21,7 +21,7 @@ import { useControlRailWidth } from "../hooks/useControlRailWidth";
 import { useEventSession } from "../hooks/useEventSession";
 import { useLeaveControl } from "../hooks/useLeaveControl";
 import { useLocale } from "../i18n/useLocale";
-import { getTimerThemeClasses } from "../lib/displayTheme";
+import { getStageTheme, getTimerThemeClasses } from "../lib/displayTheme";
 import { hasFirebaseConfig } from "../lib/firebase";
 import { isOfflineEventId } from "../lib/eventSource";
 import { loadStoredLocalRuntime, publishLocalRuntime } from "../lib/localSync";
@@ -77,6 +77,11 @@ function StartPageInner({ eventId }: { eventId: string }) {
     nowMs,
   );
   const timerClass = getTimerThemeClasses({
+    remainingSec: display.remainingSec,
+    settings,
+    manualFlash: manualFlashActive,
+  });
+  const liveDotTheme = getStageTheme({
     remainingSec: display.remainingSec,
     settings,
     manualFlash: manualFlashActive,
@@ -456,6 +461,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   displayRemainingSec={display.remainingSec}
                   eventDate={eventMeta?.date}
                   plannedStartTime={eventMeta?.plannedStartTime}
+                  liveDotTheme={liveDotTheme}
                   onJumpTo={jumpTo}
                 />
               </aside>

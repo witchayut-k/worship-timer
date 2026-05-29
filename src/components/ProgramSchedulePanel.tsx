@@ -9,6 +9,7 @@ import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { formatSecToMmSs, formatSignedMMSS } from '../domain/time'
 import { useLocale } from '../i18n/useLocale'
 import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
+import { getLiveDotStyle, type StageTheme } from '../lib/displayTheme'
 import { ProgramTimeline, ProgramTimelineRow } from './ProgramTimeline'
 import { LightingCueIcon, MediaCueIcon } from './CrewCueIcons'
 
@@ -25,6 +26,7 @@ type BaseProps = {
   scrollActiveIntoView?: boolean
   className?: string
   listClassName?: string
+  liveDotTheme?: StageTheme | null
 }
 
 type Props = BaseProps & {
@@ -217,6 +219,7 @@ export function ProgramSchedulePanel({
   scrollActiveIntoView = false,
   className,
   listClassName,
+  liveDotTheme = null,
 }: Props) {
   const { t } = useLocale()
   const activeRowRef = useRef<HTMLDivElement>(null)
@@ -272,6 +275,7 @@ export function ProgramSchedulePanel({
         ]
           .filter(Boolean)
           .join(' ')}
+        currentDotStyle={isCurrent ? getLiveDotStyle(liveDotTheme) : undefined}
       >
         <ProgramScheduleRow {...rowProps} />
       </ProgramTimelineRow>

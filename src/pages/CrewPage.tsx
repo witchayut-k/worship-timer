@@ -5,7 +5,9 @@ import { CrewNowCard } from '../components/CrewNowCard'
 import { CrewUpcomingGrid } from '../components/CrewUpcomingGrid'
 import { FullScreenLoading } from '../components/FullScreenLoading'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
+import { resolveEventSettings } from '../domain/types'
 import { formatServiceDateLabel } from '../domain/serviceList'
+import { getStageTheme } from '../lib/displayTheme'
 import { useEventLiveSync } from '../hooks/useEventLiveSync'
 import { useLocale } from '../i18n/useLocale'
 
@@ -28,6 +30,12 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     displayTitle,
     current,
   } = useEventLiveSync(eventId)
+
+  const settings = resolveEventSettings(eventMeta)
+  const liveDotTheme = useMemo(
+    () => getStageTheme({ remainingSec, settings }),
+    [remainingSec, settings],
+  )
 
   const pageSubtitle = useMemo(() => {
     const dateStr = eventMeta?.date?.trim()
@@ -68,6 +76,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
               displayRemainingSec={remainingSec}
               eventDate={eventMeta?.date}
               plannedStartTime={eventMeta?.plannedStartTime}
+              liveDotTheme={liveDotTheme}
               readOnly
               showCrewNotes
               scrollActiveIntoView
