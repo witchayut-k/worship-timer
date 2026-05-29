@@ -449,10 +449,9 @@
 }
 
 .programScheduleCrew .programTimeline {
-  --pt-time-col: 48px;
-  --pt-rail-col: 24px;
-  --pt-col-gap: 10px;
-  --pt-track-top: 18px;
+  --pt-time-col: 40px;
+  --pt-rail-col: 18px;
+  --pt-col-gap: 8px;
   padding-right: 2px;
 }
 
@@ -466,8 +465,8 @@
 
 @media (max-width: 400px) {
   .programScheduleCrew .programTimeline {
-    --pt-time-col: 44px;
-    --pt-rail-col: 22px;
+    --pt-time-col: 40px;
+    --pt-rail-col: 18px;
   }
 
   .programScheduleCrew .programSchedulePick:not(.programTimelinePick) {

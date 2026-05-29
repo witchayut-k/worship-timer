@@ -107,12 +107,13 @@ code {
 input:not([type='radio']):not([type='checkbox']),
 select,
 textarea {
+  font-size: var(--text-base);
   width: 100%;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.25);
   color: var(--text);
-  padding: 10px 12px;
+  padding: 8px 12px;
   outline: none;
 }
 input:not([type='radio']):not([type='checkbox']):focus,
@@ -1221,7 +1222,7 @@ textarea:focus {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 16px 14px 12px;
+  padding: 16px 14px 12px 10px;
   overflow: hidden;
 }
 
@@ -1347,34 +1348,35 @@ textarea:focus {
 }
 
 .programTimeline {
-  --pt-time-col: 52px;
-  --pt-rail-col: 28px;
-  --pt-col-gap: 12px;
+  --pt-time-col: 44px;
+  --pt-rail-col: 20px;
+  --pt-col-gap: 8px;
   --pt-rail-center-x: calc(var(--pt-time-col) + var(--pt-col-gap) + (var(--pt-rail-col) / 2));
   --pt-track-top: 20px;
-  --pt-track-bottom: 12px;
-  position: relative;
+  --pt-track-height: 0px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  padding-right: 4px;
+}
+
+.programTimelineContent {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-right: 4px;
+  min-height: 100%;
+  padding-top: 8px;
 }
 
 .programTimelineTrack {
   position: absolute;
-  left: calc(var(--pt-rail-center-x) - 1px);
+  left: calc(var(--pt-rail-center-x) - 0px);
   top: var(--pt-track-top);
-  bottom: var(--pt-track-bottom);
-  width: 2px;
-  border-radius: 1px;
-  background: linear-gradient(
-    180deg,
-    rgba(122, 162, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.12) 100%
-  );
+  height: var(--pt-track-height);
+  width: 1px;
+  border-radius: 3px;
+  background: var(--brand);
   z-index: 0;
   pointer-events: none;
 }
@@ -1403,11 +1405,15 @@ textarea:focus {
   font-weight: 600;
   line-height: 1.2;
   color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .programTimelineTimeEnd {
   font-size: var(--text-xs) !important;
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .programTimelineTimePlaceholder {
@@ -1430,17 +1436,17 @@ textarea:focus {
 }
 
 .programTimelineDot--upcoming {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  border: 1px solid var(--brand);
+  border: 2px solid rgba(122, 162, 255, 0.7);
   background: #0b1020;
 
 }
 
 .programTimelineDot--current {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--brand);
   box-shadow:
@@ -1450,21 +1456,22 @@ textarea:focus {
 
 .programTimelineDot--past {
   display: flex;
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  border: 1px solid var(--brand);
-  background: #0b1020;
-  color: var(--brand);
+  border: 2px solid rgba(122, 162, 255, 0.4);
+  background: rgb(111, 124, 152);
 }
 
 .programTimeline:has(.programTimelineRow--current) .programTimelineTrack {
   background: linear-gradient(
     180deg,
-    rgba(122, 162, 255, 0.75) 0%,
-    rgba(122, 162, 255, 0.35) 40%,
-    rgba(255, 255, 255, 0.12) 100%
+    rgba(122, 162, 255, 0.85) 0%,
+    rgba(122, 162, 255, 0.55) 40%,
+    rgba(122, 162, 255, 0.35) 100%
+    /* rgba(255, 255, 255, 0.12) 100% */
   );
+  /* background: rgba(122, 162, 255, 0.7); */
 }
 
 .programTimelineCard {
@@ -2050,14 +2057,6 @@ body.setupSplitResizing {
   padding-bottom: 16px;
 }
 
-.setupProgramTableScroll .segmentTableHead {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  /* background: var(--card); */
-  background: #2e3346;
-}
-
 .setupProgramHeadText {
   min-width: 0;
 }
@@ -2181,17 +2180,6 @@ body.setupSplitResizing {
   gap: 0;
 }
 
-.segmentTableHead {
-  display: grid;
-  grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
-  gap: 10px;
-  padding: 6px 10px;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--muted);
-}
-
 .segmentRow {
   display: grid;
   grid-template-columns: 32px minmax(120px, 1.2fr) minmax(100px, 1fr) 100px minmax(80px, 0.8fr) minmax(80px, 0.8fr) 52px;
@@ -2273,9 +2261,12 @@ body.setupSplitResizing {
 }
 
 .segmentRowDelete {
-  height: 42px;
-  padding: 0 8px;
-  font-size: var(--text-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
 }
 
 .segmentTable input:not([type='checkbox']):not([type='radio']) {
@@ -3650,7 +3641,6 @@ body.setupSplitResizing {
     max-height: min(45dvh, 420px);
   }
 
-  .segmentTableHead,
   .segmentRow {
     grid-template-columns: 28px minmax(100px, 1.2fr) minmax(80px, 1fr) 90px minmax(70px, 0.7fr) minmax(70px, 0.7fr) 44px;
   }
@@ -3689,10 +3679,6 @@ body.setupSplitResizing {
     grid-template-columns: 1fr;
   }
 
-  .segmentTableHead {
-    display: none;
-  }
-
   .segmentRow,
   .setupTimelineCard.segmentRow {
     grid-template-columns: 28px 1fr;
@@ -3706,8 +3692,8 @@ body.setupSplitResizing {
   }
 
   .programTimeline {
-    --pt-time-col: 44px;
-    --pt-rail-col: 22px;
+    --pt-time-col: 40px;
+    --pt-rail-col: 18px;
     --pt-col-gap: 8px;
   }
 

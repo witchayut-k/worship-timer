@@ -1,4 +1,5 @@
-import type { ReactNode, RefObject } from 'react'
+import { useRef, type ReactNode, type RefObject } from 'react'
+import { useTimelineTrackBounds } from '../../hooks/useTimelineTrackBounds'
 
 export type ProgramTimelineRowState = 'past' | 'current' | 'upcoming'
 
@@ -8,10 +9,15 @@ type ProgramTimelineProps = {
 }
 
 export function ProgramTimeline({ className, children }: ProgramTimelineProps) {
+  const contentRef = useRef<HTMLDivElement>(null)
+  useTimelineTrackBounds(contentRef, children)
+
   return (
     <div className={['programTimeline', className].filter(Boolean).join(' ')}>
-      <div className="programTimelineTrack" aria-hidden />
-      {children}
+      <div ref={contentRef} className="programTimelineContent">
+        <div className="programTimelineTrack" aria-hidden />
+        {children}
+      </div>
     </div>
   )
 }

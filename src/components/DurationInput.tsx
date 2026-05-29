@@ -31,7 +31,7 @@ export function DurationInput({ valueSec, onChangeSec, label }: Props) {
       {label ? <div className="label">{label}</div> : null}
       <input
         value={shown}
-        placeholder="05:00"
+        placeholder={t('duration.placeholder')}
         inputMode="numeric"
         aria-label={ariaLabel}
         onFocus={() => {

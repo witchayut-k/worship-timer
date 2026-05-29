@@ -50,6 +50,7 @@ export function SetupEventDetailsCard({
           <input
             type="time"
             value={plannedStartTime}
+            placeholder={t('setup.plannedStartPlaceholder')}
             onChange={(e) => onPlannedStartTimeChange(e.target.value)}
           />
         </label>

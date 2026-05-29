@@ -103,6 +103,7 @@ export const en = {
     titleRequired: 'Enter an event title before starting',
     date: 'Date',
     plannedStart: 'Start Time',
+    plannedStartPlaceholder: '09:00',
     totalDuration: 'Total Program Time',
     programEnd: 'Program end',
     startSection: 'Start',
@@ -136,11 +137,6 @@ export const en = {
     roomLightsAria: 'Room Lights',
     mediaPlaceholder: 'Media',
     mediaAria: 'Media',
-    colName: 'Segment',
-    colLeader: 'Leader / speaker',
-    colDuration: 'Duration',
-    colLights: 'Lights',
-    colMedia: 'Media',
     deleteBlockedRunning: 'Pause in Control Room before deleting the live segment',
   },
   setupAside: {
@@ -305,6 +301,7 @@ export const en = {
   },
   duration: {
     aria: 'Duration',
+    placeholder: '05:00',
   },
 }
 

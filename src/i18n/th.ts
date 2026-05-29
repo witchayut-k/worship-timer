@@ -103,6 +103,7 @@ export const th: Messages = {
     titleRequired: 'ใส่ชื่องานก่อนเริ่มควบคุม',
     date: 'วันที่',
     plannedStart: 'เวลาเริ่ม',
+    plannedStartPlaceholder: '09:00',
     totalDuration: 'รวมเวลาโปรแกรม',
     programEnd: 'จบงาน',
     startSection: 'เริ่มงาน',
@@ -136,11 +137,6 @@ export const th: Messages = {
     roomLightsAria: 'ไฟในห้องประชุม',
     mediaPlaceholder: 'มีเดีย',
     mediaAria: 'มีเดีย',
-    colName: 'ช่วง',
-    colLeader: 'ผู้นำ / ผู้พูด',
-    colDuration: 'ระยะเวลา',
-    colLights: 'ไฟ',
-    colMedia: 'มีเดีย',
     deleteBlockedRunning: 'พักเวลาในห้องควบคุมก่อนลบช่วงที่กำลังใช้งาน',
   },
   setupAside: {
@@ -211,7 +207,7 @@ export const th: Messages = {
     host: 'ผู้ดำเนินรายการ',
     upNext: 'ถัดไป',
     then: 'ต่อจากนั้น',
-    done: 'สิ้นสุด',
+    done: 'เสร็จแล้ว',
     segmentContext: 'บริบทโปรแกรม',
     lightingCue: 'คิวไฟ',
     mediaCue: 'คิวมีเดีย',
@@ -305,5 +301,6 @@ export const th: Messages = {
   },
   duration: {
     aria: 'ระยะเวลา',
+    placeholder: '05:00',
   },
 }

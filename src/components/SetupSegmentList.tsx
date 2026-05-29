@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { DurationInput } from './DurationInput'
+import { TrashIcon } from './SetupIcons'
 import type { ProgramItem, RuntimePhase } from '../domain/types'
 import { useLocale } from '../i18n/useLocale'
 import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
@@ -152,6 +153,7 @@ function SortableRow({
           ref={nameInputRef}
           value={item.name}
           onChange={(e) => onUpdate(item.id, { name: e.target.value })}
+          placeholder={t('setupSegment.itemName')}
           aria-label={t('setupSegment.itemName')}
         />
       </div>
@@ -159,6 +161,7 @@ function SortableRow({
         <input
           value={item.leaderName}
           onChange={(e) => onUpdate(item.id, { leaderName: e.target.value })}
+          placeholder={t('setupSegment.leaderSpeaker')}
           aria-label={t('setupSegment.leaderSpeaker')}
         />
       </div>
@@ -185,16 +188,21 @@ function SortableRow({
         />
       </div>
       <button
-        className="btnDanger segmentRowDelete segmentColDelete"
+        className="btnDanger btnWithIcon segmentRowDelete segmentColDelete"
         type="button"
         disabled={isLive && livePhase === 'running'}
-        title={isLive && livePhase === 'running' ? t('setupSegment.deleteBlockedRunning') : undefined}
+        aria-label={t('common.delete')}
+        title={
+          isLive && livePhase === 'running'
+            ? t('setupSegment.deleteBlockedRunning')
+            : t('common.delete')
+        }
         onClick={(e) => {
           e.stopPropagation()
           onRemove(item.id, rowIndex)
         }}
       >
-        {t('common.delete')}
+        <TrashIcon />
       </button>
     </div>
   )
@@ -292,18 +300,7 @@ export function SetupSegmentList({
       {schedule.enabled ? (
         <ProgramTimeline className="setupTimeline">{listBody}</ProgramTimeline>
       ) : (
-        <div className="segmentTable">
-          <div className="segmentTableHead" aria-hidden>
-            <span />
-            <span>{t('setupSegment.colName')}</span>
-            <span>{t('setupSegment.colLeader')}</span>
-            <span>{t('setupSegment.colDuration')}</span>
-            <span>{t('setupSegment.colLights')}</span>
-            <span>{t('setupSegment.colMedia')}</span>
-            <span />
-          </div>
-          {listBody}
-        </div>
+        <div className="segmentTable">{listBody}</div>
       )}
     </DndContext>
   )
