@@ -9,7 +9,7 @@ export function getPanelBounds(workspaceWidth?: number): { min: number; max: num
       max: Math.round(DEFAULT_PANEL_WIDTH * MAX_PANEL_RATIO),
     }
   }
-  let min = Math.round(workspaceWidth * MIN_PANEL_RATIO)
+  const min = Math.round(workspaceWidth * MIN_PANEL_RATIO)
   let max = Math.round(workspaceWidth * MAX_PANEL_RATIO)
   if (max < min) max = min
   return { min, max }

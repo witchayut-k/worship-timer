@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { useOptionalEventWorkspaceRuntime } from '../context/EventWorkspaceRuntimeContext'
-import { usePlan } from '../context/PlanProvider'
+import { useOptionalEventWorkspaceRuntime } from '../hooks/useOptionalEventWorkspaceRuntime'
+import { usePlan } from '../hooks/usePlan'
 import { useResizableAside } from '../hooks/useResizableAside'
 import { useRuntimePhase } from '../hooks/useRuntimePhase'
 import { useWorkspaceSessionTitle } from '../hooks/useWorkspaceSessionTitle'
@@ -81,7 +81,15 @@ export function ControlShell({
   children,
 }: ControlShellProps) {
   const { t } = useLocale()
-  const resizable = useResizableAside()
+  const {
+    gridRef,
+    asideWidth,
+    minAsideWidth,
+    maxAsideWidth,
+    isResizing,
+    gridStyle,
+    gutterProps,
+  } = useResizableAside()
   const { isPaid, isFree, homePath } = usePlan()
 
   const statusEventId = sessionStatus?.eventId ?? null
@@ -262,20 +270,20 @@ export function ControlShell({
       <div className="appMain">
         {aside ? (
           <div
-            ref={resizable.gridRef}
-            className={`setupMainGrid${resizable.isResizing ? ' setupMainGridResizing' : ''}`}
-            style={resizable.gridStyle}
+            ref={gridRef}
+            className={`setupMainGrid${isResizing ? ' setupMainGridResizing' : ''}`}
+            style={gridStyle}
           >
             <div className="setupMainColumn">{children}</div>
             <div
               className="setupSplitGutter"
               role="separator"
               aria-orientation="vertical"
-              aria-valuenow={resizable.asideWidth}
-              aria-valuemin={resizable.minAsideWidth}
-              aria-valuemax={resizable.maxAsideWidth}
+              aria-valuenow={asideWidth}
+              aria-valuemin={minAsideWidth}
+              aria-valuemax={maxAsideWidth}
               aria-label={t('setup.resizeAside')}
-              {...resizable.gutterProps}
+              {...gutterProps}
             />
             <aside className="setupAside">{aside}</aside>
           </div>

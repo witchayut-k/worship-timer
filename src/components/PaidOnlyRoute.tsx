@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { usePlan } from '../context/PlanProvider'
+import { usePlan } from '../hooks/usePlan'
 
 /** Renders child routes only on Paid plan; Free users go to single-session setup. */
 export function PaidOnlyRoute() {

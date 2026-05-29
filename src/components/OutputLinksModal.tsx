@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { StageDisplayTemplate } from '../domain/types'
-import type { StageTheme } from '../lib/displayTheme'
 import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
 import { getStagePreviewImageSrc } from '../lib/stagePreviewImages'
@@ -11,14 +10,6 @@ type Props = {
   onClose: () => void
   eventId: string
   stageTemplate: StageDisplayTemplate
-  remainingSec: number
-  durationSec: number
-  currentName: string
-  currentLeader: string
-  nextName: string | null
-  nextLeader: string | null
-  theme: StageTheme
-  paused?: boolean
 }
 
 function ControllerTabThumb() {
@@ -139,20 +130,16 @@ function StagePreviewImage({ stageTemplate }: { stageTemplate: StageDisplayTempl
   )
 }
 
-export function OutputLinksModal({
-  open,
+export function OutputLinksModal({ open, ...panelProps }: Props) {
+  if (!open) return null
+  return <OutputLinksModalPanel {...panelProps} />
+}
+
+function OutputLinksModalPanel({
   onClose,
   eventId,
   stageTemplate,
-  remainingSec: _remainingSec,
-  durationSec: _durationSec,
-  currentName: _currentName,
-  currentLeader: _currentLeader,
-  nextName: _nextName,
-  nextLeader: _nextLeader,
-  theme: _theme,
-  paused: _paused,
-}: Props) {
+}: Omit<Props, 'open'>) {
   const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<OutputLinkKind>('stage')
   const [copied, setCopied] = useState(false)
@@ -162,22 +149,16 @@ export function OutputLinksModal({
   const activeLink = links.find((l) => l.kind === activeTab) ?? links[0]
 
   useEffect(() => {
-    if (!open) return
-    setActiveTab('stage')
-    setCopied(false)
     closeRef.current?.focus()
-  }, [open])
+  }, [])
 
   useEffect(() => {
-    if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
-  if (!open) return null
+  }, [onClose])
 
   const close = () => {
     setCopied(false)

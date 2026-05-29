@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { useBlocker, useNavigate } from 'react-router-dom'
-import { usePlan } from '../context/PlanProvider'
+import { usePlan } from './usePlan'
 import { getStoredLocale, translate } from '../i18n/translate'
 import { useActiveControl } from './useActiveControl'
 

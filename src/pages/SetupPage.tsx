@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { usePlan } from '../context/PlanProvider'
+import { usePlan } from '../hooks/usePlan'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { ControlShell } from '../components/ControlShell'
 import { LeaveControlModal } from '../components/LeaveControlModal'
@@ -256,18 +256,24 @@ function SetupPageInner({
     }
   }, [liveEventId, cloudReady, uid])
 
-  const buildEvent = (roster: string[]): WorshipEvent => ({
-    title: title.trim(),
-    date,
-    ...(plannedStartTime.trim() ? { plannedStartTime: plannedStartTime.trim() } : {}),
-    status: 'active',
-    updatedAtMs: Date.now(),
-    settings,
-    leaderNames: roster,
-    ...(uid ? { ownerUid: uid } : {}),
-  })
+  const buildEvent = useCallback(
+    (roster: string[]): WorshipEvent => ({
+      title: title.trim(),
+      date,
+      ...(plannedStartTime.trim() ? { plannedStartTime: plannedStartTime.trim() } : {}),
+      status: 'active',
+      updatedAtMs: Date.now(),
+      settings,
+      leaderNames: roster,
+      ...(uid ? { ownerUid: uid } : {}),
+    }),
+    [title, date, plannedStartTime, settings, uid],
+  )
 
-  const buildProgramItems = (sourceItems: DraftItem[] = items): ProgramItem[] => draftItemsToProgramItems(sourceItems)
+  const buildProgramItems = useCallback(
+    (sourceItems: DraftItem[] = items): ProgramItem[] => draftItemsToProgramItems(sourceItems),
+    [items],
+  )
 
   const onAdd = () => {
     const id = newId()
@@ -368,7 +374,7 @@ function SetupPageInner({
     nav(`/start/${eventId}`)
   }
 
-  const persistLocal = (): string | null => {
+  const persistLocal = useCallback((): string | null => {
     if (isFree) return null
     const roster = collectLeadersFromItems(
       leaderNames,
@@ -384,34 +390,37 @@ function SetupPageInner({
     })
     setLastEventId(id)
     return id
-  }
+  }, [buildEvent, buildProgramItems, isEdit, isFree, items, lastEventId, leaderNames, routeEventId])
 
-  const persistCloud = async (touchRuntime: boolean): Promise<string | null> => {
-    if (!cloudMode || !uid) return null
-    const cloudRouteId =
-      routeEventId && !isOfflineEventId(routeEventId) ? routeEventId : null
-    const reuseCloudId =
-      isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
-    const eventId = cloudRouteId ?? (reuseCloudId ? lastEventId! : newCloudEventId())
-    const roster = collectLeadersFromItems(
-      leaderNames,
-      items.map((it) => it.leaderName),
-    )
-    const programItems = buildProgramItems()
-    const event = buildEvent(roster)
-    if (touchRuntime) {
-      await upsertEventWithItems({
-        eventId,
-        event,
-        items: programItems,
-        initialState: initialRuntimeState({ items: programItems }),
-      })
-    } else {
-      await upsertEventProgram({ eventId, event, items: programItems })
-    }
-    setLastEventId(eventId)
-    return eventId
-  }
+  const persistCloud = useCallback(
+    async (touchRuntime: boolean): Promise<string | null> => {
+      if (!cloudMode || !uid) return null
+      const cloudRouteId =
+        routeEventId && !isOfflineEventId(routeEventId) ? routeEventId : null
+      const reuseCloudId =
+        isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
+      const eventId = cloudRouteId ?? (reuseCloudId ? lastEventId! : newCloudEventId())
+      const roster = collectLeadersFromItems(
+        leaderNames,
+        items.map((it) => it.leaderName),
+      )
+      const programItems = buildProgramItems()
+      const event = buildEvent(roster)
+      if (touchRuntime) {
+        await upsertEventWithItems({
+          eventId,
+          event,
+          items: programItems,
+          initialState: initialRuntimeState({ items: programItems }),
+        })
+      } else {
+        await upsertEventProgram({ eventId, event, items: programItems })
+      }
+      setLastEventId(eventId)
+      return eventId
+    },
+    [buildEvent, buildProgramItems, cloudMode, isEdit, items, lastEventId, leaderNames, routeEventId, uid],
+  )
 
   const persistSetup = useCallback(
     async ({ touchRuntime }: { touchRuntime: boolean }): Promise<PersistSetupOutcome> => {
@@ -459,7 +468,7 @@ function SetupPageInner({
         }
       }
     },
-    [cloudMode, persistCloud, persistLocal, t, session, title, date, plannedStartTime, settings, leaderNames, items],
+    [buildEvent, buildProgramItems, cloudMode, persistCloud, persistLocal, t, session, title, date, plannedStartTime, settings, leaderNames, items],
   )
 
   const setupSnapshot = useMemo(

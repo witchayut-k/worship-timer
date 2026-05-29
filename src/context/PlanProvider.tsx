@@ -1,15 +1,7 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { sessionRoomSetupPath } from '../lib/freeSession'
-import { getPlanTier, isPaidPlan, type PlanTier } from '../lib/planTier'
-
-type PlanContextValue = {
-  tier: PlanTier
-  isPaid: boolean
-  isFree: boolean
-  homePath: string
-}
-
-const PlanContext = createContext<PlanContextValue | null>(null)
+import { getPlanTier, isPaidPlan } from '../lib/planTier'
+import { PlanContext, type PlanContextValue } from './planContext'
 
 export function PlanProvider({ children }: { children: ReactNode }) {
   const value = useMemo<PlanContextValue>(() => {
@@ -25,10 +17,4 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>
-}
-
-export function usePlan(): PlanContextValue {
-  const ctx = useContext(PlanContext)
-  if (!ctx) throw new Error('usePlan must be used within PlanProvider')
-  return ctx
 }

@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { usePlan } from "../context/PlanProvider";
+import { usePlan } from "../hooks/usePlan";
 import { isSessionRoomId, sessionRoomControlPath } from "../lib/freeSession";
 import { ControlEmptyStage } from "../components/ControlEmptyStage";
 import { ControlShell } from "../components/ControlShell";
@@ -21,7 +21,7 @@ import { useControlRailWidth } from "../hooks/useControlRailWidth";
 import { useEventSession } from "../hooks/useEventSession";
 import { useLeaveControl } from "../hooks/useLeaveControl";
 import { useLocale } from "../i18n/useLocale";
-import { getStageTheme, getTimerThemeClasses } from "../lib/displayTheme";
+import { getTimerThemeClasses } from "../lib/displayTheme";
 import { hasFirebaseConfig } from "../lib/firebase";
 import { isOfflineEventId } from "../lib/eventSource";
 import { loadStoredLocalRuntime, publishLocalRuntime } from "../lib/localSync";
@@ -81,12 +81,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
     settings,
     manualFlash: manualFlashActive,
   });
-  const stageTheme = getStageTheme({
-    remainingSec: display.remainingSec,
-    settings,
-    manualFlash: manualFlashActive,
-  });
-
   const current = items[state.currentIndex] ?? null;
   const prev = state.currentIndex > 0 ? items[state.currentIndex - 1] : null;
   const next =
@@ -484,14 +478,6 @@ function StartPageInner({ eventId }: { eventId: string }) {
         onClose={() => setOutputLinksOpen(false)}
         eventId={eventId}
         stageTemplate={settings.stageTemplate ?? "circle"}
-        remainingSec={display.remainingSec}
-        durationSec={current?.durationSec ?? 0}
-        currentName={current?.name ?? ""}
-        currentLeader={current?.leaderName ?? ""}
-        nextName={next?.name ?? null}
-        nextLeader={next?.leaderName ?? null}
-        theme={stageTheme}
-        paused={state.phase !== "running"}
       />
     </ControlShell>
   );

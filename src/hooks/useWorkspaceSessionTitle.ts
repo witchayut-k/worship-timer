@@ -23,5 +23,5 @@ export function useWorkspaceSessionTitle(
     if (fromEvent) return fromEvent
 
     return untitledLabel
-  }, [explicitTitle, session, session?.event?.title, session?.status, untitledLabel])
+  }, [explicitTitle, session, untitledLabel])
 }

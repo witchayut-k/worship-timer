@@ -28,6 +28,18 @@ export function useEventLiveSync(eventId: string) {
   const [blackout, setBlackout] = useState(false)
   const [manualFlashUntilMs, setManualFlashUntilMs] = useState<number | null>(null)
   const [syncReady, setSyncReady] = useState(() => initialSyncReady(eventId))
+  const [trackedEventId, setTrackedEventId] = useState(eventId)
+
+  if (eventId !== trackedEventId) {
+    setTrackedEventId(eventId)
+    setSyncReady(initialSyncReady(eventId))
+    if (local) {
+      setTitle(local.event.title)
+      setEventMeta(local.event)
+      setItems(local.items)
+      setBaseRemainingSec(local.items[0]?.durationSec ?? 0)
+    }
+  }
 
   const nowMs = useNowMs(200)
   const remainingSec = computeRemainingSec({
@@ -48,16 +60,6 @@ export function useEventLiveSync(eventId: string) {
   const markSyncReady = useCallback(() => {
     setSyncReady(true)
   }, [])
-
-  useEffect(() => {
-    setSyncReady(initialSyncReady(eventId))
-    if (local) {
-      setTitle(local.event.title)
-      setEventMeta(local.event)
-      setItems(local.items)
-      setBaseRemainingSec(local.items[0]?.durationSec ?? 0)
-    }
-  }, [eventId, local])
 
   useEffect(() => {
     if (!cloudReady) return

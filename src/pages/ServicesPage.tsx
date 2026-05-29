@@ -70,8 +70,38 @@ export function ServicesPage() {
 
   useEffect(() => {
     if (!ready) return
-    void refresh()
-  }, [ready, refresh])
+    let cancelled = false
+    void (async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        if (cloudMode && uid) {
+          const docs = await listEventsForUser(uid)
+          if (cancelled) return
+          setEntries(docs.map((d) => ({ ...d, itemCount: undefined })))
+        } else {
+          const local = listLocalEvents()
+          if (cancelled) return
+          setEntries(
+            local.map((e) => ({
+              id: e.id,
+              data: e.event,
+              itemCount: e.items.length,
+            })),
+          )
+        }
+      } catch (e) {
+        if (cancelled) return
+        setError(e instanceof Error ? e.message : t('services.loadFailed'))
+        setEntries([])
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [ready, cloudMode, t, uid])
 
   const filtered = useMemo(
     () => filterServiceEntries(entries, search, locale),

@@ -7,11 +7,7 @@ export function useAuth() {
   const [ready, setReady] = useState(!canUseAuth())
 
   useEffect(() => {
-    if (!canUseAuth()) {
-      setUser(null)
-      setReady(true)
-      return
-    }
+    if (!canUseAuth()) return
     let cancelled = false
     void (async () => {
       const anonUser = await signInAnonymouslyIfNeeded()

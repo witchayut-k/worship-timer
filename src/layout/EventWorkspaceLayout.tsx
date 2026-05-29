@@ -3,7 +3,7 @@ import { Component } from 'react'
 import type { ReactNode } from 'react'
 import { EventSessionLoadingGate } from '../components/EventSessionLoadingGate'
 import { EventSessionProvider } from '../context/EventSessionProvider'
-import { EventWorkspaceRuntimeProvider } from '../context/EventWorkspaceRuntimeContext'
+import { EventWorkspaceRuntimeProvider } from '../context/EventWorkspaceRuntimeProvider'
 import { useLocale } from '../i18n/useLocale'
 
 class WorkspaceErrorBoundary extends Component<
@@ -21,7 +21,7 @@ class WorkspaceErrorBoundary extends Component<
     return { hasError: true }
   }
 
-  componentDidCatch(_error: Error, _info: unknown) {}
+  componentDidCatch() {}
 
   render() {
     if (this.state.hasError) {

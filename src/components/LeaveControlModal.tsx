@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { usePlan } from '../context/PlanProvider'
+import { usePlan } from '../hooks/usePlan'
 import { useLocale } from '../i18n/useLocale'
 
 type LeaveControlModalProps = {

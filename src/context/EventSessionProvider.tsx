@@ -68,6 +68,74 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
     programItemsHydratedRef.current = programItemsHydrated
   }, [programItemsHydrated])
 
+  const canLoadSession = authReady && (!cloudReady || Boolean(uid))
+  const sessionLoadKey = canLoadSession ? `${eventId}:${uid ?? ''}` : null
+  const [activeSessionLoadKey, setActiveSessionLoadKey] = useState(sessionLoadKey)
+
+  if (sessionLoadKey !== activeSessionLoadKey) {
+    setActiveSessionLoadKey(sessionLoadKey)
+    if (sessionLoadKey !== null) {
+      const locale = getStoredLocale()
+      const tr = (key: string) => translate(key, locale)
+
+      if (isLibraryEventId(eventId)) {
+        const entry = getLocalEvent(eventId)
+        if (!entry) {
+          setError(tr('setup.loadLocalNotFound'))
+          setStatus('error')
+          setEvent(null)
+          setProgramItems([])
+          setProgramItemsHydrated(false)
+          setSetupDraft(null)
+          setLastSavedSnapshot(null)
+        } else {
+          const nextDraft = draftBundleFromEventProgram({
+            event: entry.event,
+            programItems: entry.items,
+          })
+          setEvent(entry.event)
+          setProgramItems(entry.items)
+          setSetupDraft(nextDraft)
+          setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+          setProgramItemsHydrated(true)
+          setError(null)
+          setStatus('ready')
+        }
+      } else if (eventId.startsWith('local-')) {
+        const payload = decodeLocalPayload(eventId)
+        if (!payload) {
+          setError(tr('setup.loadLegacyLocal'))
+          setStatus('error')
+          setEvent(null)
+          setProgramItems([])
+          setProgramItemsHydrated(false)
+          setSetupDraft(null)
+          setLastSavedSnapshot(null)
+        } else {
+          const nextDraft = draftBundleFromEventProgram({
+            event: payload.event,
+            programItems: payload.items,
+          })
+          setEvent(payload.event)
+          setProgramItems(payload.items)
+          setSetupDraft(nextDraft)
+          setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+          setProgramItemsHydrated(true)
+          setError(null)
+          setStatus('ready')
+        }
+      } else {
+        setStatus('loading')
+        setError(null)
+        setEvent(null)
+        setProgramItems([])
+        setProgramItemsHydrated(false)
+        setSetupDraft(null)
+        setLastSavedSnapshot(null)
+      }
+    }
+  }
+
   const refreshDraftFromServer = useCallback(
     (nextEvent: WorshipEvent | null, nextItems: ProgramItem[]) => {
       if (!nextEvent) return
@@ -85,65 +153,13 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
   )
 
   useEffect(() => {
-    if (!authReady) return
-    if (cloudReady && !uid) return
+    if (!sessionLoadKey) return
 
     let cancelled = false
     const locale = getStoredLocale()
     const t = (key: string) => translate(key, locale)
 
-    setStatus('loading')
-    setError(null)
-    setEvent(null)
-    setProgramItems([])
-    setProgramItemsHydrated(false)
-    programItemsHydratedRef.current = false
-    setSetupDraft(null)
-    setLastSavedSnapshot(null)
-
-    if (isLibraryEventId(eventId)) {
-      const entry = getLocalEvent(eventId)
-      if (!entry) {
-        if (!cancelled) {
-          setError(t('setup.loadLocalNotFound'))
-          setStatus('error')
-        }
-        return
-      }
-      if (cancelled) return
-      const nextDraft = draftBundleFromEventProgram({
-        event: entry.event,
-        programItems: entry.items,
-      })
-      setEvent(entry.event)
-      setProgramItems(entry.items)
-      setSetupDraft(nextDraft)
-      setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
-      setProgramItemsHydrated(true)
-      setStatus('ready')
-      return
-    }
-
-    if (eventId.startsWith('local-')) {
-      const payload = decodeLocalPayload(eventId)
-      if (!payload) {
-        if (!cancelled) {
-          setError(t('setup.loadLegacyLocal'))
-          setStatus('error')
-        }
-        return
-      }
-      if (cancelled) return
-      const nextDraft = draftBundleFromEventProgram({
-        event: payload.event,
-        programItems: payload.items,
-      })
-      setEvent(payload.event)
-      setProgramItems(payload.items)
-      setSetupDraft(nextDraft)
-      setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
-      setProgramItemsHydrated(true)
-      setStatus('ready')
+    if (isLibraryEventId(eventId) || eventId.startsWith('local-')) {
       return
     }
 
@@ -223,7 +239,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
     setError(t('setup.loadSignInRequired'))
     setStatus('error')
     return undefined
-  }, [eventId, authReady, cloudReady, uid, refreshDraftFromServer])
+  }, [sessionLoadKey, eventId, cloudReady, uid, refreshDraftFromServer])
 
   const hasSetupDraft = useCallback(() => setupDraftRef.current !== null, [])
 

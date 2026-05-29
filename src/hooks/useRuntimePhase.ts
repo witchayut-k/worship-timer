@@ -10,21 +10,30 @@ import {
 import { watchRuntimeState } from '../lib/firestoreRepo'
 
 export function useRuntimePhase(eventId: string | null | undefined) {
+  const [trackedEventId, setTrackedEventId] = useState(eventId)
   const [phase, setPhase] = useState<RuntimePhase | null>(
     () => readRuntimePhaseSnapshot(eventId).phase,
   )
   const [ready, setReady] = useState(() => readRuntimePhaseSnapshot(eventId).ready)
 
-  useEffect(() => {
+  if (eventId !== trackedEventId) {
+    setTrackedEventId(eventId)
     if (!eventId) {
       setPhase(null)
       setReady(false)
-      return
+    } else if (!isOfflineEventId(eventId) && !hasFirebaseConfig()) {
+      writeRuntimePhaseCache(eventId, 'stopped')
+      setPhase('stopped')
+      setReady(true)
+    } else {
+      const snapshot = readRuntimePhaseSnapshot(eventId)
+      setPhase(snapshot.phase)
+      setReady(snapshot.ready)
     }
+  }
 
-    const snapshot = readRuntimePhaseSnapshot(eventId)
-    setPhase(snapshot.phase)
-    setReady(snapshot.ready)
+  useEffect(() => {
+    if (!eventId) return
 
     if (isOfflineEventId(eventId)) {
       return subscribeLocalRuntime(eventId, (s) => {
@@ -34,16 +43,7 @@ export function useRuntimePhase(eventId: string | null | undefined) {
       })
     }
 
-    if (!hasFirebaseConfig()) {
-      writeRuntimePhaseCache(eventId, 'stopped')
-      setPhase('stopped')
-      setReady(true)
-      return
-    }
-
-    if (!snapshot.ready) {
-      setReady(false)
-    }
+    if (!hasFirebaseConfig()) return
 
     return watchRuntimeState(eventId, (s) => {
       const next = s?.phase ?? 'stopped'
