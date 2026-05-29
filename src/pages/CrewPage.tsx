@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { CrewDoneCard } from '../components/CrewDoneCard'
+import { CrewLiveMessageBanner } from '../components/CrewLiveMessageBanner'
 import { CrewNowCard } from '../components/CrewNowCard'
 import { CrewUpcomingGrid } from '../components/CrewUpcomingGrid'
 import { FullScreenLoading } from '../components/FullScreenLoading'
@@ -35,6 +36,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     displayTitle,
     current,
     serviceEnded,
+    activeMessage,
   } = useEventLiveSync(eventId)
 
   const settings = resolveEventSettings(eventMeta)
@@ -89,6 +91,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
               {t('crew.serviceEnded')}
             </div>
           ) : null}
+          {activeMessage ? <CrewLiveMessageBanner message={activeMessage} /> : null}
           {currentIndex > 0 ? <CrewDoneCard item={items[currentIndex - 1]} /> : null}
           <CrewNowCard
             current={current}

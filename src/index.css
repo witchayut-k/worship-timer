@@ -333,6 +333,99 @@ textarea:focus {
   border: 1px solid rgba(255, 255, 255, 0.16);
   overflow: hidden;
 }
+
+.controlLiveMessagePanel {
+  margin-top: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.12);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.controlLiveMessageTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.controlLiveMessageForm {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.controlLiveMessageInput {
+  flex: 1;
+  min-width: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.controlLiveMessageInput:focus {
+  outline: none;
+  border-color: rgba(122, 162, 255, 0.55);
+}
+
+.controlLiveMessageInput:disabled {
+  opacity: 0.5;
+}
+
+.controlLiveMessageSend {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.controlLiveMessageActive {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controlLiveMessageActiveBody {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.controlLiveMessageActiveLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.controlLiveMessageActiveText {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.controlLiveMessageActiveTime {
+  font-size: 12px;
+}
+
+.controlLiveMessageClear {
+  flex-shrink: 0;
+}
 .timerMeta {
   padding: 14px;
   background: rgba(0, 0, 0, 0.18);

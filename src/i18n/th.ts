@@ -200,6 +200,12 @@ export const th: Messages = {
     autoStartOnNextHint: 'เริ่มนับเวลาทันทีเมื่อกด Prev, Next หรือเลือกรายการในตารางโปรแกรม',
     endService: 'จบรอบ',
     endServiceEnded: 'จบรอบแล้ว',
+    liveMessage: 'ข้อความสด',
+    liveMessagePlaceholder: 'ข้อความถึงจอเวทีและทีมงาน…',
+    liveMessageSend: 'ส่ง',
+    liveMessageClear: 'ล้าง',
+    liveMessageSent: 'ส่งเมื่อ {time}',
+    liveMessageActive: 'ข้อความที่แสดงอยู่',
   },
   crew: {
     nowPlaying: 'กำลังแสดง',

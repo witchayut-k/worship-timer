@@ -200,6 +200,12 @@ export const en = {
     autoStartOnNextHint: 'Starts the timer when you use Prev, Next, or pick a segment in the schedule.',
     endService: 'End Service',
     endServiceEnded: 'Service Ended',
+    liveMessage: 'Live message',
+    liveMessagePlaceholder: 'Message for stage & crew…',
+    liveMessageSend: 'Send',
+    liveMessageClear: 'Clear',
+    liveMessageSent: 'Sent {time}',
+    liveMessageActive: 'Active message',
   },
   crew: {
     nowPlaying: 'Now playing',

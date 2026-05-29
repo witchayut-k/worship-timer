@@ -152,3 +152,66 @@ describe('reduceRuntimeState endService', () => {
     expect(reset.blackout).toBe(false)
   })
 })
+
+describe('reduceRuntimeState liveMessage', () => {
+  it('sets activeMessage with trimmed text', () => {
+    const base = initialRuntimeState({ items })
+    const next = reduceRuntimeState(base, {
+      type: 'setLiveMessage',
+      nowMs: 5000,
+      text: '  Stand for worship  ',
+    })
+
+    expect(next.activeMessage).toEqual({ text: 'Stand for worship', sentAtMs: 5000 })
+  })
+
+  it('rejects empty message', () => {
+    const base = initialRuntimeState({ items })
+    const next = reduceRuntimeState(base, {
+      type: 'setLiveMessage',
+      nowMs: 5000,
+      text: '   ',
+    })
+
+    expect(next).toBe(base)
+    expect(next.activeMessage).toBeNull()
+  })
+
+  it('clears activeMessage', () => {
+    const base = initialRuntimeState({ items })
+    const withMsg = reduceRuntimeState(base, {
+      type: 'setLiveMessage',
+      nowMs: 1000,
+      text: 'Hello',
+    })
+    const cleared = reduceRuntimeState(withMsg, { type: 'clearLiveMessage', nowMs: 2000 })
+
+    expect(cleared.activeMessage).toBeNull()
+  })
+
+  it('clearLiveMessage is no-op when already empty', () => {
+    const base = initialRuntimeState({ items })
+    const next = reduceRuntimeState(base, { type: 'clearLiveMessage', nowMs: 1000 })
+
+    expect(next).toBe(base)
+  })
+
+  it('preserves activeMessage on start and jumpTo', () => {
+    const base = initialRuntimeState({ items })
+    const withMsg = reduceRuntimeState(base, {
+      type: 'setLiveMessage',
+      nowMs: 1000,
+      text: 'Cue',
+    })
+    const started = reduceRuntimeState(withMsg, { type: 'start', nowMs: 2000 })
+    const jumped = reduceRuntimeState(started, {
+      type: 'jumpTo',
+      nowMs: 3000,
+      index: 1,
+      items,
+    })
+
+    expect(started.activeMessage).toEqual({ text: 'Cue', sentAtMs: 1000 })
+    expect(jumped.activeMessage).toEqual({ text: 'Cue', sentAtMs: 1000 })
+  })
+})

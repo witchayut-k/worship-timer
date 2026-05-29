@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { ProgramItem, RuntimePhase, WorshipEvent } from '../domain/types'
+import type { LiveMessage, ProgramItem, RuntimePhase, WorshipEvent } from '../domain/types'
 import { computeRemainingSec } from '../domain/time'
 import { hasFirebaseConfig } from '../lib/firebase'
 import { isOfflineEventId, resolveEventPayload } from '../lib/eventSource'
 import { subscribeLocalRuntime } from '../lib/localSync'
 import { watchEvent, watchProgramItems, watchRuntimeState } from '../lib/firestoreRepo'
+import { normalizeRuntimeState } from '../lib/runtimeEngine'
 import { useLocale } from '../i18n/useLocale'
 
 function initialSyncReady(eventId: string): boolean {
@@ -28,6 +29,7 @@ export function useEventLiveSync(eventId: string) {
   const [blackout, setBlackout] = useState(false)
   const [manualFlashUntilMs, setManualFlashUntilMs] = useState<number | null>(null)
   const [serviceEnded, setServiceEnded] = useState(false)
+  const [activeMessage, setActiveMessage] = useState<LiveMessage | null>(null)
   const [syncReady, setSyncReady] = useState(() => initialSyncReady(eventId))
   const [trackedEventId, setTrackedEventId] = useState(eventId)
 
@@ -84,6 +86,7 @@ export function useEventLiveSync(eventId: string) {
       setBlackout(s.blackout ?? false)
       setManualFlashUntilMs(s.manualFlashUntilMs ?? null)
       setServiceEnded(s.serviceEnded ?? false)
+      setActiveMessage(normalizeRuntimeState(s).activeMessage ?? null)
     })
     return () => {
       unsubEvent()
@@ -102,6 +105,7 @@ export function useEventLiveSync(eventId: string) {
       setBlackout(s.blackout ?? false)
       setManualFlashUntilMs(s.manualFlashUntilMs ?? null)
       setServiceEnded(s.serviceEnded ?? false)
+      setActiveMessage(normalizeRuntimeState(s).activeMessage ?? null)
     })
   }, [eventId, isLocal])
 
@@ -115,6 +119,7 @@ export function useEventLiveSync(eventId: string) {
     blackout,
     manualFlashUntilMs,
     serviceEnded,
+    activeMessage,
     nowMs,
     isCloud,
     cloudReady,

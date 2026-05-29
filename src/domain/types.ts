@@ -48,6 +48,11 @@ export type ProgramItem = {
   mediaNote?: string
 }
 
+export type LiveMessage = {
+  text: string
+  sentAtMs: number
+}
+
 export type RuntimeState = {
   currentIndex: number
   phase: RuntimePhase
@@ -60,6 +65,7 @@ export type RuntimeState = {
   manualFlashUntilMs: number | null
   /** When true, service is ended for crew/stage outputs (synced). */
   serviceEnded?: boolean
+  activeMessage?: LiveMessage | null
 }
 
 export type EventDoc = {

@@ -5,6 +5,7 @@ import { appConfig } from '../config/app.config'
 import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { SlidersIcon } from '../components/SetupIcons'
 import { StageDisplay } from '../components/StageDisplay'
+import { StageLiveMessageOverlay } from '../components/StageLiveMessageOverlay'
 import { resolveEventSettings } from '../domain/types'
 import { isManualFlashActive } from '../domain/stageOutput'
 import { useLocale } from '../i18n/useLocale'
@@ -37,6 +38,7 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
     displayTitle,
     current,
     next,
+    activeMessage,
   } = useEventLiveSync(eventId)
 
   const settings = resolveEventSettings(eventMeta)
@@ -110,6 +112,7 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
               theme={stageTheme}
               paused={phase === 'paused'}
             />
+            {activeMessage ? <StageLiveMessageOverlay message={activeMessage} /> : null}
             {blackout ? (
               <div className="viewerBlackout" aria-hidden={!serviceEnded}>
                 {serviceEnded ? (

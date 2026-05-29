@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { usePlan } from "../hooks/usePlan";
 import { isSessionRoomId, sessionRoomControlPath } from "../lib/freeSession";
 import { ControlEmptyStage } from "../components/ControlEmptyStage";
+import { ControlLiveMessagePanel } from "../components/ControlLiveMessagePanel";
 import { ControlShell } from "../components/ControlShell";
 import { ControlStageOutput } from "../components/ControlStageOutput";
 import { ControlTransportDock } from "../components/ControlTransportDock";
@@ -244,6 +245,16 @@ function StartPageInner({ eventId }: { eventId: string }) {
     setEndServiceOpen(false);
   };
 
+  const sendLiveMessage = (text: string) => {
+    dispatch({ type: "setLiveMessage", nowMs: Date.now(), text });
+  };
+
+  const clearLiveMessage = () => {
+    dispatch({ type: "clearLiveMessage", nowMs: Date.now() });
+  };
+
+  const activeMessage = state.activeMessage ?? null;
+
   if (isFree && !isSessionRoomId(eventId)) {
     return <Navigate to={sessionRoomControlPath()} replace />;
   }
@@ -330,6 +341,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   setupPath={eventId ? `/setup/${eventId}` : "/setup"}
                 />
               ) : (
+                <>
                 <section className={`timerCard ${timerClass}`}>
                   <div className="timerMeta timerMetaRow">
                     <div className="timerMetaSlot timerMetaPrev">
@@ -434,6 +446,13 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     </div>
                   </div>
                 </section>
+                <ControlLiveMessagePanel
+                  activeMessage={activeMessage}
+                  onSend={sendLiveMessage}
+                  onClear={clearLiveMessage}
+                  disabled={state.serviceEnded}
+                />
+                </>
               )}
             </div>
           </div>

@@ -1,4 +1,4 @@
-import type { ProgramItem, RuntimePhase, RuntimeState } from '../domain/types'
+import type { LiveMessage, ProgramItem, RuntimePhase, RuntimeState } from '../domain/types'
 import { MANUAL_FLASH_DURATION_MS } from '../domain/stageOutput'
 import { clampInt } from '../domain/time'
 
@@ -19,7 +19,19 @@ export type RuntimeAction =
   | { type: 'setBlackout'; nowMs: number; enabled: boolean; uid?: string | null }
   | { type: 'triggerManualFlash'; nowMs: number; uid?: string | null }
   | { type: 'endService'; nowMs: number; uid?: string | null }
+  | { type: 'setLiveMessage'; nowMs: number; text: string; uid?: string | null }
+  | { type: 'clearLiveMessage'; nowMs: number; uid?: string | null }
   | { type: 'hydrate'; state: RuntimeState }
+
+function normalizeActiveMessage(raw: LiveMessage | null | undefined): LiveMessage | null {
+  if (!raw || typeof raw.text !== 'string') return null
+  const text = raw.text.trim()
+  if (!text) return null
+  return {
+    text,
+    sentAtMs: typeof raw.sentAtMs === 'number' ? raw.sentAtMs : 0,
+  }
+}
 
 export function normalizeRuntimeState(state: RuntimeState): RuntimeState {
   return {
@@ -27,6 +39,7 @@ export function normalizeRuntimeState(state: RuntimeState): RuntimeState {
     blackout: state.blackout ?? false,
     manualFlashUntilMs: state.manualFlashUntilMs ?? null,
     serviceEnded: state.serviceEnded ?? false,
+    activeMessage: normalizeActiveMessage(state.activeMessage),
   }
 }
 
@@ -73,6 +86,7 @@ export function initialRuntimeState(params: { items: ProgramItem[]; uid?: string
     blackout: false,
     manualFlashUntilMs: null,
     serviceEnded: false,
+    activeMessage: null,
   }
 }
 
@@ -183,6 +197,21 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
         blackout: true,
         serviceEnded: true,
         manualFlashUntilMs: null,
+      }
+    }
+    case 'setLiveMessage': {
+      const text = action.text.trim()
+      if (!text) return prev
+      return {
+        ...base,
+        activeMessage: { text, sentAtMs: action.nowMs },
+      }
+    }
+    case 'clearLiveMessage': {
+      if (prev.activeMessage == null) return prev
+      return {
+        ...base,
+        activeMessage: null,
       }
     }
   }

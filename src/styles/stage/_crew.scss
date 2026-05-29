@@ -26,6 +26,29 @@
   flex: 1;
 }
 
+.crewLiveMessage {
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 162, 255, 0.35);
+  background: rgba(122, 162, 255, 0.1);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crewLiveMessageText {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.crewLiveMessageTime {
+  font-size: 12px;
+}
+
 .crewBrand {
   margin-bottom: 8px;
   line-height: 0;
