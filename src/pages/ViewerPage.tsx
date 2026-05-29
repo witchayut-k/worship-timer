@@ -112,7 +112,9 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
               theme={stageTheme}
               paused={phase === 'paused'}
             />
-            {activeMessage ? <StageLiveMessageOverlay message={activeMessage} /> : null}
+            {appConfig.liveMessageEnabled && activeMessage ? (
+              <StageLiveMessageOverlay message={activeMessage} />
+            ) : null}
             {blackout ? (
               <div className="viewerBlackout" aria-hidden={!serviceEnded}>
                 {serviceEnded ? (

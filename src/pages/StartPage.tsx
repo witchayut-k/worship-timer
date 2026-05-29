@@ -13,6 +13,7 @@ import { LeaveControlModal } from "../components/LeaveControlModal";
 import { MonitorIcon } from "../components/SetupIcons";
 import { OutputLinksModal } from "../components/OutputLinksModal";
 import { ProgramSchedulePanel } from "../components/ProgramSchedulePanel";
+import { appConfig } from "../config/app.config";
 import { resolveEventSettings } from "../domain/types";
 import { isManualFlashActive } from "../domain/stageOutput";
 import { formatSignedMMSS } from "../domain/time";
@@ -446,12 +447,14 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     </div>
                   </div>
                 </section>
-                <ControlLiveMessagePanel
-                  activeMessage={activeMessage}
-                  onSend={sendLiveMessage}
-                  onClear={clearLiveMessage}
-                  disabled={state.serviceEnded}
-                />
+                {appConfig.liveMessageEnabled ? (
+                  <ControlLiveMessagePanel
+                    activeMessage={activeMessage}
+                    onSend={sendLiveMessage}
+                    onClear={clearLiveMessage}
+                    disabled={state.serviceEnded}
+                  />
+                ) : null}
                 </>
               )}
             </div>

@@ -91,7 +91,9 @@ function CrewPageInner({ eventId }: { eventId: string }) {
               {t('crew.serviceEnded')}
             </div>
           ) : null}
-          {activeMessage ? <CrewLiveMessageBanner message={activeMessage} /> : null}
+          {appConfig.liveMessageEnabled && activeMessage ? (
+            <CrewLiveMessageBanner message={activeMessage} />
+          ) : null}
           {currentIndex > 0 ? <CrewDoneCard item={items[currentIndex - 1]} /> : null}
           <CrewNowCard
             current={current}

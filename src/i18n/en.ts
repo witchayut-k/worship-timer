@@ -230,6 +230,7 @@ export const en = {
     firebaseRequired: 'Firebase config required for cloud',
     kioskFullscreen: 'Press F for fullscreen',
     backToControl: 'Control Room',
+    liveMessageLabel: 'Message:',
   },
   modal: {
     leaveTitle: 'Leave Control Room?',

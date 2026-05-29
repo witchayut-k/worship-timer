@@ -224,12 +224,13 @@ export const th: Messages = {
   },
   viewer: {
     noProgram: 'ไม่พบรายการโปรแกรม',
-    serviceEnded: 'จบรอบแล้ว',
+    serviceEnded: 'สิ้นสุดโปรแกรม',
     localSyncHint: 'Local demo: เปิด Controller ในอีกแท็บเพื่อ sync realtime',
     cloudSyncHint: 'Realtime ผ่าน Firebase — เปิด Controller เพื่อควบคุม',
     firebaseRequired: 'ต้องตั้งค่า Firebase สำหรับ cloud',
     kioskFullscreen: 'กด F เพื่อ fullscreen',
     backToControl: 'ห้องควบคุม',
+    liveMessageLabel: 'ข้อความ:',
   },
   modal: {
     leaveTitle: 'ออกจากหน้าควบคุม?',

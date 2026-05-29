@@ -3,4 +3,6 @@ export const appConfig = {
   fullScreenLoadingMinMs: 0,
   /** When true, show the view-settings (gear) button in app header and Crew header. */
   showSettingsButton: false,
+  /** Feature flag for live message (controller -> stage/crew). */
+  liveMessageEnabled: false,
 } as const
