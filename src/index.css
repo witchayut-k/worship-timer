@@ -528,7 +528,7 @@ textarea:focus {
   color: #ff6b5a;
 }
 .timerFlash .timerValue {
-  animation: timerFlashFade 1s ease-in-out infinite;
+  animation: timerFlashFade var(--flash-blink-cycle-ms, 1s) ease-in-out infinite;
 }
 
 @keyframes timerFlashFade {
@@ -1865,7 +1865,7 @@ textarea:focus {
 .controlFlashBtnActive {
   border-color: rgba(255, 214, 102, 0.55);
   background: rgba(255, 214, 102, 0.12);
-  animation: flashBtnFade 1s ease-in-out infinite;
+  animation: flashBtnFade var(--flash-blink-cycle-ms, 1s) ease-in-out infinite;
 }
 
 @keyframes flashBtnFade {

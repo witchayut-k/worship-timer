@@ -90,5 +90,5 @@
 .stageFlash .stageRingProgress,
 .stageFlash .stageRingProgressGlow,
 .stageFlash .stageTimerValue {
-  animation: stageFlashFade $stage-flash-duration ease-in-out infinite;
+  animation: stageFlashFade var(--flash-blink-cycle-ms, 1s) ease-in-out infinite;
 }
