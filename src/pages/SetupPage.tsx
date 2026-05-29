@@ -552,7 +552,6 @@ function SetupPageInner({
 
   const onSpreadsheetImport = useCallback(
     (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
-      if (productionMode && livePhase === 'running' && importMode === 'replace') return
       const imported = parsedRowsToDraftItems(rows)
       const merged = importMode === 'replace' ? imported : [...items, ...imported]
       const nextItems = merged.map((x, i) => ({ ...x, order: i + 1 }))
@@ -572,7 +571,7 @@ function SetupPageInner({
         void reconcileRuntime(nextItems, { type: 'import', mode: importMode })
       }
     },
-    [cancelScheduled, items, livePhase, productionMode, reconcileRuntime],
+    [cancelScheduled, items, productionMode, reconcileRuntime],
   )
 
   const onResetConfirm = () => {
@@ -824,6 +823,7 @@ function SetupPageInner({
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImport={onSpreadsheetImport}
+        timerRunning={productionMode && livePhase === 'running'}
       />
 
       <ConfirmModal

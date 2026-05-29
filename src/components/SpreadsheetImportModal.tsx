@@ -10,6 +10,7 @@ import {
   type ImportTemplateRow,
 } from '../domain/spreadsheetImportTemplate'
 import { translateImportWarning } from '../i18n/translate'
+import { ConfirmModal } from './ConfirmModal'
 
 export type SpreadsheetImportMode = 'replace' | 'append'
 
@@ -19,19 +20,33 @@ type SpreadsheetImportModalProps = {
   open: boolean
   onClose: () => void
   onImport: (rows: ParsedProgramRow[], mode: SpreadsheetImportMode) => void
+  timerRunning?: boolean
 }
 
-export function SpreadsheetImportModal({ open, onClose, onImport }: SpreadsheetImportModalProps) {
+export function SpreadsheetImportModal({
+  open,
+  onClose,
+  onImport,
+  timerRunning = false,
+}: SpreadsheetImportModalProps) {
   if (!open) return null
-  return <SpreadsheetImportModalInner onClose={onClose} onImport={onImport} />
+  return (
+    <SpreadsheetImportModalInner
+      onClose={onClose}
+      onImport={onImport}
+      timerRunning={timerRunning}
+    />
+  )
 }
 
 function SpreadsheetImportModalInner({
   onClose,
   onImport,
+  timerRunning,
 }: {
   onClose: () => void
   onImport: (rows: ParsedProgramRow[], mode: SpreadsheetImportMode) => void
+  timerRunning: boolean
 }) {
   const { t, locale } = useLocale()
   const [text, setText] = useState('')
@@ -40,6 +55,7 @@ function SpreadsheetImportModalInner({
   const [activeTab, setActiveTab] = useState<ImportModalTab>('import')
   const [templateCopied, setTemplateCopied] = useState(false)
   const [templateCopyError, setTemplateCopyError] = useState<string | null>(null)
+  const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false)
 
   const parsed = useMemo(() => parseSpreadsheetTsv(text), [text])
 
@@ -106,218 +122,256 @@ function SpreadsheetImportModalInner({
     }
   }
 
+  const completeImport = (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
+    onImport(rows, importMode)
+    setReplaceConfirmOpen(false)
+    onClose()
+  }
+
   const onConfirm = () => {
     if (!parsed.rows.length) return
-    onImport(parsed.rows, mode)
-    onClose()
+    if (timerRunning && mode === 'replace') {
+      setReplaceConfirmOpen(true)
+      return
+    }
+    completeImport(parsed.rows, mode)
+  }
+
+  const onReplaceConfirm = () => {
+    if (!parsed.rows.length) {
+      setReplaceConfirmOpen(false)
+      return
+    }
+    completeImport(parsed.rows, 'replace')
   }
 
   const previewSkipped =
     parsed.skipped > 0 ? t('import.previewSkipped', { count: parsed.skipped }) : ''
 
   return (
-    <div
-      className="modalOverlay"
-      role="presentation"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="modalCard" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
-        <header className="modalHeader">
-          <h2 id="import-modal-title" className="modalTitle">
-            {t('import.title')}
-          </h2>
-          <button className="btnGhost modalClose" type="button" onClick={onClose} aria-label={t('common.close')}>
-            ✕
-          </button>
-        </header>
+    <>
+      <div
+        className="modalOverlay"
+        role="presentation"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose()
+        }}
+      >
+        <div className="modalCard" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
+          <header className="modalHeader">
+            <h2 id="import-modal-title" className="modalTitle">
+              {t('import.title')}
+            </h2>
+            <button className="btnGhost modalClose" type="button" onClick={onClose} aria-label={t('common.close')}>
+              ✕
+            </button>
+          </header>
 
-        <div className="importModalTabs" role="tablist" aria-label={t('import.tabsAriaLabel')}>
-          <button
-            type="button"
-            role="tab"
-            id="import-tab-import"
-            aria-selected={activeTab === 'import'}
-            aria-controls="import-panel-import"
-            className={`importModalTab ${activeTab === 'import' ? 'importModalTabActive' : ''}`}
-            onClick={() => setActiveTab('import')}
-          >
-            {t('import.tabImport')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="import-tab-template"
-            aria-selected={activeTab === 'template'}
-            aria-controls="import-panel-template"
-            className={`importModalTab ${activeTab === 'template' ? 'importModalTabActive' : ''}`}
-            onClick={() => setActiveTab('template')}
-          >
-            {t('import.tabTemplate')}
-          </button>
-        </div>
-
-        <div className="modalBody stack">
-          <div
-            id="import-panel-import"
-            role="tabpanel"
-            aria-labelledby="import-tab-import"
-            hidden={activeTab !== 'import'}
-            className="importModalPanel"
-          >
-            <p className="muted modalHint">{t('import.hint')}</p>
-
-            <div className="modalActionsRow">
-              <button className="btn" type="button" onClick={() => void onPasteFromClipboard()}>
-                {t('import.pasteClipboard')}
-              </button>
-            </div>
-            {clipboardError ? <p className="saveNotice saveNoticeError">{clipboardError}</p> : null}
-
-            <label className="field">
-              <div className="label">{t('import.tableData')}</div>
-              <textarea
-                className="importTextarea"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={t('import.textareaPlaceholder')}
-                rows={6}
-                spellCheck={false}
-              />
-            </label>
-
-            {text.trim() ? (
-              <section className="importPreview">
-                <div className="importPreviewHead">
-                  <span className="importPreviewTitle">
-                    {t('import.preview', {
-                      count: parsed.rows.length,
-                      skipped: previewSkipped,
-                    })}
-                  </span>
-                </div>
-                {parsed.rows.length > 0 ? (
-                  <div className="importPreviewTableWrap">
-                    <table className="importPreviewTable">
-                      <thead>
-                        <tr>
-                          <th>{t('import.colItem')}</th>
-                          <th>{t('import.colLeader')}</th>
-                          <th>{t('import.colTime')}</th>
-                          <th>{t('import.colLights')}</th>
-                          <th>{t('import.colMedia')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {parsed.rows.map((row, i) => (
-                          <tr key={`${row.name}-${i}`}>
-                            <td>{row.name}</td>
-                            <td>{row.leaderName || '—'}</td>
-                            <td className="timeMono">{formatSecToMmSs(row.durationSec)}</td>
-                            <td>{row.roomLights || '—'}</td>
-                            <td>{row.mediaNote || '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="muted">{t('import.noImportableRows')}</p>
-                )}
-                {parsed.warnings.length > 0 ? (
-                  <ul className="importWarnings">
-                    {parsed.warnings.map((w, i) => (
-                      <li key={`${w.key}-${i}`}>{translateImportWarning(w, locale)}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </section>
-            ) : null}
-
-            <fieldset className="importModeFieldset">
-              <legend className="label">{t('import.onImport')}</legend>
-              <label className="importModeOption">
-                <input
-                  type="radio"
-                  name="importMode"
-                  value="append"
-                  checked={mode === 'append'}
-                  onChange={() => setMode('append')}
-                />
-                {t('import.append')}
-              </label>
-              <label className="importModeOption">
-                <input
-                  type="radio"
-                  name="importMode"
-                  value="replace"
-                  checked={mode === 'replace'}
-                  onChange={() => setMode('replace')}
-                />
-                {t('import.replaceAll')}
-              </label>
-            </fieldset>
+          <div className="importModalTabs" role="tablist" aria-label={t('import.tabsAriaLabel')}>
+            <button
+              type="button"
+              role="tab"
+              id="import-tab-import"
+              aria-selected={activeTab === 'import'}
+              aria-controls="import-panel-import"
+              className={`importModalTab ${activeTab === 'import' ? 'importModalTabActive' : ''}`}
+              onClick={() => setActiveTab('import')}
+            >
+              {t('import.tabImport')}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="import-tab-template"
+              aria-selected={activeTab === 'template'}
+              aria-controls="import-panel-template"
+              className={`importModalTab ${activeTab === 'template' ? 'importModalTabActive' : ''}`}
+              onClick={() => setActiveTab('template')}
+            >
+              {t('import.tabTemplate')}
+            </button>
           </div>
 
-          <div
-            id="import-panel-template"
-            role="tabpanel"
-            aria-labelledby="import-tab-template"
-            hidden={activeTab !== 'template'}
-            className="importModalPanel"
-          >
-            <section className="importTemplate">
-              <div className="importTemplateActions">
-                <button className="btn" type="button" onClick={() => void onCopyTemplate()}>
-                  {templateCopied ? t('import.templateCopied') : t('import.copyTemplate')}
+          <div className="modalBody stack">
+            <div
+              id="import-panel-import"
+              role="tabpanel"
+              aria-labelledby="import-tab-import"
+              hidden={activeTab !== 'import'}
+              className="importModalPanel"
+            >
+              <p className="muted modalHint">{t('import.hint')}</p>
+
+              <div className="modalActionsRow">
+                <button className="btn" type="button" onClick={() => void onPasteFromClipboard()}>
+                  {t('import.pasteClipboard')}
                 </button>
               </div>
-              <p className="muted importTemplateHint">{t('import.templateHint')}</p>
-              {templateCopyError ? (
-                <p className="saveNotice saveNoticeError">{templateCopyError}</p>
-              ) : null}
-              <div className="importPreviewTableWrap">
-                <table className="importPreviewTable importTemplateTable">
-                  <thead>
-                    <tr>
-                      {templateHeaders.map((header) => (
-                        <th key={header}>{header}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {templateSampleRows.map((row, i) => (
-                      <tr key={i}>
-                        <td>{row.item}</td>
-                        <td>{displayCell(row.leader)}</td>
-                        <td className="timeMono">{row.duration}</td>
-                        <td>{row.lights}</td>
-                        <td>{displayCell(row.media)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="importTemplateNote muted">{t('import.templateDurationNote')}</p>
-            </section>
-          </div>
-        </div>
+              {clipboardError ? <p className="saveNotice saveNoticeError">{clipboardError}</p> : null}
 
-        <footer className="modalFooter">
-          <button className="btnGhost" type="button" onClick={onClose}>
-            {t('common.cancel')}
-          </button>
-          <button
-            className="btnPrimary"
-            type="button"
-            disabled={!parsed.rows.length}
-            onClick={onConfirm}
-          >
-            {t('import.importBtn')} {parsed.rows.length > 0 ? `(${parsed.rows.length})` : ''}
-          </button>
-        </footer>
+              <label className="field">
+                <div className="label">{t('import.tableData')}</div>
+                <textarea
+                  className="importTextarea"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder={t('import.textareaPlaceholder')}
+                  rows={6}
+                  spellCheck={false}
+                />
+              </label>
+
+              {text.trim() ? (
+                <section className="importPreview">
+                  <div className="importPreviewHead">
+                    <span className="importPreviewTitle">
+                      {t('import.preview', {
+                        count: parsed.rows.length,
+                        skipped: previewSkipped,
+                      })}
+                    </span>
+                  </div>
+                  {parsed.rows.length > 0 ? (
+                    <div className="importPreviewTableWrap">
+                      <table className="importPreviewTable">
+                        <thead>
+                          <tr>
+                            <th>{t('import.colItem')}</th>
+                            <th>{t('import.colLeader')}</th>
+                            <th>{t('import.colTime')}</th>
+                            <th>{t('import.colLights')}</th>
+                            <th>{t('import.colMedia')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {parsed.rows.map((row, i) => (
+                            <tr key={`${row.name}-${i}`}>
+                              <td>{row.name}</td>
+                              <td>{row.leaderName || '—'}</td>
+                              <td className="timeMono">{formatSecToMmSs(row.durationSec)}</td>
+                              <td>{row.roomLights || '—'}</td>
+                              <td>{row.mediaNote || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="muted">{t('import.noImportableRows')}</p>
+                  )}
+                  {parsed.warnings.length > 0 ? (
+                    <ul className="importWarnings">
+                      {parsed.warnings.map((w, i) => (
+                        <li key={`${w.key}-${i}`}>{translateImportWarning(w, locale)}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </section>
+              ) : null}
+
+              <fieldset className="importModeFieldset">
+                <legend className="label">{t('import.onImport')}</legend>
+                <label className="importModeOption">
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="append"
+                    checked={mode === 'append'}
+                    onChange={() => setMode('append')}
+                  />
+                  {t('import.append')}
+                </label>
+                <label className="importModeOption">
+                  <input
+                    type="radio"
+                    name="importMode"
+                    value="replace"
+                    checked={mode === 'replace'}
+                    onChange={() => setMode('replace')}
+                  />
+                  {t('import.replaceAll')}
+                </label>
+              </fieldset>
+
+              {timerRunning ? (
+                <p
+                  className={`importLiveCallout${mode === 'replace' ? ' importLiveCalloutWarn' : ''}`}
+                  role="status"
+                >
+                  {mode === 'replace' ? t('import.liveReplaceHint') : t('import.liveAppendHint')}
+                </p>
+              ) : null}
+            </div>
+
+            <div
+              id="import-panel-template"
+              role="tabpanel"
+              aria-labelledby="import-tab-template"
+              hidden={activeTab !== 'template'}
+              className="importModalPanel"
+            >
+              <section className="importTemplate">
+                <div className="importTemplateActions">
+                  <button className="btn" type="button" onClick={() => void onCopyTemplate()}>
+                    {templateCopied ? t('import.templateCopied') : t('import.copyTemplate')}
+                  </button>
+                </div>
+                <p className="muted importTemplateHint">{t('import.templateHint')}</p>
+                {templateCopyError ? (
+                  <p className="saveNotice saveNoticeError">{templateCopyError}</p>
+                ) : null}
+                <div className="importPreviewTableWrap">
+                  <table className="importPreviewTable importTemplateTable">
+                    <thead>
+                      <tr>
+                        {templateHeaders.map((header) => (
+                          <th key={header}>{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {templateSampleRows.map((row, i) => (
+                        <tr key={i}>
+                          <td>{row.item}</td>
+                          <td>{displayCell(row.leader)}</td>
+                          <td className="timeMono">{row.duration}</td>
+                          <td>{row.lights}</td>
+                          <td>{displayCell(row.media)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="importTemplateNote muted">{t('import.templateDurationNote')}</p>
+              </section>
+            </div>
+          </div>
+
+          <footer className="modalFooter">
+            <button className="btnGhost" type="button" onClick={onClose}>
+              {t('common.cancel')}
+            </button>
+            <button
+              className="btnPrimary"
+              type="button"
+              disabled={!parsed.rows.length}
+              onClick={onConfirm}
+            >
+              {t('import.importBtn')} {parsed.rows.length > 0 ? `(${parsed.rows.length})` : ''}
+            </button>
+          </footer>
+        </div>
       </div>
-    </div>
+
+      <ConfirmModal
+        open={replaceConfirmOpen}
+        title={t('import.replaceRunningTitle')}
+        body={t('import.replaceRunningBody')}
+        confirmLabel={t('import.replaceRunningConfirm')}
+        variant="danger"
+        onConfirm={onReplaceConfirm}
+        onCancel={() => setReplaceConfirmOpen(false)}
+      />
+    </>
   )
 }

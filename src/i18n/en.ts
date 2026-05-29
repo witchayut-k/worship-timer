@@ -269,6 +269,13 @@ export const en = {
     onImport: 'When importing',
     replaceAll: 'Replace all items',
     append: 'Append to existing items',
+    liveAppendHint: 'Timer is running. New rows will be added after your current program.',
+    liveReplaceHint:
+      'Timer is running. Replace will stop the timer and jump to the first imported item.',
+    replaceRunningTitle: 'Replace program while timer is running?',
+    replaceRunningBody:
+      'The current program will be replaced entirely. The timer will stop and Control Room will show the first imported item.',
+    replaceRunningConfirm: 'Replace and stop timer',
     importBtn: 'Import',
     tabImport: 'Import',
     tabTemplate: 'Column template',

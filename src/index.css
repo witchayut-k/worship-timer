@@ -3237,6 +3237,23 @@ body.setupSplitResizing {
   cursor: pointer;
 }
 
+.importLiveCallout {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.importLiveCalloutWarn {
+  border-color: rgba(232, 184, 106, 0.35);
+  background: rgba(232, 184, 106, 0.08);
+  color: #e8d4a8;
+}
+
 .asideCard {
   background: var(--card);
   border: 1px solid var(--border);
