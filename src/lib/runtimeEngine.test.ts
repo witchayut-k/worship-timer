@@ -108,16 +108,28 @@ describe('clampRuntimeIndex', () => {
 })
 
 describe('reduceRuntimeState endService', () => {
-  it('pauses running timer and sets blackout + serviceEnded', () => {
+  it('stops running timer at 00:00 and sets blackout + serviceEnded', () => {
     const base = initialRuntimeState({ items })
     const running = reduceRuntimeState(base, { type: 'start', nowMs: 1000 })
     const ended = reduceRuntimeState(running, { type: 'endService', nowMs: 5000 })
 
-    expect(ended.phase).toBe('paused')
+    expect(ended.phase).toBe('stopped')
     expect(ended.blackout).toBe(true)
     expect(ended.serviceEnded).toBe(true)
     expect(ended.startedAtMs).toBeNull()
-    expect(ended.remainingSec).toBeLessThan(300)
+    expect(ended.remainingSec).toBe(0)
+    expect(ended.currentIndex).toBe(running.currentIndex)
+  })
+
+  it('resets overtime to 00:00 when ending from paused', () => {
+    const base = initialRuntimeState({ items })
+    const paused = { ...base, phase: 'paused' as const, remainingSec: -90 }
+    const ended = reduceRuntimeState(paused, { type: 'endService', nowMs: 1000 })
+
+    expect(ended.phase).toBe('stopped')
+    expect(ended.remainingSec).toBe(0)
+    expect(ended.blackout).toBe(true)
+    expect(ended.serviceEnded).toBe(true)
   })
 
   it('sets serviceEnded from stopped without changing phase', () => {
@@ -125,6 +137,7 @@ describe('reduceRuntimeState endService', () => {
     const ended = reduceRuntimeState(base, { type: 'endService', nowMs: 1000 })
 
     expect(ended.phase).toBe('stopped')
+    expect(ended.remainingSec).toBe(0)
     expect(ended.blackout).toBe(true)
     expect(ended.serviceEnded).toBe(true)
   })
@@ -132,11 +145,31 @@ describe('reduceRuntimeState endService', () => {
   it('start clears serviceEnded and blackout', () => {
     const base = initialRuntimeState({ items })
     const ended = reduceRuntimeState(base, { type: 'endService', nowMs: 1000 })
-    const resumed = reduceRuntimeState(ended, { type: 'start', nowMs: 2000 })
+    const resumed = reduceRuntimeState(ended, { type: 'start', nowMs: 2000, items })
 
     expect(resumed.phase).toBe('running')
     expect(resumed.blackout).toBe(false)
     expect(resumed.serviceEnded).toBe(false)
+  })
+
+  it('start after endService resets to index 0 with first item duration', () => {
+    const base = initialRuntimeState({ items })
+    const atThird = reduceRuntimeState(base, {
+      type: 'jumpTo',
+      nowMs: 500,
+      index: 2,
+      items,
+    })
+    const ended = reduceRuntimeState(atThird, { type: 'endService', nowMs: 1000 })
+    expect(ended.currentIndex).toBe(2)
+
+    const resumed = reduceRuntimeState(ended, { type: 'start', nowMs: 2000, items })
+
+    expect(resumed.currentIndex).toBe(0)
+    expect(resumed.remainingSec).toBe(items[0]?.durationSec ?? 0)
+    expect(resumed.phase).toBe('running')
+    expect(resumed.serviceEnded).toBe(false)
+    expect(resumed.blackout).toBe(false)
   })
 
   it('resetCurrent clears serviceEnded', () => {

@@ -94,22 +94,27 @@ function CrewPageInner({ eventId }: { eventId: string }) {
           {appConfig.liveMessageEnabled && activeMessage ? (
             <CrewLiveMessageBanner message={activeMessage} />
           ) : null}
-          {currentIndex > 0 ? <CrewDoneCard item={items[currentIndex - 1]} /> : null}
-          <CrewNowCard
-            current={current}
-            phase={phase}
-            remainingSec={remainingSec}
-            durationSec={current.durationSec}
-            serviceEnded={serviceEnded}
-          />
-          <CrewUpcomingGrid items={items} currentIndex={currentIndex} />
+          {!serviceEnded && currentIndex > 0 ? (
+            <CrewDoneCard item={items[currentIndex - 1]} />
+          ) : null}
+          {!serviceEnded ? (
+            <CrewNowCard
+              current={current}
+              phase={phase}
+              remainingSec={remainingSec}
+              durationSec={current.durationSec}
+            />
+          ) : null}
+          {!serviceEnded ? (
+            <CrewUpcomingGrid items={items} currentIndex={currentIndex} />
+          ) : null}
           <div className="crewScheduleWrap">
             <ProgramSchedulePanel
               eventId={eventId}
               items={items}
               currentIndex={currentIndex}
               phase={phase}
-              displayRemainingSec={remainingSec}
+              displayRemainingSec={serviceEnded ? 0 : remainingSec}
               eventDate={eventMeta?.date}
               plannedStartTime={eventMeta?.plannedStartTime}
               liveDotTheme={liveDotTheme}

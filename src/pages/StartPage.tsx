@@ -75,20 +75,21 @@ function StartPageInner({ eventId }: { eventId: string }) {
     state.phase === "running" || flashPending ? 200 : 1000,
   );
   const display = deriveLocalDisplay({ state, nowMs });
+  const displayRemainingSec = state.serviceEnded ? 0 : display.remainingSec;
   const settings = resolveEventSettings(eventMeta);
   const manualFlashActive = isManualFlashActive(
     state.manualFlashUntilMs,
     nowMs,
   );
   const timerClass = getTimerThemeClasses({
-    remainingSec: display.remainingSec,
+    remainingSec: displayRemainingSec,
     settings,
     manualFlash: manualFlashActive,
   });
   const liveDotTheme = state.serviceEnded
     ? null
     : getStageTheme({
-        remainingSec: display.remainingSec,
+        remainingSec: displayRemainingSec,
         settings,
         manualFlash: manualFlashActive,
       });
@@ -99,7 +100,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
       ? items[state.currentIndex + 1]
       : null;
 
-  const timeText = formatSignedMMSS(display.remainingSec);
+  const timeText = formatSignedMMSS(displayRemainingSec);
 
   const isCloud = !isOfflineEventId(eventId);
   const cloudReady = isCloud && hasFirebaseConfig();
@@ -196,7 +197,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const start = () => {
     if (!current) return;
     setActiveControl(eventId, title);
-    dispatch({ type: "start", nowMs: Date.now() });
+    dispatch({ type: "start", nowMs: Date.now(), items });
   };
 
   const pause = () => {
@@ -422,7 +423,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   </div>
 
                   <ControlTimerProgress
-                    remainingSec={display.remainingSec}
+                    remainingSec={displayRemainingSec}
                     durationSec={current.durationSec}
                   />
 
@@ -506,7 +507,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   items={items}
                   currentIndex={state.currentIndex}
                   phase={state.phase}
-                  displayRemainingSec={display.remainingSec}
+                  displayRemainingSec={displayRemainingSec}
                   eventDate={eventMeta?.date}
                   plannedStartTime={eventMeta?.plannedStartTime}
                   liveDotTheme={liveDotTheme}

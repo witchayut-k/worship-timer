@@ -3,7 +3,7 @@ import { MANUAL_FLASH_DURATION_MS } from '../domain/stageOutput'
 import { clampInt } from '../domain/time'
 
 export type RuntimeAction =
-  | { type: 'start'; nowMs: number; uid?: string | null }
+  | { type: 'start'; nowMs: number; items?: ProgramItem[]; uid?: string | null }
   | { type: 'pause'; nowMs: number; uid?: string | null }
   | { type: 'resetCurrent'; nowMs: number; items: ProgramItem[]; uid?: string | null }
   | {
@@ -113,6 +113,16 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
   switch (action.type) {
     case 'start': {
       if (prev.phase === 'running') return prev
+      if (prev.serviceEnded && action.items && action.items.length > 0) {
+        return {
+          ...base,
+          ...clearStageOutput,
+          currentIndex: 0,
+          phase: 'running',
+          startedAtMs: action.nowMs,
+          remainingSec: action.items[0]?.durationSec ?? 0,
+        }
+      }
       return {
         ...base,
         ...clearStageOutput,
@@ -185,15 +195,11 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
       }
     }
     case 'endService': {
-      const running = prev.phase === 'running'
-      const remainingSec = running
-        ? tickRemainingSec({ state: prev, nowMs: action.nowMs })
-        : prev.remainingSec
       return {
         ...base,
-        phase: running ? 'paused' : prev.phase,
+        phase: 'stopped',
         startedAtMs: null,
-        remainingSec,
+        remainingSec: 0,
         blackout: true,
         serviceEnded: true,
         manualFlashUntilMs: null,

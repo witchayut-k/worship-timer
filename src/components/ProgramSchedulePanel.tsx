@@ -94,9 +94,16 @@ function ScheduleRowAside({
   showRowTimes,
 }: Omit<RowContentProps, 'idx' | 'showCrewNotes' | 'item'> & { item: ProgramItem }) {
   const { t } = useLocale()
-  const isEnded = isCurrent && serviceEnded
-  const isRunning = isCurrent && !serviceEnded && phase === 'running'
-  const isPaused = isCurrent && !serviceEnded && phase === 'paused'
+  if (serviceEnded) {
+    return (
+      <span className="programScheduleStatusLabel programScheduleStatusLabelDone">
+        {t('control.scheduleDone')}
+      </span>
+    )
+  }
+
+  const isRunning = isCurrent && phase === 'running'
+  const isPaused = isCurrent && phase === 'paused'
 
   if (isPast) {
     return (
@@ -109,11 +116,7 @@ function ScheduleRowAside({
   if (isCurrent) {
     return (
       <div className="programScheduleAsideStack">
-        {isEnded ? (
-          <span className="programScheduleStatusLabel programScheduleStatusLabelEnded">
-            {t('control.endServiceEnded')}
-          </span>
-        ) : isRunning ? (
+        {isRunning ? (
           <span className="programScheduleStatusLabel programScheduleStatusLabelLive">
             {t('control.scheduleLive')}
           </span>
@@ -257,9 +260,9 @@ export function ProgramSchedulePanel({
     const it = items[idx]
     if (!it) return null
 
-    const isCurrent = idx === currentIndex
-    const isPast = idx < currentIndex
-    const rowState = isPast ? 'past' : isCurrent ? 'current' : 'upcoming'
+    const isCurrent = !serviceEnded && idx === currentIndex
+    const isPast = serviceEnded || idx < currentIndex
+    const rowState = serviceEnded ? 'past' : isPast ? 'past' : isCurrent ? 'current' : 'upcoming'
     const plannedRow = schedule.enabled ? schedule.rows[idx] : null
 
     const rowProps: ScheduleRowProps = {
@@ -298,8 +301,8 @@ export function ProgramSchedulePanel({
         ]
           .filter(Boolean)
           .join(' ')}
-        currentDotStatic={isCurrent && serviceEnded}
-        currentDotStyle={isCurrent && !serviceEnded ? getLiveDotStyle(liveDotTheme) : undefined}
+        currentDotStatic={false}
+        currentDotStyle={isCurrent ? getLiveDotStyle(liveDotTheme) : undefined}
       >
         <ProgramScheduleRow {...rowProps} />
       </ProgramTimelineRow>

@@ -242,7 +242,7 @@ export const en = {
     endControl: 'End Control',
     endServiceTitle: 'End service?',
     endServiceBody:
-      'Pauses the timer, blacks out the stage display, and shows “service ended” on crew devices. Resume with Start or by changing segment.',
+      'Stops the timer at 00:00, marks every program item done, blacks out the stage, and shows “service ended” on crew devices. Resume with Start or by picking a segment in the schedule.',
     switchTitle: 'Switch Control Room?',
     switchBody: 'Switch from «{from}» to «{to}»?',
     switchConfirm: 'Switch Control Room',
