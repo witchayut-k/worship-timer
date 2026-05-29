@@ -1,0 +1,46 @@
+---
+description: ห้ามเปลี่ยน design/layout เอง — ยึด design system และหน้าจอปัจจุบัน
+alwaysApply: true
+---
+
+# Design system — ห้าม redesign เอง
+
+งาน UI ใน repo นี้ **ไม่ใช่** โอกาสปรับ look & feel หรือจัด layout ใหม่ ยึด **design system และ layout ที่มีอยู่แล้ว** เป็นฐานเสมอ
+
+## แหล่งอ้างอิง (source of truth)
+
+| ชั้น | ที่อยู่ |
+|------|--------|
+| Tokens ทั่วแอป | `src/index.css` (`:root` — สี, ฟอนต์, `--text-*`, ปุ่ม, card, gradient พื้นหลัง) |
+| Stage / projector | `src/styles/stage/` (`_tokens.scss`, partials ต่อโหมด) |
+| โครงหน้า | `src/pages/*`, `src/layout/`, `src/components/` (รวม `stage/`, `Control*`) |
+| คลาสที่ใช้อยู่ | ชื่อในไฟล์เดิม เช่น `btn`, `btnGhost`, `btnPrimary`, `muted`, `crewView`, `servicesPageHeader` — **อย่าสร้างระบบคลาสใหม่** ถ้ามีของเดิมใช้ได้ |
+
+ก่อนแก้ UI: เปิดไฟล์หน้า/คอมโพเนนต์เดิม + SCSS/CSS ที่เกี่ยวข้อง แล้ว **ทำตาม pattern เดียวกัน** (spacing, typography, สี, โครง DOM)
+
+## ห้ามทำ (ยกเว้นผู้ใช้สั่งชัดเจน)
+
+- Redesign, “ปรับให้สวยขึ้น”, หรือเปลี่ยน visual language (สี, ฟอนต์, radius, shadow, gradient)
+- **จัด layout ใหม่** — ย้าย section, เปลี่ยน grid/flex โครงหลัก, สลับลำดับ header/toolbar/sidebar บนหน้า:
+  - Services, Setup, Start, Crew, Viewer (stage output)
+- เพิ่ม inline style / utility class ใหม่แทน token หรือ partial ที่มี
+- แทนที่ SCSS partial ด้วย Tailwind/CSS-in-JS หรือ library UI ใหม่
+- รวม/แยกหน้าหรือ shell โดยไม่ได้รับ scope จากผู้ใช้
+
+## ทำได้เมื่อ task ต้องการ
+
+- แก้ **พฤติกรรม** หรือข้อมูล (logic, i18n, a11y label) โดย **ไม่เปลี่ยน** โครงและสไตล์ที่มองเห็น
+- เพิ่ม element **ในตำแหน่งและสไตล์เดียวกับเพื่อนบ้าน** (ปุ่มแบบ `btn*`, ข้อความ `muted`, การ์ดแบบเดิม)
+- แก้ CSS/SCSS **เฉพาะจุด** ที่บั๊กหรือ requirement ระบุ (ไม่ refactor ทั้งไฟล์เพื่อ “ความสม่ำเสมอ”)
+
+## เมื่อ requirement กระทบ layout หรือ look
+
+1. **หยุด** — อย่าเดา design ใหม่
+2. **ถามผู้ใช้** หรือเสนอทางเลือกที่ **คง layout หลัก** ไว้
+3. ถ้าผู้ใช้อนุมัติการเปลี่ยน visual — ทำเฉพาะ scope ที่อนุมัติ และอัปเดต token/partial ที่เกี่ยวข้องให้สอดคล้องกัน
+
+## ตัวอย่าง
+
+❌ ย้าย toolbar Setup ไปแถวล่าง / เปลี่ยนพื้นหลัง stage เป็นธีมสว่าง / ใช้ฟอนต์และ spacing ชุดใหม่ “ให้อ่านง่ายขึ้น”
+
+✅ เพิ่มปุ่มใน `crewHeaderActions` แบบ `btn btnSm` ตามปุ่มข้างๆ / แก้ข้อความใน `StageLiveMessageBar` โดยคง class และโครงเดิม
