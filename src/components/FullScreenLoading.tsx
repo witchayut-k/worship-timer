@@ -22,7 +22,7 @@ export function FullScreenLoading({ message }: Props) {
             aria-hidden
           />
         </div>
-        <div className="fullScreenLoadingSpinner" aria-hidden />
+        {/* <div className="fullScreenLoadingSpinner" aria-hidden /> */}
         <p className="fullScreenLoadingMessage">{message}</p>
       </div>
     </div>
