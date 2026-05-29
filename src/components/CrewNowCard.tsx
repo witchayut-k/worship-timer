@@ -11,9 +11,16 @@ type Props = {
   phase: RuntimePhase
   remainingSec: number
   durationSec: number
+  serviceEnded?: boolean
 }
 
-export function CrewNowCard({ current, phase, remainingSec, durationSec }: Props) {
+export function CrewNowCard({
+  current,
+  phase,
+  remainingSec,
+  durationSec,
+  serviceEnded = false,
+}: Props) {
   const { t } = useLocale()
   const isRunning = phase === 'running'
   const isPaused = phase === 'paused'
@@ -33,10 +40,15 @@ export function CrewNowCard({ current, phase, remainingSec, durationSec }: Props
   const hostName = current.leaderName?.trim() || '—'
 
   return (
-    <section className="crewHero" aria-label={t('crew.nowPlaying')}>
+    <section
+      className={`crewHero${serviceEnded ? ' crewHero--ended' : ''}`}
+      aria-label={serviceEnded ? t('crew.serviceEnded') : t('crew.nowPlaying')}
+    >
       <div className="crewHeroBody">
         <div className="crewHeroBadges">
-          {isRunning ? (
+          {serviceEnded ? (
+            <span className="scheduleBadge scheduleBadgeEnded">{t('crew.serviceEnded')}</span>
+          ) : isRunning ? (
             <span className="scheduleBadge scheduleBadgeCurrent crewLiveBadge">
               <span className="segmentLiveDot segmentLiveDotPulse" aria-hidden />
               {t('control.scheduleLive')}
@@ -53,16 +65,18 @@ export function CrewNowCard({ current, phase, remainingSec, durationSec }: Props
           <div className="crewHeroInfo">
             <h2 className="crewHeroTitle">{current.name}</h2>
           </div>
-          <div className={`crewHeroTimerBlock${isOvertime ? ' crewHeroTimerBlock--overtime' : ''}`}>
-            <span className="crewHeroTimerLabel">{timerLabel}</span>
-            <div
-              className="crewHeroTimer"
-              aria-live="polite"
-              aria-label={isOvertime ? `${t('crew.overtime')}, ${formatSignedMMSS(remainingSec)}` : undefined}
-            >
-              {formatSignedMMSS(remainingSec)}
+          {!serviceEnded ? (
+            <div className={`crewHeroTimerBlock${isOvertime ? ' crewHeroTimerBlock--overtime' : ''}`}>
+              <span className="crewHeroTimerLabel">{timerLabel}</span>
+              <div
+                className="crewHeroTimer"
+                aria-live="polite"
+                aria-label={isOvertime ? `${t('crew.overtime')}, ${formatSignedMMSS(remainingSec)}` : undefined}
+              >
+                {formatSignedMMSS(remainingSec)}
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
         {(lights || media) && (
           <div className="crewHeroCues">
@@ -71,11 +85,13 @@ export function CrewNowCard({ current, phase, remainingSec, durationSec }: Props
           </div>
         )}
       </div>
-      <div className={`crewHeroProgress crewHeroProgress--${progressStatus}`} aria-hidden>
-        <div className="crewHeroProgressTrack">
-          <div className="crewHeroProgressFill" style={{ width: `${fillPct}%` }} />
+      {!serviceEnded ? (
+        <div className={`crewHeroProgress crewHeroProgress--${progressStatus}`} aria-hidden>
+          <div className="crewHeroProgressTrack">
+            <div className="crewHeroProgressFill" style={{ width: `${fillPct}%` }} />
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   )
 }

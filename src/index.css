@@ -759,6 +759,12 @@ textarea:focus {
   background: rgba(245, 166, 35, 0.12);
 }
 
+.sessionStatusBadge--ended {
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .sessionStatusLiveDot {
   width: 7px;
   height: 7px;
@@ -1401,6 +1407,10 @@ textarea:focus {
   color: var(--muted);
 }
 
+.programScheduleStatusLabelEnded {
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .programScheduleStatusLabelDone {
   color: rgba(255, 255, 255, 0.5);
 }
@@ -1523,6 +1533,14 @@ textarea:focus {
   border-radius: 50%;
   background: var(--live-dot-accent, var(--brand));
   animation: programTimelineDotPulse 1.8s ease-in-out infinite;
+}
+
+.programTimelineDot--current-static {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow: none;
 }
 
 @keyframes programTimelineDotPulse {
@@ -1665,6 +1683,16 @@ textarea:focus {
 .scheduleBadgePaused {
   background: rgba(255, 255, 255, 0.06);
   color: var(--muted);
+}
+
+.scheduleBadgeEnded {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.controlEndServiceBtnEnded:disabled {
+  opacity: 0.65;
+  cursor: default;
 }
 
 .controlTimerProgress {

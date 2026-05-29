@@ -29,6 +29,7 @@ type BaseProps = {
   className?: string
   listClassName?: string
   liveDotTheme?: StageTheme | null
+  serviceEnded?: boolean
 }
 
 type Props = BaseProps & {
@@ -75,6 +76,7 @@ type RowContentProps = {
   isCurrent: boolean
   isPast: boolean
   phase: RuntimePhase
+  serviceEnded: boolean
   displayRemainingSec?: number
   showCrewNotes: boolean
   showDurationFallback: boolean
@@ -85,14 +87,16 @@ function ScheduleRowAside({
   isPast,
   isCurrent,
   phase,
+  serviceEnded,
   displayRemainingSec,
   item,
   showDurationFallback,
   showRowTimes,
 }: Omit<RowContentProps, 'idx' | 'showCrewNotes' | 'item'> & { item: ProgramItem }) {
   const { t } = useLocale()
-  const isRunning = isCurrent && phase === 'running'
-  const isPaused = isCurrent && phase === 'paused'
+  const isEnded = isCurrent && serviceEnded
+  const isRunning = isCurrent && !serviceEnded && phase === 'running'
+  const isPaused = isCurrent && !serviceEnded && phase === 'paused'
 
   if (isPast) {
     return (
@@ -105,7 +109,11 @@ function ScheduleRowAside({
   if (isCurrent) {
     return (
       <div className="programScheduleAsideStack">
-        {isRunning ? (
+        {isEnded ? (
+          <span className="programScheduleStatusLabel programScheduleStatusLabelEnded">
+            {t('control.endServiceEnded')}
+          </span>
+        ) : isRunning ? (
           <span className="programScheduleStatusLabel programScheduleStatusLabelLive">
             {t('control.scheduleLive')}
           </span>
@@ -143,6 +151,7 @@ const ProgramScheduleRow = memo(function ProgramScheduleRow({
   isCurrent,
   isPast,
   phase,
+  serviceEnded,
   displayRemainingSec,
   showCrewNotes,
   showDurationFallback,
@@ -170,6 +179,7 @@ const ProgramScheduleRow = memo(function ProgramScheduleRow({
           isPast={isPast}
           isCurrent={isCurrent}
           phase={phase}
+          serviceEnded={serviceEnded}
           displayRemainingSec={displayRemainingSec}
           showDurationFallback={showDurationFallback}
           showRowTimes={showRowTimes}
@@ -226,6 +236,7 @@ export function ProgramSchedulePanel({
   className,
   listClassName,
   liveDotTheme = null,
+  serviceEnded = false,
 }: Props) {
   const { t } = useLocale()
   const { prefs } = useScheduleViewPrefs()
@@ -257,6 +268,7 @@ export function ProgramSchedulePanel({
       isCurrent,
       isPast,
       phase,
+      serviceEnded,
       displayRemainingSec: isCurrent ? displayRemainingSec : undefined,
       showCrewNotes: effectiveShowCrewNotes,
       showDurationFallback: layout.showDurationFallback,
@@ -286,7 +298,8 @@ export function ProgramSchedulePanel({
         ]
           .filter(Boolean)
           .join(' ')}
-        currentDotStyle={isCurrent ? getLiveDotStyle(liveDotTheme) : undefined}
+        currentDotStatic={isCurrent && serviceEnded}
+        currentDotStyle={isCurrent && !serviceEnded ? getLiveDotStyle(liveDotTheme) : undefined}
       >
         <ProgramScheduleRow {...rowProps} />
       </ProgramTimelineRow>

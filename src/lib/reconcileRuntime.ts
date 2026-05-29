@@ -7,7 +7,11 @@ export type ProgramChange =
   | { type: 'import'; mode: 'replace' | 'append' }
   | { type: 'clamp' }
 
-const CLEAR_STAGE_OUTPUT = { blackout: false, manualFlashUntilMs: null as number | null }
+const CLEAR_STAGE_OUTPUT = {
+  blackout: false,
+  manualFlashUntilMs: null as number | null,
+  serviceEnded: false,
+}
 
 function durationAt(items: ProgramItem[], index: number): number {
   return items[index]?.durationSec ?? 0

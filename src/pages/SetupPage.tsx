@@ -178,6 +178,7 @@ function SetupPageInner({
 
   const liveDotTheme = useMemo(() => {
     if (!productionMode || !liveRuntime) return null
+    if (liveRuntime.serviceEnded) return null
     const { remainingSec } = deriveLocalDisplay({ state: liveRuntime, nowMs })
     return getStageTheme({ remainingSec, settings })
   }, [productionMode, liveRuntime, nowMs, settings])
@@ -808,6 +809,7 @@ function SetupPageInner({
               liveIndex={productionMode ? liveIndex : null}
               livePhase={productionMode ? livePhase : null}
               liveDotTheme={productionMode ? liveDotTheme : null}
+              liveServiceEnded={productionMode ? (liveRuntime?.serviceEnded ?? false) : false}
               reorderDisabled={productionMode && livePhase === 'running'}
               reorderDisabledTitle={t('setup.reorderBlockedRunning')}
               onReorder={onReorder}

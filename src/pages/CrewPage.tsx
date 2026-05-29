@@ -34,6 +34,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     syncReady,
     displayTitle,
     current,
+    serviceEnded,
   } = useEventLiveSync(eventId)
 
   const settings = resolveEventSettings(eventMeta)
@@ -42,8 +43,8 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     eventMeta?.date?.trim() && eventMeta?.plannedStartTime?.trim(),
   )
   const liveDotTheme = useMemo(
-    () => getStageTheme({ remainingSec, settings }),
-    [remainingSec, settings],
+    () => (serviceEnded ? null : getStageTheme({ remainingSec, settings })),
+    [remainingSec, settings, serviceEnded],
   )
 
   const pageSubtitle = useMemo(() => {
@@ -80,12 +81,18 @@ function CrewPageInner({ eventId }: { eventId: string }) {
 
       {current ? (
         <>
+          {serviceEnded ? (
+            <div className="crewServiceEndedBanner" role="status">
+              {t('crew.serviceEnded')}
+            </div>
+          ) : null}
           {currentIndex > 0 ? <CrewDoneCard item={items[currentIndex - 1]} /> : null}
           <CrewNowCard
             current={current}
             phase={phase}
             remainingSec={remainingSec}
             durationSec={current.durationSec}
+            serviceEnded={serviceEnded}
           />
           <CrewUpcomingGrid items={items} currentIndex={currentIndex} />
           <div className="crewScheduleWrap">
@@ -98,6 +105,7 @@ function CrewPageInner({ eventId }: { eventId: string }) {
               eventDate={eventMeta?.date}
               plannedStartTime={eventMeta?.plannedStartTime}
               liveDotTheme={liveDotTheme}
+              serviceEnded={serviceEnded}
               readOnly
               showCrewNotes
               scrollActiveIntoView={prefs.scrollActiveIntoView}

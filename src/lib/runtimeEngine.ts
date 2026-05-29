@@ -18,6 +18,7 @@ export type RuntimeAction =
   | { type: 'setRemaining'; nowMs: number; remainingSec: number; uid?: string | null }
   | { type: 'setBlackout'; nowMs: number; enabled: boolean; uid?: string | null }
   | { type: 'triggerManualFlash'; nowMs: number; uid?: string | null }
+  | { type: 'endService'; nowMs: number; uid?: string | null }
   | { type: 'hydrate'; state: RuntimeState }
 
 export function normalizeRuntimeState(state: RuntimeState): RuntimeState {
@@ -25,6 +26,7 @@ export function normalizeRuntimeState(state: RuntimeState): RuntimeState {
     ...state,
     blackout: state.blackout ?? false,
     manualFlashUntilMs: state.manualFlashUntilMs ?? null,
+    serviceEnded: state.serviceEnded ?? false,
   }
 }
 
@@ -70,6 +72,7 @@ export function initialRuntimeState(params: { items: ProgramItem[]; uid?: string
     updatedByUid: params.uid ?? null,
     blackout: false,
     manualFlashUntilMs: null,
+    serviceEnded: false,
   }
 }
 
@@ -87,13 +90,18 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
     updatedByUid: action.uid ?? prev.updatedByUid ?? null,
   }
 
-  const clearStageOutput = { blackout: false, manualFlashUntilMs: null as number | null }
+  const clearStageOutput = {
+    blackout: false,
+    manualFlashUntilMs: null as number | null,
+    serviceEnded: false,
+  }
 
   switch (action.type) {
     case 'start': {
       if (prev.phase === 'running') return prev
       return {
         ...base,
+        ...clearStageOutput,
         phase: 'running',
         startedAtMs: action.nowMs,
       }
@@ -112,6 +120,7 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
       const dur = action.items[prev.currentIndex]?.durationSec ?? 0
       return {
         ...base,
+        ...clearStageOutput,
         phase: 'stopped',
         startedAtMs: null,
         remainingSec: dur,
@@ -159,6 +168,21 @@ export function reduceRuntimeState(prev: RuntimeState, action: RuntimeAction): R
       return {
         ...base,
         manualFlashUntilMs: action.nowMs + MANUAL_FLASH_DURATION_MS,
+      }
+    }
+    case 'endService': {
+      const running = prev.phase === 'running'
+      const remainingSec = running
+        ? tickRemainingSec({ state: prev, nowMs: action.nowMs })
+        : prev.remainingSec
+      return {
+        ...base,
+        phase: running ? 'paused' : prev.phase,
+        startedAtMs: null,
+        remainingSec,
+        blackout: true,
+        serviceEnded: true,
+        manualFlashUntilMs: null,
       }
     }
   }

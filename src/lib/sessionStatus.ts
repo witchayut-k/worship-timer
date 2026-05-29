@@ -1,16 +1,17 @@
 import type { RuntimePhase } from '../domain/types'
 
-export type SessionStatusVariant = 'ready' | 'live' | 'paused' | 'controlling'
+export type SessionStatusVariant = 'ready' | 'live' | 'paused' | 'controlling' | 'ended'
 
 export function resolveSessionStatus(params: {
   productionMode: boolean
   phase: RuntimePhase | null
   ready: boolean
+  serviceEnded?: boolean
 }): {
   variant: SessionStatusVariant
   label: (t: (key: string) => string) => string
 } {
-  const { productionMode, phase, ready } = params
+  const { productionMode, phase, ready, serviceEnded = false } = params
 
   if (!productionMode) {
     return {
@@ -23,6 +24,13 @@ export function resolveSessionStatus(params: {
     return {
       variant: 'controlling',
       label: (t) => t('nav.controlling'),
+    }
+  }
+
+  if (serviceEnded) {
+    return {
+      variant: 'ended',
+      label: (t) => t('control.endServiceEnded'),
     }
   }
 

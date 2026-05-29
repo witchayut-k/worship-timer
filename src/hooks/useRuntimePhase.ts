@@ -15,12 +15,14 @@ export function useRuntimePhase(eventId: string | null | undefined) {
     () => readRuntimePhaseSnapshot(eventId).phase,
   )
   const [ready, setReady] = useState(() => readRuntimePhaseSnapshot(eventId).ready)
+  const [serviceEnded, setServiceEnded] = useState(false)
 
   if (eventId !== trackedEventId) {
     setTrackedEventId(eventId)
     if (!eventId) {
       setPhase(null)
       setReady(false)
+      setServiceEnded(false)
     } else if (!isOfflineEventId(eventId) && !hasFirebaseConfig()) {
       writeRuntimePhaseCache(eventId, 'stopped')
       setPhase('stopped')
@@ -39,6 +41,7 @@ export function useRuntimePhase(eventId: string | null | undefined) {
       return subscribeLocalRuntime(eventId, (s) => {
         writeRuntimePhaseCache(eventId, s.phase)
         setPhase(s.phase)
+        setServiceEnded(s.serviceEnded ?? false)
         setReady(true)
       })
     }
@@ -49,9 +52,10 @@ export function useRuntimePhase(eventId: string | null | undefined) {
       const next = s?.phase ?? 'stopped'
       writeRuntimePhaseCache(eventId, next)
       setPhase(next)
+      setServiceEnded(s?.serviceEnded ?? false)
       setReady(true)
     })
   }, [eventId])
 
-  return { phase, ready }
+  return { phase, ready, serviceEnded }
 }

@@ -37,6 +37,7 @@ type SetupSegmentListProps = {
   liveIndex?: number | null
   livePhase?: RuntimePhase | null
   liveDotTheme?: StageTheme | null
+  liveServiceEnded?: boolean
   reorderDisabled?: boolean
   reorderDisabledTitle?: string
   onReorder: (params: { items: DraftItem[]; fromIndex: number; toIndex: number }) => void
@@ -200,6 +201,7 @@ export function SetupSegmentList({
   liveIndex = null,
   livePhase = null,
   liveDotTheme = null,
+  liveServiceEnded = false,
   reorderDisabled = false,
   reorderDisabledTitle,
   onReorder,
@@ -268,7 +270,10 @@ export function SetupSegmentList({
         endLabel={plannedRow?.endLabel ?? null}
         hideTimeColumn={!layout.showPlannedTimes}
         className="setupTimelineRow"
-        currentDotStyle={rowState === 'current' ? getLiveDotStyle(liveDotTheme) : undefined}
+        currentDotStatic={rowState === 'current' && liveServiceEnded}
+        currentDotStyle={
+          rowState === 'current' && !liveServiceEnded ? getLiveDotStyle(liveDotTheme) : undefined
+        }
       >
         {sortable}
       </ProgramTimelineRow>

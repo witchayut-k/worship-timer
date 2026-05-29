@@ -60,6 +60,7 @@ describe('reconcileRuntimeAfterProgramChange', () => {
     expect(next.remainingSec).toBe(0)
     expect(next.blackout).toBe(false)
     expect(next.manualFlashUntilMs).toBeNull()
+    expect(next.serviceEnded).toBe(false)
   })
 
   it('reset with items goes to first item duration', () => {

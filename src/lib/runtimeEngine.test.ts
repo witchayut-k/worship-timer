@@ -32,6 +32,7 @@ describe('reduceRuntimeState jumpTo', () => {
     expect(next.remainingSec).toBe(180)
     expect(next.blackout).toBe(false)
     expect(next.manualFlashUntilMs).toBeNull()
+    expect(next.serviceEnded).toBe(false)
   })
 
   it('starts running with full duration when autoStart is true', () => {
@@ -103,5 +104,51 @@ describe('clampRuntimeIndex', () => {
     const next = clampRuntimeIndex(state, items)
     expect(next.currentIndex).toBe(0)
     expect(next.remainingSec).toBe(300)
+  })
+})
+
+describe('reduceRuntimeState endService', () => {
+  it('pauses running timer and sets blackout + serviceEnded', () => {
+    const base = initialRuntimeState({ items })
+    const running = reduceRuntimeState(base, { type: 'start', nowMs: 1000 })
+    const ended = reduceRuntimeState(running, { type: 'endService', nowMs: 5000 })
+
+    expect(ended.phase).toBe('paused')
+    expect(ended.blackout).toBe(true)
+    expect(ended.serviceEnded).toBe(true)
+    expect(ended.startedAtMs).toBeNull()
+    expect(ended.remainingSec).toBeLessThan(300)
+  })
+
+  it('sets serviceEnded from stopped without changing phase', () => {
+    const base = initialRuntimeState({ items })
+    const ended = reduceRuntimeState(base, { type: 'endService', nowMs: 1000 })
+
+    expect(ended.phase).toBe('stopped')
+    expect(ended.blackout).toBe(true)
+    expect(ended.serviceEnded).toBe(true)
+  })
+
+  it('start clears serviceEnded and blackout', () => {
+    const base = initialRuntimeState({ items })
+    const ended = reduceRuntimeState(base, { type: 'endService', nowMs: 1000 })
+    const resumed = reduceRuntimeState(ended, { type: 'start', nowMs: 2000 })
+
+    expect(resumed.phase).toBe('running')
+    expect(resumed.blackout).toBe(false)
+    expect(resumed.serviceEnded).toBe(false)
+  })
+
+  it('resetCurrent clears serviceEnded', () => {
+    const base = initialRuntimeState({ items })
+    const ended = reduceRuntimeState(base, { type: 'endService', nowMs: 1000 })
+    const reset = reduceRuntimeState(ended, {
+      type: 'resetCurrent',
+      nowMs: 2000,
+      items,
+    })
+
+    expect(reset.serviceEnded).toBe(false)
+    expect(reset.blackout).toBe(false)
   })
 })

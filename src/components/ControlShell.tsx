@@ -109,13 +109,14 @@ export function ControlShell({
 
   const workspaceRuntime = useOptionalEventWorkspaceRuntime()
   const fallbackRuntime = useRuntimePhase(workspaceRuntime ? null : statusEventId)
-  const { phase, ready } = workspaceRuntime ?? fallbackRuntime
+  const { phase, ready, serviceEnded } = workspaceRuntime ?? fallbackRuntime
   const showSessionBar = Boolean(statusEventId || eventId || eventTitle)
   const defaultSessionBadge = statusEventId ? (
     <SessionStatusBadge
       productionMode={statusProduction}
       phase={phase}
       ready={ready}
+      serviceEnded={serviceEnded}
     />
   ) : null
   const sessionBarCenter =

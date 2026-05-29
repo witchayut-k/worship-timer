@@ -58,6 +58,8 @@ export type RuntimeState = {
   updatedByUid: string | null
   blackout: boolean
   manualFlashUntilMs: number | null
+  /** When true, service is ended for crew/stage outputs (synced). */
+  serviceEnded?: boolean
 }
 
 export type EventDoc = {

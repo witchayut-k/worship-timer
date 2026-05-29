@@ -30,15 +30,18 @@ type ProgramTimelineRowProps = {
   rowRef?: RefObject<HTMLDivElement | null>
   className?: string
   currentDotStyle?: CSSProperties
+  currentDotStatic?: boolean
   hideTimeColumn?: boolean
 }
 
 function TimelineDot({
   rowState,
   style,
+  staticDot = false,
 }: {
   rowState: ProgramTimelineRowState
   style?: CSSProperties
+  staticDot?: boolean
 }) {
   if (rowState === 'past') {
     return (
@@ -60,7 +63,7 @@ function TimelineDot({
   if (rowState === 'current') {
     return (
       <span
-        className="programTimelineDot programTimelineDot--current"
+        className={`programTimelineDot${staticDot ? ' programTimelineDot--current-static' : ' programTimelineDot--current'}`}
         style={style}
         aria-hidden
       />
@@ -78,6 +81,7 @@ export function ProgramTimelineRow({
   rowRef,
   className,
   currentDotStyle,
+  currentDotStatic = false,
   hideTimeColumn = false,
 }: ProgramTimelineRowProps) {
   const rangeAria =
@@ -110,7 +114,7 @@ export function ProgramTimelineRow({
         </div>
       )}
       <div className="programTimelineRail">
-        <TimelineDot rowState={rowState} style={currentDotStyle} />
+        <TimelineDot rowState={rowState} style={currentDotStyle} staticDot={currentDotStatic} />
       </div>
       <div className="programTimelineCard">{children}</div>
     </div>
