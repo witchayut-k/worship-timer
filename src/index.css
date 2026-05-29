@@ -627,17 +627,22 @@ textarea:focus {
 }
 
 .appBrand {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--brand);
-  letter-spacing: 0.2px;
-  font-family: var(--font-heading);
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
+  line-height: 0;
 }
 
 .appBrand:hover {
-  color: var(--brand);
-  opacity: 0.9;
+  opacity: 0.92;
+}
+
+.appBrandLogo {
+  display: block;
+  height: 26px;
+  width: auto;
+  max-width: min(170px, 42vw);
+  object-fit: contain;
 }
 
 .appHeaderEnd {

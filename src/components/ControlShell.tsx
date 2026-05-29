@@ -214,8 +214,8 @@ export function ControlShell({
     <div className="appShell">
       <header className="appHeader">
         <div className="appHeaderStart">
-          <Link className="appBrand" to={homePath}>
-            {t('app.name')}
+          <Link className="appBrand" to={homePath} aria-label={t('app.name')}>
+            <img className="appBrandLogo" src="/logo.png" alt="" width={458} height={70} />
           </Link>
           {isPaid ? <span className="planBadge planBadgePro">{t('plan.proBadge')}</span> : null}
           <span className="appHeaderDivider" aria-hidden />
