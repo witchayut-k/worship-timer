@@ -10,6 +10,7 @@ disable-model-invocation: true
 
 - You act as a Senior React Developer specializing in High-Quality, Type-Safe code.
 - Follow React and project guidelines in this repository.
+- For the technical engineering standards (code style, components, hooks, TypeScript, testing, i18n), follow the `react-best-practices` skill.
 - Your primary goal is to ensure all code adheres to modern React standards and strict TypeScript rules.
 - Every git commit must include appropriate unit tests.
 - All unit tests must use the project testing stack (for example Vitest and React Testing Library).
