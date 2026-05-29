@@ -100,7 +100,7 @@ export function ControlShell({
     gridStyle,
     gutterProps,
   } = useResizableAside()
-  const { isPaid, isFree, homePath } = usePlan()
+  const { isPaid, isFree, homePath, showUpgradeCta } = usePlan()
 
   const statusEventId = sessionStatus?.eventId ?? null
   const statusProduction = sessionStatus?.productionMode ?? productionMode
@@ -258,7 +258,7 @@ export function ControlShell({
             variant={settingsVariantForNav(activeNav)}
             timelineAvailable={timelineAvailable}
           />
-          {isFree ? (
+          {showUpgradeCta ? (
             <a className="btnGhost btnSm planUpgradeBtn" href="#upgrade">
               {t('plan.upgradeCta')}
             </a>

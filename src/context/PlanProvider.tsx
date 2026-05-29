@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react'
 import { sessionRoomSetupPath } from '../lib/freeSession'
-import { getPlanTier, isPaidPlan } from '../lib/planTier'
+import { getPlanTier, isPaidPlan, isUpgradeCtaEnabled } from '../lib/planTier'
 import { PlanContext, type PlanContextValue } from './planContext'
 
 export function PlanProvider({ children }: { children: ReactNode }) {
@@ -13,6 +13,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       isPaid,
       isFree: !isPaid,
       homePath,
+      showUpgradeCta: !isPaid && isUpgradeCtaEnabled(),
     }
   }, [])
 

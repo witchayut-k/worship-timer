@@ -6,6 +6,7 @@ export type PlanContextValue = {
   isPaid: boolean
   isFree: boolean
   homePath: string
+  showUpgradeCta: boolean
 }
 
 export const PlanContext = createContext<PlanContextValue | null>(null)

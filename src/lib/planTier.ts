@@ -15,3 +15,9 @@ export function isPaidPlan(): boolean {
 export function isFreePlan(): boolean {
   return !isPaidPlan()
 }
+
+/** Off by default until upgrade flow ships. Set VITE_SHOW_UPGRADE_CTA=true to show. */
+export function isUpgradeCtaEnabled(): boolean {
+  const raw = import.meta.env.VITE_SHOW_UPGRADE_CTA?.trim().toLowerCase()
+  return raw === 'true' || raw === '1'
+}
