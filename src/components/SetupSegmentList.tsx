@@ -274,7 +274,6 @@ export function SetupSegmentList({
         rowState={rowState}
         startLabel={plannedRow?.startLabel ?? null}
         endLabel={plannedRow?.endLabel ?? null}
-        isLast={idx === items.length - 1}
         className="setupTimelineRow"
       >
         {sortable}

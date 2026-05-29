@@ -449,12 +449,11 @@
 }
 
 .programScheduleCrew .programTimeline {
+  --pt-time-col: 48px;
+  --pt-rail-col: 24px;
+  --pt-col-gap: 10px;
+  --pt-track-top: 18px;
   padding-right: 2px;
-}
-
-.programScheduleCrew .programTimelineRow {
-  grid-template-columns: 48px 24px minmax(0, 1fr);
-  gap: 8px 10px;
 }
 
 .programScheduleCrew .programTimelineTime {
@@ -466,8 +465,9 @@
 }
 
 @media (max-width: 400px) {
-  .programScheduleCrew .programTimelineRow {
-    grid-template-columns: 44px 22px minmax(0, 1fr);
+  .programScheduleCrew .programTimeline {
+    --pt-time-col: 44px;
+    --pt-rail-col: 22px;
   }
 
   .programScheduleCrew .programSchedulePick:not(.programTimelinePick) {
