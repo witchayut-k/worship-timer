@@ -68,7 +68,7 @@ function newId(): string {
 }
 
 function newCloudEventId(): string {
-  return `evt-${Date.now().toString(36)}`
+  return Date.now().toString(36)
 }
 
 function parsedRowsToDraftItems(rows: ParsedProgramRow[]): DraftItem[] {

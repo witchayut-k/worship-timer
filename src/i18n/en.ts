@@ -261,6 +261,8 @@ export const en = {
       'Fullscreen display for the stage — shows timer, current segment, and next segment in kiosk mode (no menus).',
     crewDesc:
       'Read-only dashboard for backstage — current segment with timer, upcoming cards with lighting and media cues, plus the full rundown below. Synced in realtime for MC, lighting, and media teams.',
+    crewQrHint: 'Scan to open crew view on your phone',
+    crewQrAria: 'QR code for crew view link',
   },
   import: {
     title: 'Import from Spreadsheet',

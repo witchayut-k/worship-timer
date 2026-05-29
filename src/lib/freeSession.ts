@@ -13,7 +13,7 @@ export function getSessionRoomId(): string | null {
 export function ensureSessionRoomId(): string {
   const existing = getSessionRoomId()
   if (existing) return existing
-  const next = `evt-${Date.now().toString(36)}`
+  const next = Date.now().toString(36)
   try {
     if (typeof window !== 'undefined') {
       window.sessionStorage.setItem(SESSION_ROOM_STORAGE_KEY, next)

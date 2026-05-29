@@ -4,6 +4,7 @@ import { useLocale } from '../i18n/useLocale'
 import { getOutputLinks, type OutputLinkKind } from '../lib/outputLinks'
 import { getStagePreviewImageSrc } from '../lib/stagePreviewImages'
 import { MonitorIcon } from './SetupIcons'
+import { OutputLinkQrCode } from './OutputLinkQrCode'
 
 type Props = {
   open: boolean
@@ -265,7 +266,11 @@ function OutputLinksModalPanel({
             {activeTab === 'controller' ? (
               <p className="outputLinksInfoText">{t('modal.controllerDesc')}</p>
             ) : activeTab === 'crew' ? (
-              <p className="outputLinksInfoText">{t('modal.crewDesc')}</p>
+              <>
+                <p className="outputLinksInfoText">{t('modal.crewDesc')}</p>
+                <OutputLinkQrCode url={activeLink.url} ariaLabel={t('modal.crewQrAria')} />
+                <p className="outputLinksQrHint">{t('modal.crewQrHint')}</p>
+              </>
             ) : (
               <>
                 <p className="outputLinksInfoText">{t('modal.stageDesc')}</p>

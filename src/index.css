@@ -3075,6 +3075,29 @@ body.setupSplitResizing {
   color: var(--muted);
 }
 
+.outputLinksQr {
+  display: flex;
+  justify-content: center;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.outputLinksQr svg {
+  display: block;
+  width: auto;
+  height: auto;
+}
+
+.outputLinksQrHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .outputLinksPath {
   display: flex;
   flex-direction: column;
