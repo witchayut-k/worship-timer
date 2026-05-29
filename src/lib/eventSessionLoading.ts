@@ -14,6 +14,8 @@ export function isEventWorkspaceBootLoading(
     if (route === 'setup') return !hasSetupDraft()
     return true
   }
-  if (status === 'ready' && route === 'start' && !programItemsHydrated) return true
+  if (status === 'ready' && !programItemsHydrated) {
+    if (route === 'start' || route === 'setup') return true
+  }
   return false
 }

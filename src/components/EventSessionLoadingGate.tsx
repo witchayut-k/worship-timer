@@ -3,6 +3,8 @@ import { useMatch } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useEventSession } from '../hooks/useEventSession'
 import { useLocale } from '../i18n/useLocale'
+import { appConfig } from '../config/app.config'
+import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { isEventWorkspaceBootLoading } from '../lib/eventSessionLoading'
 import { FullScreenLoading } from './FullScreenLoading'
 
@@ -24,8 +26,9 @@ export function EventSessionLoadingGate({ children }: Props) {
     route,
     session.programItemsHydrated,
   )
+  const showLoading = useMinDurationLoading(loading, appConfig.fullScreenLoadingMinMs)
 
-  if (loading) {
+  if (showLoading) {
     return <FullScreenLoading message={t('setup.loadingProgram')} />
   }
 

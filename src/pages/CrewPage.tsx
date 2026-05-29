@@ -4,6 +4,8 @@ import { CrewDoneCard } from '../components/CrewDoneCard'
 import { CrewNowCard } from '../components/CrewNowCard'
 import { CrewUpcomingGrid } from '../components/CrewUpcomingGrid'
 import { FullScreenLoading } from '../components/FullScreenLoading'
+import { appConfig } from '../config/app.config'
+import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { ProgramSchedulePanel } from '../components/ProgramSchedulePanel'
 import { resolveEventSettings } from '../domain/types'
 import { formatServiceDateLabel } from '../domain/serviceList'
@@ -46,7 +48,13 @@ function CrewPageInner({ eventId }: { eventId: string }) {
     return parts.length > 0 ? parts.join(' · ') : null
   }, [eventMeta?.date, eventMeta?.plannedStartTime, locale])
 
-  if (isCloud && cloudReady && !syncReady) {
+  const cloudBootLoading = isCloud && cloudReady && !syncReady
+  const showLoadingGate = useMinDurationLoading(
+    cloudBootLoading,
+    appConfig.fullScreenLoadingMinMs,
+  )
+
+  if (showLoadingGate) {
     return <FullScreenLoading message={t('common.loading')} />
   }
 

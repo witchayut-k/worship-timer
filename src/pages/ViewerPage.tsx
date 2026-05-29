@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { FullScreenLoading } from '../components/FullScreenLoading'
+import { appConfig } from '../config/app.config'
+import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { SlidersIcon } from '../components/SetupIcons'
 import { StageDisplay } from '../components/StageDisplay'
 import { resolveEventSettings } from '../domain/types'
@@ -52,7 +54,13 @@ function ViewerPageInner({ eventId }: { eventId: string }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [kiosk])
 
-  if (isCloud && cloudReady && !syncReady) {
+  const cloudBootLoading = isCloud && cloudReady && !syncReady
+  const showLoadingGate = useMinDurationLoading(
+    cloudBootLoading,
+    appConfig.fullScreenLoadingMinMs,
+  )
+
+  if (showLoadingGate) {
     return <FullScreenLoading message={t('common.loading')} />
   }
 

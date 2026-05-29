@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { usePlan } from '../hooks/usePlan'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { ControlShell } from '../components/ControlShell'
+import { FullScreenLoading } from '../components/FullScreenLoading'
+import { appConfig } from '../config/app.config'
 import { LeaveControlModal } from '../components/LeaveControlModal'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
 import { SetupEventDetailsCard } from '../components/SetupEventDetailsCard'
@@ -27,6 +29,7 @@ import { getOutputLink } from '../lib/outputLinks'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
+import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { useOptionalEventSession } from '../hooks/useEventSession'
 import type { EventSessionContextValue } from '../context/eventSessionContext'
 import {
@@ -115,6 +118,7 @@ function SetupPageInner({
   const { isFree, isPaid } = usePlan()
   const session = useOptionalEventSession()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
+  const needsInitialEventId = !isEdit && !routeEventId
   const cloudMode = hasFirebaseConfig() && Boolean(uid)
   const cloudReady = hasFirebaseConfig()
 
@@ -140,6 +144,8 @@ function SetupPageInner({
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [liveRuntime, setLiveRuntime] = useState<RuntimeState | null>(null)
   const baselineSeededRef = useRef(false)
+  const initialEventBootstrapRef = useRef(false)
+  const [bootstrappingInitialEvent, setBootstrappingInitialEvent] = useState(needsInitialEventId)
 
   const navAutoFocusId = useMemo(() => {
     if (isProgramLoading || navFocusConsumed || focusOrder == null || !items.length) return null
@@ -486,7 +492,7 @@ function SetupPageInner({
     [title, date, plannedStartTime, settings, leaderNames, items],
   )
 
-  const shouldNavigateAfterSave = !isEdit && !routeEventId
+  const shouldNavigateAfterSave = needsInitialEventId
 
   const {
     saveStatus,
@@ -497,7 +503,8 @@ function SetupPageInner({
     markSnapshotSaved,
   } = useSetupAutoSave({
     enabled:
-      !isProgramLoading && (items.length > 0 || Boolean(routeEventId ?? lastEventId)),
+      !isProgramLoading &&
+      (items.length > 0 || Boolean(routeEventId ?? lastEventId) || needsInitialEventId),
     hydrated,
     snapshot: setupSnapshot,
     persistSetup,
@@ -509,6 +516,29 @@ function SetupPageInner({
     persistSetupRef.current = persistSetup
     flushRef.current = flush
   }, [persistSetup, flush])
+
+  useEffect(() => {
+    if (!needsInitialEventId || !hydrated || initialEventBootstrapRef.current) return
+    initialEventBootstrapRef.current = true
+    setBootstrappingInitialEvent(true)
+    void persistSetupRef.current({ touchRuntime: false })
+      .then((result) => {
+        const navId = result.cloudEventId ?? result.localId
+        if (navId) nav(`/setup/${navId}`, { replace: true })
+      })
+      .finally(() => {
+        setBootstrappingInitialEvent(false)
+      })
+  }, [needsInitialEventId, hydrated, nav])
+
+  const creatingInitialEventId =
+    needsInitialEventId &&
+    !routeEventId &&
+    (bootstrappingInitialEvent || saveStatus === 'pending' || saveStatus === 'saving')
+  const showCreatingEventLoading = useMinDurationLoading(
+    creatingInitialEventId,
+    appConfig.fullScreenLoadingMinMs,
+  )
 
   useEffect(() => {
     if (!formHydrated || baselineSeededRef.current || !session) return
@@ -647,6 +677,10 @@ function SetupPageInner({
     cancelLeave,
     leaveDestinationKey,
   } = useLeaveControl(productionMode)
+
+  if (showCreatingEventLoading) {
+    return <FullScreenLoading message={t('setup.creatingEvent')} />
+  }
 
   return (
     <ControlShell

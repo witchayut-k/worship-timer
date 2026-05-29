@@ -32,9 +32,12 @@ describe('isEventWorkspaceBootLoading', () => {
     ).toBe(false)
   })
 
-  it('setup does not wait for programItemsHydrated once ready', () => {
+  it('setup waits for programItemsHydrated once ready', () => {
     expect(
       isEventWorkspaceBootLoading(true, 'ready', () => true, 'setup', false),
+    ).toBe(true)
+    expect(
+      isEventWorkspaceBootLoading(true, 'ready', () => true, 'setup', true),
     ).toBe(false)
   })
 

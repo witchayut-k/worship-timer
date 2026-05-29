@@ -94,6 +94,7 @@ export const en = {
     saveCloudPermission: 'Cloud save failed — controller permission required in Firebase',
     addItem: 'Add Segment',
     loadingProgram: 'Loading program…',
+    creatingEvent: 'Preparing your workspace…',
     eventDetails: 'Event Details',
     resizeAside: 'Resize panels',
     programItems: 'Program Schedule',

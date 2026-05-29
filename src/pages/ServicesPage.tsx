@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ControlShell } from '../components/ControlShell'
 import { FullScreenLoading } from '../components/FullScreenLoading'
+import { appConfig } from '../config/app.config'
+import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { SwitchControlModal } from '../components/LeaveControlModal'
 import {
   filterServiceEntries,
@@ -131,8 +133,12 @@ export function ServicesPage() {
   }
 
   const showFullScreenLoading = !ready || (loading && entries.length === 0)
+  const showLoadingGate = useMinDurationLoading(
+    showFullScreenLoading,
+    appConfig.fullScreenLoadingMinMs,
+  )
 
-  if (showFullScreenLoading) {
+  if (showLoadingGate) {
     return <FullScreenLoading message={t('services.loadingList')} />
   }
 

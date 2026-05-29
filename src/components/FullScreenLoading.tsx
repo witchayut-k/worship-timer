@@ -12,6 +12,16 @@ export function FullScreenLoading({ message }: Props) {
       aria-label={message}
     >
       <div className="fullScreenLoadingInner">
+        <div className="fullScreenLoadingLogoWrap">
+          <img
+            className="fullScreenLoadingLogo"
+            src="/loader-logo.png"
+            alt=""
+            width={518}
+            height={251}
+            aria-hidden
+          />
+        </div>
         <div className="fullScreenLoadingSpinner" aria-hidden />
         <p className="fullScreenLoadingMessage">{message}</p>
       </div>

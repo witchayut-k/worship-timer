@@ -2342,6 +2342,52 @@ body.setupSplitResizing {
   gap: 20px;
 }
 
+.fullScreenLoadingLogoWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.16),
+    0 0 42px rgba(122, 162, 255, 0.3),
+    0 0 76px rgba(91, 140, 255, 0.2),
+    0 0 112px rgba(122, 162, 255, 0.12);
+  animation: fullScreenLoadingLogoPulse 1s ease-in-out infinite;
+}
+
+@keyframes fullScreenLoadingLogoPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.16),
+      0 0 42px rgba(122, 162, 255, 0.3),
+      0 0 76px rgba(91, 140, 255, 0.2),
+      0 0 112px rgba(122, 162, 255, 0.12);
+  }
+
+  50% {
+    box-shadow:
+      0 4px 18px rgba(0, 0, 0, 0.18),
+      0 0 56px rgba(122, 162, 255, 0.4),
+      0 0 96px rgba(91, 140, 255, 0.26),
+      0 0 140px rgba(122, 162, 255, 0.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fullScreenLoadingLogoWrap {
+    animation: none;
+  }
+}
+
+.fullScreenLoadingLogo {
+  display: block;
+  height: 120px;
+  width: auto;
+  max-width: min(248px, 85vw);
+  object-fit: contain;
+}
+
 .fullScreenLoadingSpinner {
   width: 40px;
   height: 40px;
