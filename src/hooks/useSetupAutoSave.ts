@@ -89,9 +89,14 @@ export function useSetupAutoSave({
     runPersistRef.current = async (touchRuntime: boolean) => {
       savingRef.current = true
       setSaveStatus('saving')
+      const snapshotAtStart = snapshotRef.current
       try {
         const result = await persistSetupRef.current({ touchRuntime })
-        lastSavedSnapshotRef.current = snapshotRef.current
+        if (snapshotRef.current === snapshotAtStart) {
+          lastSavedSnapshotRef.current = snapshotAtStart
+        } else {
+          pendingFlushRef.current = true
+        }
         lastResultRef.current = result
         setSaveNotice(result.notice)
         setSaveStatus(result.isError ? 'error' : 'saved')

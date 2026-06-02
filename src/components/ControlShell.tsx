@@ -7,6 +7,7 @@ import { useRuntimePhase } from '../hooks/useRuntimePhase'
 import { useWorkspaceSessionTitle } from '../hooks/useWorkspaceSessionTitle'
 import { AppHeaderClock } from './AppHeaderClock'
 import { LanguageToggle } from './LanguageToggle'
+import { WorkspaceSyncStatusBar } from './WorkspaceSyncStatusBar'
 import { ScheduleViewSettingsButton } from './ScheduleViewSettingsButton'
 import type { ScheduleViewSettingsVariant } from './ScheduleViewSettingsModal'
 import { SessionStatusBadge } from './SessionStatusBadge'
@@ -305,6 +306,7 @@ export function ControlShell({
           <div className="controlContent">{children}</div>
         )}
       </div>
+      <WorkspaceSyncStatusBar />
     </div>
   )
 }

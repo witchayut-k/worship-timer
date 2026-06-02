@@ -6,6 +6,7 @@ import {
   programToDraftItems,
   shouldRefreshDraftForProgramItems,
   shouldRefreshDraftFromServer,
+  shouldApplyServerProgramItems,
   snapshotFromDraftBundle,
 } from './eventSessionDraft'
 
@@ -84,5 +85,44 @@ describe('eventSessionDraft', () => {
     expect(
       shouldRefreshDraftForProgramItems(draft, [programItem(1)], saved),
     ).toBe(true)
+  })
+
+  it('rejects stale server program with fewer items when local is ahead', () => {
+    const local = [programItem(1), programItem(2), programItem(3)]
+    const server = [programItem(1)]
+    expect(shouldApplyServerProgramItems(local, server, 5, 2)).toBe(false)
+  })
+
+  it('rejects stale server program after reset when local is empty but ahead', () => {
+    const server = [programItem(1), programItem(2), programItem(3)]
+    expect(shouldApplyServerProgramItems([], server, 5, 2)).toBe(false)
+  })
+
+  it('accepts server program when cloud revision caught up', () => {
+    const local = [programItem(1)]
+    const server = [programItem(1), programItem(2)]
+    expect(shouldApplyServerProgramItems(local, server, 2, 2)).toBe(true)
+  })
+
+  it('treats matching empty program as no apply (hydrate elsewhere)', () => {
+    expect(shouldApplyServerProgramItems([], [], 0, 0)).toBe(false)
+  })
+
+  it('does not refresh draft from server while local revision is ahead', () => {
+    const draft = draftBundleFromEventProgram({
+      event: {
+        title: 'Sunday',
+        date: '2026-05-28',
+        status: 'active',
+        updatedAtMs: 1,
+        leaderNames: [],
+      },
+      programItems: [],
+      newId: () => 'a',
+    })
+    const saved = snapshotFromDraftBundle(draft)
+    expect(
+      shouldRefreshDraftForProgramItems(draft, [programItem(1)], saved, 5, 2),
+    ).toBe(false)
   })
 })

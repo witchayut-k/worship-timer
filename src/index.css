@@ -1053,6 +1053,55 @@ textarea:focus {
   min-width: 0;
 }
 
+.appStatusBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.appStatusBarDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.appStatusBar--local .appStatusBarDot {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.appStatusBar--syncing .appStatusBarDot {
+  background: rgba(122, 162, 255, 0.85);
+}
+
+.appStatusBar--synced .appStatusBarDot {
+  background: rgba(72, 199, 142, 0.9);
+}
+
+.appStatusBar--error .appStatusBarDot {
+  background: rgba(255, 120, 120, 0.9);
+}
+
+.appStatusBarMessage {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appStatusBarRetry {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .controlSessionAutoStart {
   display: inline-flex;
   align-items: center;

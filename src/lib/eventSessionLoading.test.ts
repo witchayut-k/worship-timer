@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { isEventWorkspaceBootLoading } from './eventSessionLoading'
+import {
+  getWorkspaceLoadingPhase,
+  isEventWorkspaceBootLoading,
+  workspaceLoadingMessageKey,
+} from './eventSessionLoading'
 
 describe('isEventWorkspaceBootLoading', () => {
   it('waits for auth', () => {
@@ -45,5 +49,38 @@ describe('isEventWorkspaceBootLoading', () => {
     expect(
       isEventWorkspaceBootLoading(true, 'error', vi.fn(), 'start', false),
     ).toBe(false)
+  })
+})
+
+describe('getWorkspaceLoadingPhase', () => {
+  it('returns auth when auth not ready', () => {
+    expect(getWorkspaceLoadingPhase(false, 'loading', () => false, 'start', false)).toBe(
+      'auth',
+    )
+  })
+
+  it('returns session while loading without setup draft', () => {
+    expect(getWorkspaceLoadingPhase(true, 'loading', () => false, 'start', false)).toBe(
+      'session',
+    )
+  })
+
+  it('returns program when ready but items not hydrated', () => {
+    expect(getWorkspaceLoadingPhase(true, 'ready', () => true, 'start', false)).toBe(
+      'program',
+    )
+  })
+
+  it('returns null when boot complete', () => {
+    expect(getWorkspaceLoadingPhase(true, 'ready', () => true, 'start', true)).toBeNull()
+  })
+})
+
+describe('workspaceLoadingMessageKey', () => {
+  it('maps phases to i18n keys', () => {
+    expect(workspaceLoadingMessageKey('auth')).toBe('loading.signingIn')
+    expect(workspaceLoadingMessageKey('session')).toBe('loading.loadingEvent')
+    expect(workspaceLoadingMessageKey('program')).toBe('loading.loadingProgramItems')
+    expect(workspaceLoadingMessageKey(null)).toBe('setup.loadingProgram')
   })
 })

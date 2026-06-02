@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { EventSessionLoadingGate } from '../components/EventSessionLoadingGate'
 import { EventSessionProvider } from '../context/EventSessionProvider'
 import { EventWorkspaceRuntimeProvider } from '../context/EventWorkspaceRuntimeProvider'
+import { WorkspaceSyncProvider } from '../context/WorkspaceSyncProvider'
 import { useLocale } from '../i18n/useLocale'
 
 class WorkspaceErrorBoundary extends Component<
@@ -68,11 +69,13 @@ export function EventWorkspaceLayout() {
       reloadLabel={t('setup.workspaceCrashReload')}
     >
       <EventSessionProvider eventId={eventId}>
-        <EventSessionLoadingGate>
-          <EventWorkspaceRuntimeProvider eventId={eventId}>
-            <Outlet />
-          </EventWorkspaceRuntimeProvider>
-        </EventSessionLoadingGate>
+        <WorkspaceSyncProvider eventId={eventId}>
+          <EventSessionLoadingGate>
+            <EventWorkspaceRuntimeProvider eventId={eventId}>
+              <Outlet />
+            </EventWorkspaceRuntimeProvider>
+          </EventSessionLoadingGate>
+        </WorkspaceSyncProvider>
       </EventSessionProvider>
     </WorkspaceErrorBoundary>
   )

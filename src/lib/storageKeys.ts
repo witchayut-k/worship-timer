@@ -6,4 +6,5 @@ export const storageKeys = {
   activeControl: `${STORAGE_PREFIX}:active-control`,
   event: (eventId: string) => `${STORAGE_PREFIX}:${eventId}`,
   runtime: (eventId: string) => `${STORAGE_PREFIX}:runtime:${eventId}`,
+  workspace: (eventId: string) => `${STORAGE_PREFIX}:workspace:${eventId}`,
 } as const

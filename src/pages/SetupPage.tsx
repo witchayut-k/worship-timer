@@ -31,6 +31,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
 import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { useOptionalEventSession } from '../hooks/useEventSession'
+import { useOptionalWorkspaceSync } from '../hooks/useWorkspaceSync'
 import type { EventSessionContextValue } from '../context/eventSessionContext'
 import {
   serializeSetupSnapshot,
@@ -46,7 +47,6 @@ import {
   programItemsContentSnapshot,
   snapshotFromDraftBundle,
 } from '../lib/eventSessionDraft'
-import { needsSetupPersistBeforeNav } from '../lib/setupNavigation'
 import { isOfflineEventId } from '../lib/eventSource'
 import { loadStoredLocalRuntime, subscribeLocalRuntime } from '../lib/localSync'
 import { hasFirebaseConfig } from '../lib/firebase'
@@ -117,6 +117,7 @@ function SetupPageInner({
   const { uid, ready: authReady } = useAuth()
   const { isFree, isPaid } = usePlan()
   const session = useOptionalEventSession()
+  const workspaceSync = useOptionalWorkspaceSync()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
   const needsInitialEventId = !isEdit && !routeEventId
   const cloudMode = hasFirebaseConfig() && Boolean(uid)
@@ -441,10 +442,35 @@ function SetupPageInner({
         const programItems = buildProgramItems()
         const savedEvent = buildEvent(roster)
 
-        let cloudEventId: string | null = null
-        if (cloudMode) {
+        const cloudRouteId =
+          routeEventId && !isOfflineEventId(routeEventId) ? routeEventId : null
+        const reuseCloudId =
+          isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
+        const resolvedEventId =
+          cloudRouteId ?? (reuseCloudId ? lastEventId! : cloudMode ? newCloudEventId() : null)
+
+        let cloudEventId: string | null = resolvedEventId
+
+        if (workspaceSync) {
+          workspaceSync.persistDraft({
+            event: savedEvent,
+            items: programItems,
+            touchRuntime,
+            initialState: touchRuntime
+              ? initialRuntimeState({ items: programItems })
+              : undefined,
+          })
+          if (touchRuntime && workspaceSync.cloudEnabled) {
+            const snap = await workspaceSync.flushCloud()
+            if (snap.status === 'error') {
+              throw new Error(snap.lastError ?? t('setup.saveFailed'))
+            }
+          }
+          if (resolvedEventId) setLastEventId(resolvedEventId)
+        } else if (cloudMode) {
           cloudEventId = await persistCloud(touchRuntime)
         }
+
         const localId = persistLocal() ?? ''
         if (session) {
           session.notifyProgramPersisted(savedEvent, programItems)
@@ -459,7 +485,12 @@ function SetupPageInner({
             }),
           )
         }
-        const notice = cloudEventId ? t('setup.savedSynced') : t('setup.saved')
+        const notice =
+          workspaceSync?.cloudEnabled || cloudEventId
+            ? touchRuntime
+              ? t('setup.savedSynced')
+              : t('setup.saved')
+            : t('setup.saved')
         return { localId, cloudEventId, notice, isError: false }
       } catch (e) {
         const msg = e instanceof Error ? e.message : t('setup.saveFailed')
@@ -477,7 +508,25 @@ function SetupPageInner({
         }
       }
     },
-    [buildEvent, buildProgramItems, cloudMode, persistCloud, persistLocal, t, session, title, date, plannedStartTime, settings, leaderNames, items],
+    [
+      buildEvent,
+      buildProgramItems,
+      cloudMode,
+      isEdit,
+      items,
+      lastEventId,
+      leaderNames,
+      persistCloud,
+      persistLocal,
+      routeEventId,
+      session,
+      t,
+      title,
+      date,
+      plannedStartTime,
+      settings,
+      workspaceSync,
+    ],
   )
 
   const setupSnapshot = useMemo(
@@ -548,8 +597,6 @@ function SetupPageInner({
     baselineSeededRef.current = true
   }, [formHydrated, session, markSnapshotSaved, setupSnapshot])
 
-  const persistBeforeNav = needsSetupPersistBeforeNav(session, saveStatus, items)
-
   const onSpreadsheetImport = useCallback(
     (rows: ParsedProgramRow[], importMode: SpreadsheetImportMode) => {
       const imported = parsedRowsToDraftItems(rows)
@@ -583,7 +630,7 @@ function SetupPageInner({
     setItems([])
     setNewlyAddedId(null)
     setResetModalOpen(false)
-    if (!lastEventId && !routeEventId) return
+
     const emptySnapshot = serializeSetupSnapshot({
       title,
       date,
@@ -592,11 +639,36 @@ function SetupPageInner({
       leaderNames,
       items: [],
     })
-    window.setTimeout(() => {
-      void persistSetupRef.current({ touchRuntime: false }).then((result) => {
-        if (result && !result.isError) markSnapshotSaved(emptySnapshot)
-      })
-    }, 0)
+    const emptyDraft = {
+      title,
+      date,
+      plannedStartTime,
+      settings,
+      leaderNames,
+      items: nextItems,
+    }
+
+    cancelScheduled()
+    markSnapshotSaved(emptySnapshot)
+
+    if (session) {
+      session.replaceSetupDraft(emptyDraft)
+      session.markSetupDraftSaved(emptySnapshot)
+    }
+
+    if (lastEventId || routeEventId) {
+      const roster = collectLeadersFromItems(leaderNames, [])
+      const savedEvent = buildEvent(roster)
+      if (workspaceSync) {
+        workspaceSync.persistDraft({ event: savedEvent, items: [] })
+        session?.notifyProgramPersisted(savedEvent, [])
+      } else {
+        void persistSetupRef.current({ touchRuntime: false }).then((result) => {
+          if (result && !result.isError) markSnapshotSaved(emptySnapshot)
+        })
+      }
+    }
+
     if (productionMode) {
       void reconcileRuntime(nextItems, { type: 'reset' })
     }
@@ -639,34 +711,37 @@ function SetupPageInner({
     setNavSaving(true)
     cancelScheduled()
     try {
-      await flush(false)
+      if (session?.isSetupDraftDirty() || saveStatus === 'pending' || saveStatus === 'saving') {
+        await flush(false)
+      }
     } finally {
       setNavSaving(false)
     }
     nav(`/start/${setupEventId}`)
-  }, [setupEventId, cancelScheduled, flush, nav])
+  }, [setupEventId, cancelScheduled, flush, nav, saveStatus, session])
 
   const openStageView = useCallback(async () => {
     if (!setupEventId) return
     setNavSaving(true)
     cancelScheduled()
     try {
-      await flush(false)
+      if (session?.isSetupDraftDirty() || saveStatus === 'pending' || saveStatus === 'saving') {
+        await flush(false)
+      }
     } finally {
       setNavSaving(false)
     }
     nav(getOutputLink(setupEventId, 'stage').path)
-  }, [setupEventId, cancelScheduled, flush, nav])
+  }, [setupEventId, cancelScheduled, flush, nav, saveStatus, session])
 
-  const controlShellNavProps =
-    setupEventId && persistBeforeNav
-      ? {
-          onControlNavigate: openControlRoom,
-          controlNavigateDisabled: navSaving,
-          onStageNavigate: openStageView,
-          stageNavigateDisabled: navSaving,
-        }
-      : {}
+  const controlShellNavProps = setupEventId
+    ? {
+        onControlNavigate: openControlRoom,
+        controlNavigateDisabled: navSaving,
+        onStageNavigate: openStageView,
+        stageNavigateDisabled: navSaving,
+      }
+    : {}
 
   const {
     leaveModalOpen,

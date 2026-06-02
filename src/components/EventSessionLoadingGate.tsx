@@ -5,7 +5,7 @@ import { useEventSession } from '../hooks/useEventSession'
 import { useLocale } from '../i18n/useLocale'
 import { appConfig } from '../config/app.config'
 import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
-import { isEventWorkspaceBootLoading } from '../lib/eventSessionLoading'
+import { getWorkspaceLoadingPhase, workspaceLoadingMessageKey } from '../lib/eventSessionLoading'
 import { FullScreenLoading } from './FullScreenLoading'
 
 type Props = {
@@ -19,17 +19,18 @@ export function EventSessionLoadingGate({ children }: Props) {
   const setupMatch = useMatch('/setup/:eventId')
   const route = setupMatch ? 'setup' : 'start'
 
-  const loading = isEventWorkspaceBootLoading(
+  const loadingPhase = getWorkspaceLoadingPhase(
     authReady,
     session.status,
     session.hasSetupDraft,
     route,
     session.programItemsHydrated,
   )
+  const loading = loadingPhase !== null
   const showLoading = useMinDurationLoading(loading, appConfig.fullScreenLoadingMinMs)
 
   if (showLoading) {
-    return <FullScreenLoading message={t('setup.loadingProgram')} />
+    return <FullScreenLoading message={t(workspaceLoadingMessageKey(loadingPhase))} />
   }
 
   return children

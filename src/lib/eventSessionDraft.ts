@@ -108,11 +108,30 @@ export function shouldRefreshDraftForProgramItems(
   draft: SetupDraftBundle | null,
   programItems: ProgramItem[],
   lastSavedSnapshot: string | null,
+  localRevision = 0,
+  cloudRevision = 0,
 ): boolean {
+  if (localRevision > cloudRevision) return false
   if (!draft) return true
   const dirty = isSetupDraftDirty(draft, lastSavedSnapshot)
   const contentMismatch =
     programItemsContentSnapshot(programItems) !== draftProgramContentSnapshot(draft)
   if (contentMismatch && !dirty) return true
   return shouldRefreshDraftFromServer(dirty)
+}
+
+/** Reject stale cloud snapshots while local revision is ahead of last cloud sync. */
+export function shouldApplyServerProgramItems(
+  localItems: ProgramItem[],
+  serverItems: ProgramItem[],
+  localRevision: number,
+  cloudRevision: number,
+): boolean {
+  if (programItemsContentSnapshot(localItems) === programItemsContentSnapshot(serverItems)) {
+    return false
+  }
+  if (localRevision > cloudRevision) {
+    return false
+  }
+  return true
 }

@@ -37,6 +37,19 @@ export const en = {
     path: 'Path',
     openLink: 'Open Link ↗',
   },
+  loading: {
+    signingIn: 'Connecting…',
+    loadingEvent: 'Loading event…',
+    loadingProgramItems: 'Loading program items…',
+  },
+  sync: {
+    localSaved: 'Saved on this device',
+    pending: 'Waiting to sync…',
+    syncing: 'Syncing to cloud…',
+    synced: 'Synced — other screens ready',
+    error: 'Cloud sync failed — data saved on this device',
+    retry: 'Retry sync',
+  },
   language: {
     en: 'EN',
     th: 'ไทย',

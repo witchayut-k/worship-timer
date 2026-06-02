@@ -12,6 +12,8 @@ import { hasFirebaseConfig } from '../lib/firebase'
 import {
   draftBundleFromEventProgram,
   isSetupDraftDirty as computeDraftDirty,
+  programItemsContentSnapshot,
+  shouldApplyServerProgramItems,
   shouldRefreshDraftForProgramItems,
   snapshotFromDraftBundle,
   type SetupDraftBundle,
@@ -23,6 +25,8 @@ import {
   watchEvent,
   watchProgramItems,
 } from '../lib/firestoreRepo'
+import { getWorkspaceSyncSnapshot, noteLocalRevision } from '../lib/workspaceCloudSync'
+import { readWorkspaceDraft } from '../lib/workspaceDraftStore'
 import { EventSessionContext, type EventSessionStatus } from './eventSessionContext'
 
 type EventSessionProviderProps = {
@@ -125,13 +129,29 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
           setStatus('ready')
         }
       } else {
-        setStatus('loading')
-        setError(null)
-        setEvent(null)
-        setProgramItems([])
-        setProgramItemsHydrated(false)
-        setSetupDraft(null)
-        setLastSavedSnapshot(null)
+        const local = readWorkspaceDraft(eventId)
+        if (local) {
+          const nextDraft = draftBundleFromEventProgram({
+            event: local.event,
+            programItems: local.items,
+          })
+          setEvent(local.event)
+          setProgramItems(local.items)
+          setSetupDraft(nextDraft)
+          setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+          setProgramItemsHydrated(true)
+          setError(null)
+          setStatus('ready')
+          noteLocalRevision(eventId, local.revision, cloudReady && Boolean(uid))
+        } else {
+          setStatus('loading')
+          setError(null)
+          setEvent(null)
+          setProgramItems([])
+          setProgramItemsHydrated(false)
+          setSetupDraft(null)
+          setLastSavedSnapshot(null)
+        }
       }
     }
   }
@@ -139,9 +159,20 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
   const refreshDraftFromServer = useCallback(
     (nextEvent: WorshipEvent | null, nextItems: ProgramItem[]) => {
       if (!nextEvent) return
+      const syncSnap = getWorkspaceSyncSnapshot(eventId)
       const draft = setupDraftRef.current
       const saved = lastSavedSnapshotRef.current
-      if (!shouldRefreshDraftForProgramItems(draft, nextItems, saved)) return
+      if (
+        !shouldRefreshDraftForProgramItems(
+          draft,
+          nextItems,
+          saved,
+          syncSnap.localRevision,
+          syncSnap.cloudRevision,
+        )
+      ) {
+        return
+      }
       const nextDraft = draftBundleFromEventProgram({
         event: nextEvent,
         programItems: nextItems,
@@ -149,7 +180,7 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
       setSetupDraft(nextDraft)
       setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
     },
-    [],
+    [eventId],
   )
 
   useEffect(() => {
@@ -172,6 +203,12 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
           if (cancelled) return
           if (!ev) {
             if (isSessionRoomId(eventId)) {
+              const local = readWorkspaceDraft(eventId)
+              if (local && (local.items.length > 0 || local.event.title.trim())) {
+                return
+              }
+              if (sawEvent) return
+
               const emptyEvent: WorshipEvent = {
                 title: '',
                 date: new Date().toISOString().slice(0, 10),
@@ -222,6 +259,32 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
 
       const unsubItems = watchProgramItems(eventId, (items) => {
         if (cancelled) return
+        const localDraft = readWorkspaceDraft(eventId)
+        const syncSnap = getWorkspaceSyncSnapshot(eventId)
+        const localItems = localDraft?.items ?? programItemsRef.current
+        const localRevision = localDraft?.revision ?? syncSnap.localRevision
+        const apply = shouldApplyServerProgramItems(
+          localItems,
+          items,
+          localRevision,
+          syncSnap.cloudRevision,
+        )
+
+        if (!apply) {
+          const preferLocal = localDraft != null || localRevision > syncSnap.cloudRevision
+          const nextItems = preferLocal ? localItems : items
+          if (
+            programItemsContentSnapshot(programItemsRef.current) !==
+            programItemsContentSnapshot(nextItems)
+          ) {
+            setProgramItems(nextItems)
+          }
+          if (!programItemsHydratedRef.current) {
+            setProgramItemsHydrated(true)
+          }
+          return
+        }
+
         setProgramItems(items)
         setProgramItemsHydrated(true)
         if (sawEvent && eventRef.current) {

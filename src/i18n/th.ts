@@ -39,6 +39,19 @@ export const th: Messages = {
     path: 'Path',
     openLink: 'Open Link ↗',
   },
+  loading: {
+    signingIn: 'กำลังเชื่อมต่อ…',
+    loadingEvent: 'กำลังโหลดข้อมูลงาน…',
+    loadingProgramItems: 'กำลังโหลดรายการโปรแกรม…',
+  },
+  sync: {
+    localSaved: 'บันทึกบนอุปกรณ์นี้แล้ว',
+    pending: 'รอ sync…',
+    syncing: 'กำลัง sync ไป cloud…',
+    synced: 'Sync แล้ว — จออื่นพร้อมใช้',
+    error: 'Sync cloud ไม่สำเร็จ — ข้อมูลยังอยู่บนอุปกรณ์นี้',
+    retry: 'ลอง sync อีกครั้ง',
+  },
   language: {
     en: 'EN',
     th: 'ไทย',
