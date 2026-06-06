@@ -63,6 +63,32 @@ export function draftBundleFromEventProgram(params: {
   }
 }
 
+/** Keep saved setup metadata when refreshing program rows from a possibly stale server event. */
+export function eventMetadataForDraftRefresh(params: {
+  draft: SetupDraftBundle | null
+  lastSavedSnapshot: string | null
+  serverEvent: WorshipEvent
+}): Pick<SetupDraftBundle, 'title' | 'date' | 'plannedStartTime' | 'settings' | 'leaderNames'> {
+  const { draft, lastSavedSnapshot, serverEvent } = params
+  if (draft && lastSavedSnapshot && snapshotFromDraftBundle(draft) === lastSavedSnapshot) {
+    return {
+      title: draft.title,
+      date: draft.date,
+      plannedStartTime: draft.plannedStartTime,
+      settings: draft.settings,
+      leaderNames: draft.leaderNames,
+    }
+  }
+  const fromServer = draftBundleFromEventProgram({ event: serverEvent, programItems: [] })
+  return {
+    title: fromServer.title,
+    date: fromServer.date,
+    plannedStartTime: fromServer.plannedStartTime,
+    settings: fromServer.settings,
+    leaderNames: fromServer.leaderNames,
+  }
+}
+
 export function snapshotFromDraftBundle(draft: SetupDraftBundle): string {
   return serializeSetupSnapshot({
     title: draft.title,

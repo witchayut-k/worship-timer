@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ProgramItem } from '../domain/types'
 import {
   draftBundleFromEventProgram,
+  eventMetadataForDraftRefresh,
   isSetupDraftDirty,
   preserveDraftItemIds,
   programToDraftItems,
@@ -148,6 +149,71 @@ describe('eventSessionDraft', () => {
     const local = Array.from({ length: 5 }, (_, i) => programItem(i + 1))
     const server = Array.from({ length: 10 }, (_, i) => programItem(i + 1))
     expect(shouldApplyServerProgramItems(local, server, 11, 10)).toBe(false)
+  })
+
+  it('keeps saved event metadata when server event is stale', () => {
+    const draft = draftBundleFromEventProgram({
+      event: {
+        title: 'Saved title',
+        date: '2026-06-06',
+        plannedStartTime: '09:30',
+        status: 'active',
+        updatedAtMs: 1,
+        leaderNames: ['Ann'],
+      },
+      programItems: [programItem(1)],
+      newId: () => 'a',
+    })
+    const saved = snapshotFromDraftBundle(draft)
+    const meta = eventMetadataForDraftRefresh({
+      draft,
+      lastSavedSnapshot: saved,
+      serverEvent: {
+        title: 'Old title',
+        date: '2026-01-01',
+        status: 'active',
+        updatedAtMs: 0,
+        leaderNames: [],
+      },
+    })
+    expect(meta.title).toBe('Saved title')
+    expect(meta.date).toBe('2026-06-06')
+    expect(meta.plannedStartTime).toBe('09:30')
+    expect(meta.leaderNames).toEqual(['Ann'])
+  })
+
+  it('uses server metadata when draft is not the saved baseline', () => {
+    const draft = draftBundleFromEventProgram({
+      event: {
+        title: 'Local edit',
+        date: '2026-06-06',
+        status: 'active',
+        updatedAtMs: 1,
+        leaderNames: [],
+      },
+      programItems: [programItem(1)],
+      newId: () => 'a',
+    })
+    const saved = snapshotFromDraftBundle({
+      ...draft,
+      title: 'Saved baseline',
+    })
+    const meta = eventMetadataForDraftRefresh({
+      draft,
+      lastSavedSnapshot: saved,
+      serverEvent: {
+        title: 'Server title',
+        date: '2026-05-01',
+        plannedStartTime: '10:00',
+        status: 'active',
+        updatedAtMs: 2,
+        leaderNames: ['Bob'],
+      },
+    })
+    expect(meta.title).toBe('Server title')
+    expect(meta.date).toBe('2026-05-01')
+    expect(meta.plannedStartTime).toBe('10:00')
+    expect(meta.leaderNames).toEqual(['Bob'])
   })
 
   it('does not refresh draft after import replace while local revision is ahead', () => {

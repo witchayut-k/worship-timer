@@ -61,7 +61,7 @@ import {
   acknowledgeDirectCloudSave,
   getWorkspaceSyncSnapshot,
 } from '../lib/workspaceCloudSync'
-import { readWorkspaceDraft } from '../lib/workspaceDraftStore'
+import { readWorkspaceDraft, writeWorkspaceDraft } from '../lib/workspaceDraftStore'
 import { syncRuntimeState } from '../lib/syncRuntimeState'
 
 function newId(): string {
@@ -466,7 +466,17 @@ function SetupPageInner({
 
         if (cloudMode) {
           cloudEventId = await persistCloud(touchRuntime, overrides)
-          if (cloudEventId) {
+          if (
+            cloudEventId &&
+            !isOfflineEventId(cloudEventId) &&
+            !isLibraryEventId(cloudEventId)
+          ) {
+            const record = writeWorkspaceDraft(cloudEventId, {
+              event: savedEvent,
+              items: programItems,
+            })
+            acknowledgeDirectCloudSave(cloudEventId, record.revision, true)
+          } else if (cloudEventId) {
             const draft = readWorkspaceDraft(cloudEventId)
             const snap = getWorkspaceSyncSnapshot(cloudEventId)
             const rev = Math.max(draft?.revision ?? 0, snap.localRevision, 1)
@@ -543,20 +553,6 @@ function SetupPageInner({
     [title, date, plannedStartTime, settings, leaderNames, items],
   )
 
-  useEffect(() => {
-    if (!session || !formHydrated || !session.setupDraft) return
-    if (session.isSetupDraftDirty()) return
-    const draft = session.setupDraft
-    if (snapshotFromDraftBundle(draft) === setupSnapshot) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTitle(draft.title)
-    setDate(draft.date)
-    setPlannedStartTime(draft.plannedStartTime)
-    setSettings(draft.settings)
-    setLeaderNames(draft.leaderNames)
-    setItems(draft.items)
-  }, [session, formHydrated, session?.setupDraft, setupSnapshot])
-
   const {
     saveStatus,
     saveNotice,
@@ -570,6 +566,20 @@ function SetupPageInner({
     snapshot: setupSnapshot,
     persistSetup,
   })
+
+  useEffect(() => {
+    if (!session || !formHydrated || !session.setupDraft) return
+    if (isDirty || session.isSetupDraftDirty()) return
+    const draft = session.setupDraft
+    if (snapshotFromDraftBundle(draft) === setupSnapshot) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTitle(draft.title)
+    setDate(draft.date)
+    setPlannedStartTime(draft.plannedStartTime)
+    setSettings(draft.settings)
+    setLeaderNames(draft.leaderNames)
+    setItems(draft.items)
+  }, [session, formHydrated, isDirty, session?.setupDraft, setupSnapshot])
 
   useEffect(() => {
     persistSetupRef.current = persistSetup

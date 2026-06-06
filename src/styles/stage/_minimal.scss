@@ -46,3 +46,27 @@
   width: 100%;
   margin-top: 0.5em;
 }
+
+.stageDisplay--minimal .stageSegmentInsideCurrent {
+  gap: 0.12em;
+}
+
+.stageDisplay--minimal .stageSegmentInsideCurrent .stageSegmentKicker {
+  font-size: calc(var(--stage-timer-font-size) * 0.1);
+  line-height: 1.35;
+}
+
+.stageDisplay--minimal .stageSegmentInsideCurrent .stageSegmentName {
+  font-size: calc(var(--stage-timer-font-size) * 0.85);
+  font-weight: 800;
+  line-height: 1.05;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.stageDisplay--minimal .stageSegmentInsideCurrent .stageSegmentLeader {
+  font-size: calc(var(--stage-timer-font-size) * 0.32);
+  line-height: 1.15;
+}

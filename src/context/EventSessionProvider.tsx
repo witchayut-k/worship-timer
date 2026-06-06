@@ -11,6 +11,7 @@ import { isSessionRoomId } from '../lib/freeSession'
 import { hasFirebaseConfig } from '../lib/firebase'
 import {
   draftBundleFromEventProgram,
+  eventMetadataForDraftRefresh,
   isSetupDraftDirty as computeDraftDirty,
   preserveDraftItemIds,
   programItemsContentSnapshot,
@@ -176,6 +177,16 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
         event: nextEvent,
         programItems: nextItems,
       })
+      const meta = eventMetadataForDraftRefresh({
+        draft,
+        lastSavedSnapshot: saved,
+        serverEvent: nextEvent,
+      })
+      nextDraft.title = meta.title
+      nextDraft.date = meta.date
+      nextDraft.plannedStartTime = meta.plannedStartTime
+      nextDraft.settings = meta.settings
+      nextDraft.leaderNames = meta.leaderNames
       if (draft?.items.length) {
         nextDraft.items = preserveDraftItemIds(draft.items, nextDraft.items)
       }
