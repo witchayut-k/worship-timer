@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProgramItem, WorshipEvent } from '../domain/types'
 import {
+  acknowledgeDirectCloudSave,
   enqueueWorkspaceSync,
   flushWorkspaceSync,
   getWorkspaceSyncSnapshot,
@@ -59,6 +60,12 @@ describe('workspaceCloudSync', () => {
   it('tracks localOnly when cloud disabled', () => {
     noteLocalRevision(EVENT_ID, 1, false)
     expect(getWorkspaceSyncSnapshot(EVENT_ID).status).toBe('localOnly')
+  })
+
+  it('does not show pending for LS revision without an active queue', () => {
+    acknowledgeDirectCloudSave(EVENT_ID, 4, true)
+    expect(getWorkspaceSyncSnapshot(EVENT_ID).status).toBe('synced')
+    expect(getWorkspaceSyncSnapshot(EVENT_ID).cloudRevision).toBe(4)
   })
 
   it('debounces and coalesces enqueues into one write', async () => {

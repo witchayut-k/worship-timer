@@ -81,9 +81,37 @@ function deriveStatus(q: EventQueueState): WorkspaceSyncStatus {
   if (q.inFlight || q.pending || q.debounceTimer) {
     if (q.localRevision > q.cloudRevision) return q.inFlight ? 'syncing' : 'pending'
   }
-  if (q.localRevision > q.cloudRevision) return 'pending'
   if (q.cloudRevision > 0 || q.localRevision > 0) return 'synced'
   return 'localOnly'
+}
+
+/** After direct Firestore save (bypassing workspace enqueue), clear stale pending state. */
+export function acknowledgeDirectCloudSave(
+  eventId: string,
+  revision?: number,
+  cloudEnabled = true,
+): void {
+  const q = getQueue(eventId)
+  if (revision != null && revision > 0) {
+    q.localRevision = Math.max(q.localRevision, revision)
+    if (cloudEnabled) {
+      q.cloudRevision = Math.max(q.cloudRevision, revision)
+    }
+  } else if (q.localRevision > 0 && cloudEnabled) {
+    q.cloudRevision = q.localRevision
+  }
+  q.pending = null
+  if (q.debounceTimer) {
+    clearTimeout(q.debounceTimer)
+    q.debounceTimer = null
+  }
+  q.lastError = null
+  if (!cloudEnabled) {
+    q.status = 'localOnly'
+    emit(eventId)
+    return
+  }
+  refreshStatus(eventId)
 }
 
 function refreshStatus(eventId: string): void {

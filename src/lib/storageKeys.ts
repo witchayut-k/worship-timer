@@ -7,4 +7,5 @@ export const storageKeys = {
   event: (eventId: string) => `${STORAGE_PREFIX}:${eventId}`,
   runtime: (eventId: string) => `${STORAGE_PREFIX}:runtime:${eventId}`,
   workspace: (eventId: string) => `${STORAGE_PREFIX}:workspace:${eventId}`,
+  controlLeaseSession: (eventId: string) => `${STORAGE_PREFIX}:control-lease-session:${eventId}`,
 } as const

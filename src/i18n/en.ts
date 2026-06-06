@@ -98,8 +98,11 @@ export const en = {
       'All program items will be removed. Event title, date, and settings are kept.',
     resetConfirm: 'Reset',
     resetBlockedRunning: 'Pause in Control Room before resetting program items',
+    save: 'Save',
     saving: 'Saving…',
     saved: 'Saved',
+    statusUnsaved: 'Unsaved changes',
+    unsavedBlock: 'Save your changes before leaving this page',
     savedSynced: 'Saved and synced',
     savedLocalCloudFailed:
       'Saved locally — cloud sync failed. Check Firebase permissions.',
@@ -218,6 +221,15 @@ export const en = {
     liveMessageClear: 'Clear',
     liveMessageSent: 'Sent {time}',
     liveMessageActive: 'Active message',
+    lease: {
+      claiming: 'Claiming control…',
+      observerBanner: 'Another device is controlling this service — view only',
+      takeover: 'Take over control',
+      takeoverTitle: 'Take over control?',
+      takeoverBody:
+        'The other device will lose control. Only continue if you intend to operate the timer from here.',
+      takeoverConfirm: 'Take over',
+    },
   },
   crew: {
     nowPlaying: 'Now playing',

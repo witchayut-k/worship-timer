@@ -99,8 +99,11 @@ export const th: Messages = {
     resetBody: 'รายการโปรแกรมจะถูกลบทั้งหมด ชื่องาน วันที่ และการตั้งค่ายังคงอยู่',
     resetConfirm: 'รีเซ็ต',
     resetBlockedRunning: 'พักเวลาในห้องควบคุมก่อนรีเซ็ตรายการโปรแกรม',
+    save: 'บันทึก',
     saving: 'กำลังบันทึก…',
     saved: 'บันทึกแล้ว',
+    statusUnsaved: 'ยังไม่ได้บันทึก',
+    unsavedBlock: 'บันทึกการเปลี่ยนแปลงก่อนออกจากหน้านี้',
     savedSynced: 'บันทึกและซิงก์แล้ว',
     savedLocalCloudFailed: 'บันทึกในเครื่องแล้ว — ซิงก์ Cloud ไม่สำเร็จ ตรวจสอบสิทธิ์ Firebase',
     saveFailed: 'บันทึกไม่สำเร็จ',
@@ -218,6 +221,15 @@ export const th: Messages = {
     liveMessageClear: 'ล้าง',
     liveMessageSent: 'ส่งเมื่อ {time}',
     liveMessageActive: 'ข้อความที่แสดงอยู่',
+    lease: {
+      claiming: 'กำลังขอสิทธิ์ควบคุม…',
+      observerBanner: 'มีอุปกรณ์อื่นกำลังควบคุมรอบนี้ — ดูอย่างเดียว',
+      takeover: 'สลับมาควบคุม',
+      takeoverTitle: 'สลับมาควบคุม?',
+      takeoverBody:
+        'อุปกรณ์เดิมจะควบคุมไม่ได้ — ทำต่อเมื่อต้องการจับเวลาจากเครื่องนี้',
+      takeoverConfirm: 'สลับมาควบคุม',
+    },
   },
   crew: {
     nowPlaying: 'กำลังแสดง',

@@ -1057,6 +1057,7 @@ textarea:focus {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   padding: 6px 16px;
   border-top: 1px solid var(--border);
@@ -1077,6 +1078,10 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.45);
 }
 
+.appStatusBar--unsaved .appStatusBarDot {
+  background: rgba(255, 193, 94, 0.95);
+}
+
 .appStatusBar--syncing .appStatusBarDot {
   background: rgba(122, 162, 255, 0.85);
 }
@@ -1090,7 +1095,7 @@ textarea:focus {
 }
 
 .appStatusBarMessage {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1099,7 +1104,6 @@ textarea:focus {
 
 .appStatusBarRetry {
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 .controlSessionAutoStart {
@@ -2192,8 +2196,15 @@ body.setupSplitResizing {
 }
 
 .setupToolbarBtn {
-  padding: 8px 12px;
+  padding: 10px 12px;
+  min-height: 43.5px;
+  box-sizing: border-box;
   white-space: nowrap;
+}
+
+.setupToolbarGroup .controlTopActionBtn .setupIcon {
+  width: 18px;
+  height: 18px;
 }
 
 .setupToolbarBtnDanger:not(:disabled) {
@@ -2204,11 +2215,6 @@ body.setupSplitResizing {
 .setupToolbarBtnDanger:not(:disabled):hover {
   border-color: rgba(255, 77, 77, 0.6);
   background: rgba(255, 77, 77, 0.08);
-}
-
-.controlTopActionBtn.setupToolbarBtnDanger .setupIcon {
-  width: 18px;
-  height: 18px;
 }
 
 .setupEventGrid {

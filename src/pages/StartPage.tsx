@@ -3,13 +3,17 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { usePlan } from "../hooks/usePlan";
 import { isSessionRoomId, sessionRoomControlPath } from "../lib/freeSession";
 import { ControlEmptyStage } from "../components/ControlEmptyStage";
+import { ControlLeaseBanner } from "../components/ControlLeaseBanner";
 import { ControlLiveMessagePanel } from "../components/ControlLiveMessagePanel";
 import { ControlShell } from "../components/ControlShell";
 import { ControlStageOutput } from "../components/ControlStageOutput";
 import { ControlTransportDock } from "../components/ControlTransportDock";
 import { ControlTimerProgress } from "../components/ControlTimerProgress";
 import { EndServiceModal } from "../components/EndServiceModal";
-import { LeaveControlModal } from "../components/LeaveControlModal";
+import {
+  LeaveControlModal,
+  TakeoverControlModal,
+} from "../components/LeaveControlModal";
 import { MonitorIcon } from "../components/SetupIcons";
 import { OutputLinksModal } from "../components/OutputLinksModal";
 import { ProgramSchedulePanel } from "../components/ProgramSchedulePanel";
@@ -19,6 +23,7 @@ import { isManualFlashActive } from "../domain/stageOutput";
 import { formatSignedMMSS } from "../domain/time";
 import { useActiveControl } from "../hooks/useActiveControl";
 import { useAuth } from "../hooks/useAuth";
+import { useControlLease } from "../hooks/useControlLease";
 import { useAutoStartOnNext } from "../hooks/useAutoStartOnNext";
 import { useControlRailWidth } from "../hooks/useControlRailWidth";
 import { useEventSession } from "../hooks/useEventSession";
@@ -106,6 +111,20 @@ function StartPageInner({ eventId }: { eventId: string }) {
   const cloudReady = isCloud && hasFirebaseConfig();
   const isLocal = isOfflineEventId(eventId);
 
+  const {
+    status: leaseStatus,
+    canWrite,
+    takeoverOpen,
+    requestTakeover,
+    confirmTakeover,
+    cancelTakeover,
+  } = useControlLease({
+    eventId,
+    enabled: cloudReady && appConfig.controlLeaseEnabled,
+    uid: uid ?? null,
+    authReady,
+  });
+
   const hydratingRef = useRef(false);
   const runtimeSyncedRef = useRef(isLocal);
   const controlWorkspaceRef = useRef<HTMLDivElement>(null);
@@ -142,7 +161,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
   }, [items, state]);
 
   useEffect(() => {
-    if (!cloudReady) return;
+    if (!cloudReady || !canWrite) return;
     if (!authReady || !uid) return;
     if (!items.length) return;
     let cancelled = false;
@@ -153,22 +172,22 @@ function StartPageInner({ eventId }: { eventId: string }) {
         runtimeSyncedRef.current = true;
         return;
       }
-      const nextInitial = initialRuntimeState({ items });
+      const nextInitial = initialRuntimeState({ items, uid });
       await writeRuntimeState(eventId, nextInitial);
       runtimeSyncedRef.current = true;
     })().catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [eventId, cloudReady, authReady, uid, items]);
+  }, [eventId, cloudReady, authReady, uid, items, canWrite]);
 
   useEffect(() => {
-    if (!cloudReady) return;
+    if (!cloudReady || !canWrite) return;
     if (!authReady || !uid) return;
     if (!runtimeSyncedRef.current) return;
     if (hydratingRef.current) return;
     void writeRuntimeState(eventId, state).catch(() => {});
-  }, [eventId, cloudReady, authReady, uid, state]);
+  }, [eventId, cloudReady, authReady, uid, state, canWrite]);
 
   useEffect(() => {
     if (!isLocal) return;
@@ -195,22 +214,23 @@ function StartPageInner({ eventId }: { eventId: string }) {
   } = useLeaveControl(productionMode);
 
   const start = () => {
-    if (!current) return;
+    if (!canWrite || !current) return;
     setActiveControl(eventId, title);
-    dispatch({ type: "start", nowMs: Date.now(), items });
+    dispatch({ type: "start", nowMs: Date.now(), items, uid });
   };
 
   const pause = () => {
-    if (state.phase !== "running") return;
-    dispatch({ type: "pause", nowMs: Date.now() });
+    if (!canWrite || state.phase !== "running") return;
+    dispatch({ type: "pause", nowMs: Date.now(), uid });
   };
 
   const resetCurrent = () => {
-    if (!current) return;
-    dispatch({ type: "resetCurrent", nowMs: Date.now(), items });
+    if (!canWrite || !current) return;
+    dispatch({ type: "resetCurrent", nowMs: Date.now(), items, uid });
   };
 
   const jumpTo = (idx: number) => {
+    if (!canWrite) return;
     if (autoStartOnNext) {
       setActiveControl(eventId, title);
     }
@@ -220,6 +240,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
       index: idx,
       items,
       autoStart: autoStartOnNext,
+      uid,
     });
   };
 
@@ -231,28 +252,34 @@ function StartPageInner({ eventId }: { eventId: string }) {
   };
 
   const adjustSec = (delta: number) => {
-    dispatch({ type: "adjust", nowMs: Date.now(), deltaSec: delta });
+    if (!canWrite) return;
+    dispatch({ type: "adjust", nowMs: Date.now(), deltaSec: delta, uid });
   };
 
   const setBlackout = (enabled: boolean) => {
-    dispatch({ type: "setBlackout", nowMs: Date.now(), enabled });
+    if (!canWrite) return;
+    dispatch({ type: "setBlackout", nowMs: Date.now(), enabled, uid });
   };
 
   const triggerFlash = () => {
-    dispatch({ type: "triggerManualFlash", nowMs: Date.now() });
+    if (!canWrite) return;
+    dispatch({ type: "triggerManualFlash", nowMs: Date.now(), uid });
   };
 
   const endService = () => {
-    dispatch({ type: "endService", nowMs: Date.now() });
+    if (!canWrite) return;
+    dispatch({ type: "endService", nowMs: Date.now(), uid });
     setEndServiceOpen(false);
   };
 
   const sendLiveMessage = (text: string) => {
-    dispatch({ type: "setLiveMessage", nowMs: Date.now(), text });
+    if (!canWrite) return;
+    dispatch({ type: "setLiveMessage", nowMs: Date.now(), text, uid });
   };
 
   const clearLiveMessage = () => {
-    dispatch({ type: "clearLiveMessage", nowMs: Date.now() });
+    if (!canWrite) return;
+    dispatch({ type: "clearLiveMessage", nowMs: Date.now(), uid });
   };
 
   const activeMessage = state.activeMessage ?? null;
@@ -329,13 +356,14 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   <ControlStageOutput
                     blackout={state.blackout}
                     manualFlashActive={manualFlashActive}
+                    disabled={!canWrite}
                     onBlackoutChange={setBlackout}
                     onFlashTrigger={triggerFlash}
                   />
                   <button
                     className={`btnDanger controlTopActionBtn${state.serviceEnded ? " controlEndServiceBtnEnded" : ""}`}
                     type="button"
-                    disabled={state.serviceEnded}
+                    disabled={!canWrite || state.serviceEnded}
                     onClick={() => setEndServiceOpen(true)}
                   >
                     {state.serviceEnded ? t("control.endServiceEnded") : t("control.endService")}
@@ -432,6 +460,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                       <button
                         className="btnGhost"
                         type="button"
+                        disabled={!canWrite}
                         onClick={() => adjustSec(-60)}
                       >
                         -60s
@@ -439,6 +468,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                       <button
                         className="btnGhost"
                         type="button"
+                        disabled={!canWrite}
                         onClick={() => adjustSec(-10)}
                       >
                         -10s
@@ -446,6 +476,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                       <button
                         className="btn"
                         type="button"
+                        disabled={!canWrite}
                         onClick={resetCurrent}
                       >
                         {t("control.reset")}
@@ -453,6 +484,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                       <button
                         className="btnGhost"
                         type="button"
+                        disabled={!canWrite}
                         onClick={() => adjustSec(+10)}
                       >
                         +10s
@@ -460,6 +492,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                       <button
                         className="btnGhost"
                         type="button"
+                        disabled={!canWrite}
                         onClick={() => adjustSec(+60)}
                       >
                         +60s
@@ -472,7 +505,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                     activeMessage={activeMessage}
                     onSend={sendLiveMessage}
                     onClear={clearLiveMessage}
-                    disabled={state.serviceEnded}
+                    disabled={!canWrite || state.serviceEnded}
                   />
                 ) : null}
                 </>
@@ -497,6 +530,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   phase={state.phase}
                   currentIndex={state.currentIndex}
                   itemCount={items.length}
+                  disabled={!canWrite}
                   onPrev={() => jumpTo(state.currentIndex - 1)}
                   onStart={start}
                   onPause={pause}
@@ -512,6 +546,7 @@ function StartPageInner({ eventId }: { eventId: string }) {
                   plannedStartTime={eventMeta?.plannedStartTime}
                   liveDotTheme={liveDotTheme}
                   serviceEnded={state.serviceEnded}
+                  readOnly={!canWrite}
                   onJumpTo={jumpTo}
                 />
               </aside>
@@ -541,6 +576,17 @@ function StartPageInner({ eventId }: { eventId: string }) {
         eventId={eventId}
         stageTemplate={settings.stageTemplate ?? "circle"}
       />
+
+      {cloudReady && appConfig.controlLeaseEnabled ? (
+        <>
+          <TakeoverControlModal
+            open={takeoverOpen}
+            onConfirm={() => void confirmTakeover()}
+            onCancel={cancelTakeover}
+          />
+          <ControlLeaseBanner status={leaseStatus} onTakeover={requestTakeover} />
+        </>
+      ) : null}
     </ControlShell>
   );
 }

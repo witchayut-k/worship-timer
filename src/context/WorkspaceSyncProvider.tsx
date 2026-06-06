@@ -2,10 +2,10 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState, type Rea
 import { useAuth } from '../hooks/useAuth'
 import { hasFirebaseConfig } from '../lib/firebase'
 import {
+  acknowledgeDirectCloudSave,
   enqueueWorkspaceSync,
   flushWorkspaceSync,
   getWorkspaceSyncSnapshot,
-  noteLocalRevision,
   subscribeWorkspaceSync,
   type WorkspaceSyncSnapshot,
 } from '../lib/workspaceCloudSync'
@@ -35,9 +35,8 @@ export function WorkspaceSyncProvider({ eventId, children }: Props) {
 
   useEffect(() => {
     const local = readWorkspaceDraft(eventId)
-    if (local) {
-      noteLocalRevision(eventId, local.revision, cloudEnabled)
-    }
+    if (!local) return
+    acknowledgeDirectCloudSave(eventId, local.revision, cloudEnabled)
   }, [cloudEnabled, eventId])
 
   const persistDraft = useCallback(

@@ -36,36 +36,25 @@ export function serializeSetupSnapshot(params: {
   })
 }
 
-const DEBOUNCE_MS = 1000
-
 type UseSetupAutoSaveParams = {
-  enabled: boolean
   hydrated: boolean
   snapshot: string
   persistSetup: (options: { touchRuntime: boolean }) => Promise<PersistSetupOutcome>
-  shouldNavigateAfterSave: boolean
-  onNavigateAfterSave: (eventId: string) => void
 }
 
 export function useSetupAutoSave({
-  enabled,
   hydrated,
   snapshot,
   persistSetup,
-  shouldNavigateAfterSave,
-  onNavigateAfterSave,
 }: UseSetupAutoSaveParams) {
   const [saveStatus, setSaveStatus] = useState<SetupSaveStatus>('idle')
   const [saveNotice, setSaveNotice] = useState<string | null>(null)
 
   const lastSavedSnapshotRef = useRef<string | null>(null)
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savingRef = useRef(false)
   const pendingFlushRef = useRef(false)
   const lastResultRef = useRef<PersistSetupOutcome | null>(null)
   const persistSetupRef = useRef(persistSetup)
-  const onNavigateRef = useRef(onNavigateAfterSave)
-  const shouldNavigateRef = useRef(shouldNavigateAfterSave)
   const snapshotRef = useRef(snapshot)
   const runPersistRef = useRef<
     (touchRuntime: boolean) => Promise<PersistSetupOutcome | null>
@@ -73,17 +62,8 @@ export function useSetupAutoSave({
 
   useEffect(() => {
     persistSetupRef.current = persistSetup
-    onNavigateRef.current = onNavigateAfterSave
-    shouldNavigateRef.current = shouldNavigateAfterSave
     snapshotRef.current = snapshot
   })
-
-  const clearDebounce = useCallback(() => {
-    if (debounceTimerRef.current != null) {
-      clearTimeout(debounceTimerRef.current)
-      debounceTimerRef.current = null
-    }
-  }, [])
 
   useEffect(() => {
     runPersistRef.current = async (touchRuntime: boolean) => {
@@ -100,12 +80,6 @@ export function useSetupAutoSave({
         lastResultRef.current = result
         setSaveNotice(result.notice)
         setSaveStatus(result.isError ? 'error' : 'saved')
-
-        const navId = result.cloudEventId ?? result.localId
-        if (shouldNavigateRef.current && navId) {
-          onNavigateRef.current(navId)
-        }
-
         return result
       } catch {
         setSaveStatus('error')
@@ -133,19 +107,7 @@ export function useSetupAutoSave({
 
   const flush = useCallback(
     async (touchRuntime = false) => {
-      clearDebounce()
       await waitForSaveIdle()
-
-      if (
-        !touchRuntime &&
-        !enabled &&
-        snapshotRef.current === lastSavedSnapshotRef.current &&
-        lastResultRef.current
-      ) {
-        return lastResultRef.current
-      }
-
-      if (!touchRuntime && !enabled) return null
 
       if (
         !touchRuntime &&
@@ -157,61 +119,35 @@ export function useSetupAutoSave({
 
       return runPersist(touchRuntime)
     },
-    [clearDebounce, enabled, runPersist, waitForSaveIdle],
+    [runPersist, waitForSaveIdle],
   )
 
-  const scheduleSave = useCallback(() => {
-    clearDebounce()
-    if (!enabled || !hydrated) return
-    if (snapshot === lastSavedSnapshotRef.current) return
-
-    setSaveStatus('pending')
-    debounceTimerRef.current = setTimeout(() => {
-      debounceTimerRef.current = null
-      if (snapshot === lastSavedSnapshotRef.current) {
-        setSaveStatus('idle')
-        return
-      }
-      if (savingRef.current) {
-        pendingFlushRef.current = true
-        return
-      }
-      void runPersist(false)
-    }, DEBOUNCE_MS)
-  }, [clearDebounce, enabled, hydrated, runPersist, snapshot])
-
   useEffect(() => {
-    if (!hydrated) return
-    if (lastSavedSnapshotRef.current === null) {
-      lastSavedSnapshotRef.current = snapshot
+    if (!hydrated) {
+      lastSavedSnapshotRef.current = null
       return
     }
-    scheduleSave()
-    return clearDebounce
-  }, [hydrated, snapshot, scheduleSave, clearDebounce])
+    if (lastSavedSnapshotRef.current === null) {
+      lastSavedSnapshotRef.current = snapshot
+    }
+  }, [hydrated, snapshot])
 
-  useEffect(() => {
-    if (hydrated) return
-    lastSavedSnapshotRef.current = null
-    clearDebounce()
-  }, [hydrated, clearDebounce])
-
-  useEffect(() => () => clearDebounce(), [clearDebounce])
-
-  const saving = saveStatus === 'pending' || saveStatus === 'saving'
+  const saving = saveStatus === 'saving'
+  const isDirty = hydrated && snapshot !== lastSavedSnapshotRef.current
 
   const markSnapshotSaved = useCallback((savedSnapshot: string) => {
     lastSavedSnapshotRef.current = savedSnapshot
-    clearDebounce()
     setSaveStatus('saved')
-  }, [clearDebounce])
+  }, [])
 
   return {
     saveStatus,
     saveNotice,
+    setSaveNotice,
     saving,
+    isDirty,
     flush,
-    cancelScheduled: clearDebounce,
+    cancelScheduled: () => {},
     markSnapshotSaved,
   }
 }

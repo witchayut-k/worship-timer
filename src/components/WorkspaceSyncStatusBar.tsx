@@ -40,6 +40,8 @@ export function WorkspaceSyncStatusBar() {
   if (!workspaceSync) return null
 
   const { status, retrySync } = workspaceSync
+  if (status === 'synced' || status === 'localOnly') return null
+
   const message = t(statusMessageKey(status))
 
   return (

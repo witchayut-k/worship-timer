@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { pauseRuntimeIfRunning } from '../lib/endActiveControlSession'
+import { endActiveControlSession } from '../lib/endActiveControlSession'
 import { getStoredLocale, translate } from '../i18n/translate'
 import { storageKeys } from '../lib/storageKeys'
 import {
@@ -54,7 +54,7 @@ export function ActiveControlProvider({ children }: { children: ReactNode }) {
 
   const endActiveControl = useCallback(async () => {
     if (!activeControl) return
-    await pauseRuntimeIfRunning(activeControl.eventId)
+    await endActiveControlSession(activeControl.eventId)
     clearActiveControl()
   }, [activeControl, clearActiveControl])
 

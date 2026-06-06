@@ -40,6 +40,7 @@ type ControlShellProps = {
   headerEnd?: ReactNode
   timelineAvailable?: boolean
   aside?: ReactNode
+  footer?: ReactNode
   children: ReactNode
 }
 
@@ -89,6 +90,7 @@ export function ControlShell({
   headerEnd,
   timelineAvailable = false,
   aside,
+  footer,
   children,
 }: ControlShellProps) {
   const { t } = useLocale()
@@ -306,7 +308,7 @@ export function ControlShell({
           <div className="controlContent">{children}</div>
         )}
       </div>
-      <WorkspaceSyncStatusBar />
+      {footer ?? (activeNav !== 'setup' ? <WorkspaceSyncStatusBar /> : null)}
     </div>
   )
 }

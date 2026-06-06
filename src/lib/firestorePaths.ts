@@ -14,3 +14,7 @@ export function runtimeStateDoc(eventId: string) {
   return `events/${eventId}/runtime/state`
 }
 
+export function controlLeaseDoc(eventId: string) {
+  return `events/${eventId}/runtime/lease`
+}
+

@@ -3,6 +3,7 @@ import type { ProgramItem } from '../domain/types'
 import {
   draftBundleFromEventProgram,
   isSetupDraftDirty,
+  preserveDraftItemIds,
   programToDraftItems,
   shouldRefreshDraftForProgramItems,
   shouldRefreshDraftFromServer,
@@ -22,6 +23,23 @@ function programItem(order: number): ProgramItem {
 }
 
 describe('eventSessionDraft', () => {
+  it('preserves draft item ids by order when refreshing from server', () => {
+    const previous = programToDraftItems([programItem(1), programItem(2)], () => 'stable-a')
+    previous[1] = { ...previous[1]!, id: 'stable-b' }
+    const incoming = programToDraftItems(
+      [
+        { ...programItem(1), name: 'Updated 1' },
+        { ...programItem(2), name: 'Updated 2' },
+      ],
+      () => 'new-id',
+    )
+    const merged = preserveDraftItemIds(previous, incoming)
+    expect(merged[0]?.id).toBe('stable-a')
+    expect(merged[1]?.id).toBe('stable-b')
+    expect(merged[0]?.name).toBe('Updated 1')
+    expect(merged[1]?.name).toBe('Updated 2')
+  })
+
   it('builds draft items from program with stable ids when newId is fixed', () => {
     let n = 0
     const items = programToDraftItems([programItem(1)], () => `id-${++n}`)
@@ -123,6 +141,31 @@ describe('eventSessionDraft', () => {
     const saved = snapshotFromDraftBundle(draft)
     expect(
       shouldRefreshDraftForProgramItems(draft, [programItem(1)], saved, 5, 2),
+    ).toBe(false)
+  })
+
+  it('rejects stale server program after import replace when local is ahead', () => {
+    const local = Array.from({ length: 5 }, (_, i) => programItem(i + 1))
+    const server = Array.from({ length: 10 }, (_, i) => programItem(i + 1))
+    expect(shouldApplyServerProgramItems(local, server, 11, 10)).toBe(false)
+  })
+
+  it('does not refresh draft after import replace while local revision is ahead', () => {
+    const draft = draftBundleFromEventProgram({
+      event: {
+        title: 'Sunday',
+        date: '2026-05-28',
+        status: 'active',
+        updatedAtMs: 1,
+        leaderNames: [],
+      },
+      programItems: Array.from({ length: 5 }, (_, i) => programItem(i + 1)),
+      newId: () => 'a',
+    })
+    const saved = snapshotFromDraftBundle(draft)
+    const staleServer = Array.from({ length: 10 }, (_, i) => programItem(i + 1))
+    expect(
+      shouldRefreshDraftForProgramItems(draft, staleServer, saved, 11, 10),
     ).toBe(false)
   })
 })

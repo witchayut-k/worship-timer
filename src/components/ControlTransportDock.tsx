@@ -6,6 +6,7 @@ type Props = {
   phase: RuntimePhase
   currentIndex: number
   itemCount: number
+  disabled?: boolean
   onPrev: () => void
   onStart: () => void
   onPause: () => void
@@ -16,6 +17,7 @@ export function ControlTransportDock({
   phase,
   currentIndex,
   itemCount,
+  disabled = false,
   onPrev,
   onStart,
   onPause,
@@ -31,18 +33,28 @@ export function ControlTransportDock({
             className="btnGhost"
             type="button"
             onClick={onPrev}
-            disabled={currentIndex === 0}
+            disabled={disabled || currentIndex === 0}
           >
             ◀ {t('control.prev')}
           </button>
 
           {phase !== 'running' ? (
-            <button className="btnTransportPrimary btnTransportStart" type="button" onClick={onStart}>
+            <button
+              className="btnTransportPrimary btnTransportStart"
+              type="button"
+              onClick={onStart}
+              disabled={disabled}
+            >
               <PlayIcon />
               {t('control.start')}
             </button>
           ) : (
-            <button className="btnTransportPrimary btnTransportPause" type="button" onClick={onPause}>
+            <button
+              className="btnTransportPrimary btnTransportPause"
+              type="button"
+              onClick={onPause}
+              disabled={disabled}
+            >
               <PauseIcon />
               {t('control.pause')}
             </button>
@@ -52,7 +64,7 @@ export function ControlTransportDock({
             className="btnGhost"
             type="button"
             onClick={onNext}
-            disabled={currentIndex + 1 >= itemCount}
+            disabled={disabled || currentIndex + 1 >= itemCount}
           >
             {t('control.next')} ▶
           </button>

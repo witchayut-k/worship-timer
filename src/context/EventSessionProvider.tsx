@@ -12,6 +12,7 @@ import { hasFirebaseConfig } from '../lib/firebase'
 import {
   draftBundleFromEventProgram,
   isSetupDraftDirty as computeDraftDirty,
+  preserveDraftItemIds,
   programItemsContentSnapshot,
   shouldApplyServerProgramItems,
   shouldRefreshDraftForProgramItems,
@@ -74,87 +75,85 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
 
   const canLoadSession = authReady && (!cloudReady || Boolean(uid))
   const sessionLoadKey = canLoadSession ? `${eventId}:${uid ?? ''}` : null
-  const [activeSessionLoadKey, setActiveSessionLoadKey] = useState(sessionLoadKey)
 
-  if (sessionLoadKey !== activeSessionLoadKey) {
-    setActiveSessionLoadKey(sessionLoadKey)
-    if (sessionLoadKey !== null) {
-      const locale = getStoredLocale()
-      const tr = (key: string) => translate(key, locale)
+  useEffect(() => {
+    if (!sessionLoadKey) return
 
-      if (isLibraryEventId(eventId)) {
-        const entry = getLocalEvent(eventId)
-        if (!entry) {
-          setError(tr('setup.loadLocalNotFound'))
-          setStatus('error')
-          setEvent(null)
-          setProgramItems([])
-          setProgramItemsHydrated(false)
-          setSetupDraft(null)
-          setLastSavedSnapshot(null)
-        } else {
-          const nextDraft = draftBundleFromEventProgram({
-            event: entry.event,
-            programItems: entry.items,
-          })
-          setEvent(entry.event)
-          setProgramItems(entry.items)
-          setSetupDraft(nextDraft)
-          setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
-          setProgramItemsHydrated(true)
-          setError(null)
-          setStatus('ready')
-        }
-      } else if (eventId.startsWith('local-')) {
-        const payload = decodeLocalPayload(eventId)
-        if (!payload) {
-          setError(tr('setup.loadLegacyLocal'))
-          setStatus('error')
-          setEvent(null)
-          setProgramItems([])
-          setProgramItemsHydrated(false)
-          setSetupDraft(null)
-          setLastSavedSnapshot(null)
-        } else {
-          const nextDraft = draftBundleFromEventProgram({
-            event: payload.event,
-            programItems: payload.items,
-          })
-          setEvent(payload.event)
-          setProgramItems(payload.items)
-          setSetupDraft(nextDraft)
-          setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
-          setProgramItemsHydrated(true)
-          setError(null)
-          setStatus('ready')
-        }
+    const locale = getStoredLocale()
+    const tr = (key: string) => translate(key, locale)
+
+    if (isLibraryEventId(eventId)) {
+      const entry = getLocalEvent(eventId)
+      if (!entry) {
+        setError(tr('setup.loadLocalNotFound'))
+        setStatus('error')
+        setEvent(null)
+        setProgramItems([])
+        setProgramItemsHydrated(false)
+        setSetupDraft(null)
+        setLastSavedSnapshot(null)
       } else {
-        const local = readWorkspaceDraft(eventId)
-        if (local) {
-          const nextDraft = draftBundleFromEventProgram({
-            event: local.event,
-            programItems: local.items,
-          })
-          setEvent(local.event)
-          setProgramItems(local.items)
-          setSetupDraft(nextDraft)
-          setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
-          setProgramItemsHydrated(true)
-          setError(null)
-          setStatus('ready')
-          noteLocalRevision(eventId, local.revision, cloudReady && Boolean(uid))
-        } else {
-          setStatus('loading')
-          setError(null)
-          setEvent(null)
-          setProgramItems([])
-          setProgramItemsHydrated(false)
-          setSetupDraft(null)
-          setLastSavedSnapshot(null)
-        }
+        const nextDraft = draftBundleFromEventProgram({
+          event: entry.event,
+          programItems: entry.items,
+        })
+        setEvent(entry.event)
+        setProgramItems(entry.items)
+        setSetupDraft(nextDraft)
+        setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+        setProgramItemsHydrated(true)
+        setError(null)
+        setStatus('ready')
+      }
+    } else if (eventId.startsWith('local-')) {
+      const payload = decodeLocalPayload(eventId)
+      if (!payload) {
+        setError(tr('setup.loadLegacyLocal'))
+        setStatus('error')
+        setEvent(null)
+        setProgramItems([])
+        setProgramItemsHydrated(false)
+        setSetupDraft(null)
+        setLastSavedSnapshot(null)
+      } else {
+        const nextDraft = draftBundleFromEventProgram({
+          event: payload.event,
+          programItems: payload.items,
+        })
+        setEvent(payload.event)
+        setProgramItems(payload.items)
+        setSetupDraft(nextDraft)
+        setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+        setProgramItemsHydrated(true)
+        setError(null)
+        setStatus('ready')
+      }
+    } else {
+      const local = readWorkspaceDraft(eventId)
+      if (local) {
+        const nextDraft = draftBundleFromEventProgram({
+          event: local.event,
+          programItems: local.items,
+        })
+        setEvent(local.event)
+        setProgramItems(local.items)
+        setSetupDraft(nextDraft)
+        setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+        setProgramItemsHydrated(true)
+        setError(null)
+        setStatus('ready')
+        noteLocalRevision(eventId, local.revision, cloudReady && Boolean(uid))
+      } else {
+        setStatus('loading')
+        setError(null)
+        setEvent(null)
+        setProgramItems([])
+        setProgramItemsHydrated(false)
+        setSetupDraft(null)
+        setLastSavedSnapshot(null)
       }
     }
-  }
+  }, [sessionLoadKey, eventId, cloudReady, uid])
 
   const refreshDraftFromServer = useCallback(
     (nextEvent: WorshipEvent | null, nextItems: ProgramItem[]) => {
@@ -177,8 +176,14 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
         event: nextEvent,
         programItems: nextItems,
       })
+      if (draft?.items.length) {
+        nextDraft.items = preserveDraftItemIds(draft.items, nextDraft.items)
+      }
+      setupDraftRef.current = nextDraft
       setSetupDraft(nextDraft)
-      setLastSavedSnapshot(snapshotFromDraftBundle(nextDraft))
+      const savedSnapshot = snapshotFromDraftBundle(nextDraft)
+      lastSavedSnapshotRef.current = savedSnapshot
+      setLastSavedSnapshot(savedSnapshot)
     },
     [eventId],
   )
@@ -333,10 +338,12 @@ export function EventSessionProvider({ eventId, children }: EventSessionProvider
   }, [event, programItems])
 
   const replaceSetupDraft = useCallback((draft: SetupDraftBundle) => {
+    setupDraftRef.current = draft
     setSetupDraft(draft)
   }, [])
 
   const markSetupDraftSaved = useCallback((snapshot: string) => {
+    lastSavedSnapshotRef.current = snapshot
     setLastSavedSnapshot(snapshot)
   }, [])
 

@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { usePlan } from '../hooks/usePlan'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { ControlShell } from '../components/ControlShell'
-import { FullScreenLoading } from '../components/FullScreenLoading'
-import { appConfig } from '../config/app.config'
+import { SetupFormStatusBar } from '../components/SetupFormStatusBar'
 import { LeaveControlModal } from '../components/LeaveControlModal'
 import { SetupAsidePanel } from '../components/SetupAsidePanel'
 import { SetupEventDetailsCard } from '../components/SetupEventDetailsCard'
@@ -14,7 +13,7 @@ import {
 } from '../components/SpreadsheetImportModal'
 import { SetupSegmentList, type DraftItem } from '../components/SetupSegmentList'
 import { usePlannedSegmentSchedule } from '../hooks/usePlannedSegmentSchedule'
-import { BookIcon, PlusIcon, RotateCcwIcon, TableIcon } from '../components/SetupIcons'
+import { BookIcon, PlusIcon, RotateCcwIcon, SaveIcon, TableIcon } from '../components/SetupIcons'
 import type { ParsedProgramRow } from '../domain/spreadsheetImport'
 import {
   DEFAULT_EVENT_DISPLAY_SETTINGS,
@@ -29,9 +28,7 @@ import { getOutputLink } from '../lib/outputLinks'
 import { useActiveControl } from '../hooks/useActiveControl'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveControl } from '../hooks/useLeaveControl'
-import { useMinDurationLoading } from '../hooks/useMinDurationLoading'
 import { useOptionalEventSession } from '../hooks/useEventSession'
-import { useOptionalWorkspaceSync } from '../hooks/useWorkspaceSync'
 import type { EventSessionContextValue } from '../context/eventSessionContext'
 import {
   serializeSetupSnapshot,
@@ -42,9 +39,7 @@ import { useLocale } from '../i18n/useLocale'
 import {
   draftBundleFromEventProgram,
   draftItemsToProgramItems,
-  draftProgramContentSnapshot,
   newDraftItemId,
-  programItemsContentSnapshot,
   snapshotFromDraftBundle,
 } from '../lib/eventSessionDraft'
 import { isOfflineEventId } from '../lib/eventSource'
@@ -61,6 +56,12 @@ import {
 import { getStageTheme } from '../lib/displayTheme'
 import { deriveLocalDisplay, initialRuntimeState } from '../lib/runtimeEngine'
 import { reconcileRuntimeAfterProgramChange, type ProgramChange } from '../lib/reconcileRuntime'
+import { needsSetupPersistBeforeNav } from '../lib/setupNavigation'
+import {
+  acknowledgeDirectCloudSave,
+  getWorkspaceSyncSnapshot,
+} from '../lib/workspaceCloudSync'
+import { readWorkspaceDraft } from '../lib/workspaceDraftStore'
 import { syncRuntimeState } from '../lib/syncRuntimeState'
 
 function newId(): string {
@@ -117,7 +118,6 @@ function SetupPageInner({
   const { uid, ready: authReady } = useAuth()
   const { isFree, isPaid } = usePlan()
   const session = useOptionalEventSession()
-  const workspaceSync = useOptionalWorkspaceSync()
   const isEdit = mode === 'edit' && Boolean(routeEventId)
   const needsInitialEventId = !isEdit && !routeEventId
   const cloudMode = hasFirebaseConfig() && Boolean(uid)
@@ -133,8 +133,9 @@ function SetupPageInner({
   const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null)
   const [navFocusConsumed, setNavFocusConsumed] = useState(false)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
-  const [startSaving, setStartSaving] = useState(false)
+  const [manualSaving, setManualSaving] = useState(false)
   const [navSaving, setNavSaving] = useState(false)
+  const [startSaving, setStartSaving] = useState(false)
   const [formHydrated, setFormHydrated] = useState(false)
   const isProgramLoading = Boolean(routeEventId) && session
     ? !authReady || (session.status === 'loading' && !session.hasSetupDraft())
@@ -145,8 +146,6 @@ function SetupPageInner({
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [liveRuntime, setLiveRuntime] = useState<RuntimeState | null>(null)
   const baselineSeededRef = useRef(false)
-  const initialEventBootstrapRef = useRef(false)
-  const [bootstrappingInitialEvent, setBootstrappingInitialEvent] = useState(needsInitialEventId)
 
   const navAutoFocusId = useMemo(() => {
     if (isProgramLoading || navFocusConsumed || focusOrder == null || !items.length) return null
@@ -191,6 +190,12 @@ function SetupPageInner({
   }, [routeEventId])
 
   useEffect(() => {
+    if (routeEventId || formHydrated || isProgramLoading) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormHydrated(true)
+  }, [routeEventId, formHydrated, isProgramLoading])
+
+  useEffect(() => {
     if (!session || !routeEventId || formHydrated) return
     if (session.status === 'error') return
     if (session.status === 'loading') return
@@ -230,25 +235,6 @@ function SetupPageInner({
     }
     session.replaceSetupDraft(nextDraft)
   }, [session, formHydrated, title, date, plannedStartTime, settings, leaderNames, items])
-
-  useEffect(() => {
-    if (!session || !formHydrated || !session.setupDraft) return
-    if (session.isSetupDraftDirty()) return
-    const draft = session.setupDraft
-    if (
-      draftProgramContentSnapshot(draft) ===
-      programItemsContentSnapshot(draftItemsToProgramItems(items))
-    ) {
-      return
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTitle(draft.title)
-    setDate(draft.date)
-    setPlannedStartTime(draft.plannedStartTime)
-    setSettings(draft.settings)
-    setLeaderNames(draft.leaderNames)
-    setItems(draft.items)
-  }, [session, formHydrated, session?.setupDraft, items])
 
   useEffect(() => {
     if (!liveEventId) return
@@ -327,7 +313,11 @@ function SetupPageInner({
   }
 
   const persistSetupRef = useRef<
-    (options: { touchRuntime: boolean }) => Promise<PersistSetupOutcome>
+    (options: {
+      touchRuntime: boolean
+      sourceItems?: DraftItem[]
+      sourceLeaderNames?: string[]
+    }) => Promise<PersistSetupOutcome>
   >(async () => ({ localId: '', cloudEventId: null, notice: null, isError: true }))
   const flushRef = useRef<(touchRuntime?: boolean) => Promise<PersistSetupOutcome | null>>(
     async () => null,
@@ -384,13 +374,16 @@ function SetupPageInner({
     nav(`/start/${eventId}`)
   }
 
-  const persistLocal = useCallback((): string | null => {
+  const persistLocal = useCallback(
+    (overrides?: { items?: DraftItem[]; leaderNames?: string[] }): string | null => {
     if (isFree) return null
+    const itemsToUse = overrides?.items ?? items
+    const leadersToUse = overrides?.leaderNames ?? leaderNames
     const roster = collectLeadersFromItems(
-      leaderNames,
-      items.map((it) => it.leaderName),
+      leadersToUse,
+      itemsToUse.map((it) => it.leaderName),
     )
-    const programItems = buildProgramItems()
+    const programItems = buildProgramItems(itemsToUse)
     const reuseLocalId =
       isEdit && routeEventId && lastEventId === routeEventId && isLibraryEventId(lastEventId)
     const id = upsertLocalEvent({
@@ -400,21 +393,28 @@ function SetupPageInner({
     })
     setLastEventId(id)
     return id
-  }, [buildEvent, buildProgramItems, isEdit, isFree, items, lastEventId, leaderNames, routeEventId])
+  },
+    [buildEvent, buildProgramItems, isEdit, isFree, items, lastEventId, leaderNames, routeEventId],
+  )
 
   const persistCloud = useCallback(
-    async (touchRuntime: boolean): Promise<string | null> => {
+    async (
+      touchRuntime: boolean,
+      overrides?: { items?: DraftItem[]; leaderNames?: string[] },
+    ): Promise<string | null> => {
       if (!cloudMode || !uid) return null
+      const itemsToUse = overrides?.items ?? items
+      const leadersToUse = overrides?.leaderNames ?? leaderNames
       const cloudRouteId =
         routeEventId && !isOfflineEventId(routeEventId) ? routeEventId : null
       const reuseCloudId =
         isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
       const eventId = cloudRouteId ?? (reuseCloudId ? lastEventId! : newCloudEventId())
       const roster = collectLeadersFromItems(
-        leaderNames,
-        items.map((it) => it.leaderName),
+        leadersToUse,
+        itemsToUse.map((it) => it.leaderName),
       )
-      const programItems = buildProgramItems()
+      const programItems = buildProgramItems(itemsToUse)
       const event = buildEvent(roster)
       if (touchRuntime) {
         await upsertEventWithItems({
@@ -433,13 +433,26 @@ function SetupPageInner({
   )
 
   const persistSetup = useCallback(
-    async ({ touchRuntime }: { touchRuntime: boolean }): Promise<PersistSetupOutcome> => {
+    async ({
+      touchRuntime,
+      sourceItems,
+      sourceLeaderNames,
+    }: {
+      touchRuntime: boolean
+      sourceItems?: DraftItem[]
+      sourceLeaderNames?: string[]
+    }): Promise<PersistSetupOutcome> => {
       try {
+        const itemsToSave = sourceItems ?? items
+        const leadersToSave = sourceLeaderNames ?? leaderNames
+        const overrides = sourceItems
+          ? { items: itemsToSave, leaderNames: leadersToSave }
+          : undefined
         const roster = collectLeadersFromItems(
-          leaderNames,
-          items.map((it) => it.leaderName),
+          leadersToSave,
+          itemsToSave.map((it) => it.leaderName),
         )
-        const programItems = buildProgramItems()
+        const programItems = buildProgramItems(itemsToSave)
         const savedEvent = buildEvent(roster)
 
         const cloudRouteId =
@@ -451,27 +464,17 @@ function SetupPageInner({
 
         let cloudEventId: string | null = resolvedEventId
 
-        if (workspaceSync) {
-          workspaceSync.persistDraft({
-            event: savedEvent,
-            items: programItems,
-            touchRuntime,
-            initialState: touchRuntime
-              ? initialRuntimeState({ items: programItems })
-              : undefined,
-          })
-          if (touchRuntime && workspaceSync.cloudEnabled) {
-            const snap = await workspaceSync.flushCloud()
-            if (snap.status === 'error') {
-              throw new Error(snap.lastError ?? t('setup.saveFailed'))
-            }
+        if (cloudMode) {
+          cloudEventId = await persistCloud(touchRuntime, overrides)
+          if (cloudEventId) {
+            const draft = readWorkspaceDraft(cloudEventId)
+            const snap = getWorkspaceSyncSnapshot(cloudEventId)
+            const rev = Math.max(draft?.revision ?? 0, snap.localRevision, 1)
+            acknowledgeDirectCloudSave(cloudEventId, rev, true)
           }
-          if (resolvedEventId) setLastEventId(resolvedEventId)
-        } else if (cloudMode) {
-          cloudEventId = await persistCloud(touchRuntime)
         }
 
-        const localId = persistLocal() ?? ''
+        const localId = persistLocal(overrides) ?? ''
         if (session) {
           session.notifyProgramPersisted(savedEvent, programItems)
           session.markSetupDraftSaved(
@@ -480,17 +483,16 @@ function SetupPageInner({
               date,
               plannedStartTime,
               settings,
-              leaderNames,
-              items,
+              leaderNames: leadersToSave,
+              items: itemsToSave,
             }),
           )
         }
-        const notice =
-          workspaceSync?.cloudEnabled || cloudEventId
-            ? touchRuntime
-              ? t('setup.savedSynced')
-              : t('setup.saved')
+        const notice = cloudEventId
+          ? touchRuntime
+            ? t('setup.savedSynced')
             : t('setup.saved')
+          : t('setup.saved')
         return { localId, cloudEventId, notice, isError: false }
       } catch (e) {
         const msg = e instanceof Error ? e.message : t('setup.saveFailed')
@@ -525,7 +527,6 @@ function SetupPageInner({
       date,
       plannedStartTime,
       settings,
-      workspaceSync,
     ],
   )
 
@@ -542,53 +543,38 @@ function SetupPageInner({
     [title, date, plannedStartTime, settings, leaderNames, items],
   )
 
-  const shouldNavigateAfterSave = needsInitialEventId
+  useEffect(() => {
+    if (!session || !formHydrated || !session.setupDraft) return
+    if (session.isSetupDraftDirty()) return
+    const draft = session.setupDraft
+    if (snapshotFromDraftBundle(draft) === setupSnapshot) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTitle(draft.title)
+    setDate(draft.date)
+    setPlannedStartTime(draft.plannedStartTime)
+    setSettings(draft.settings)
+    setLeaderNames(draft.leaderNames)
+    setItems(draft.items)
+  }, [session, formHydrated, session?.setupDraft, setupSnapshot])
 
   const {
     saveStatus,
     saveNotice,
     saving: autoSaving,
+    isDirty,
     flush,
     cancelScheduled,
     markSnapshotSaved,
   } = useSetupAutoSave({
-    enabled:
-      !isProgramLoading &&
-      (items.length > 0 || Boolean(routeEventId ?? lastEventId) || needsInitialEventId),
     hydrated,
     snapshot: setupSnapshot,
     persistSetup,
-    shouldNavigateAfterSave,
-    onNavigateAfterSave: (eventId) => nav(`/setup/${eventId}`, { replace: true }),
   })
 
   useEffect(() => {
     persistSetupRef.current = persistSetup
     flushRef.current = flush
   }, [persistSetup, flush])
-
-  useEffect(() => {
-    if (!needsInitialEventId || !hydrated || initialEventBootstrapRef.current) return
-    initialEventBootstrapRef.current = true
-    setBootstrappingInitialEvent(true)
-    void persistSetupRef.current({ touchRuntime: false })
-      .then((result) => {
-        const navId = result.cloudEventId ?? result.localId
-        if (navId) nav(`/setup/${navId}`, { replace: true })
-      })
-      .finally(() => {
-        setBootstrappingInitialEvent(false)
-      })
-  }, [needsInitialEventId, hydrated, nav])
-
-  const creatingInitialEventId =
-    needsInitialEventId &&
-    !routeEventId &&
-    (bootstrappingInitialEvent || saveStatus === 'pending' || saveStatus === 'saving')
-  const showCreatingEventLoading = useMinDurationLoading(
-    creatingInitialEventId,
-    appConfig.fullScreenLoadingMinMs,
-  )
 
   useEffect(() => {
     if (!formHydrated || baselineSeededRef.current || !session) return
@@ -602,23 +588,43 @@ function SetupPageInner({
       const imported = parsedRowsToDraftItems(rows)
       const merged = importMode === 'replace' ? imported : [...items, ...imported]
       const nextItems = merged.map((x, i) => ({ ...x, order: i + 1 }))
-      setItems(nextItems)
-      setLeaderNames((prev) =>
-        collectLeadersFromItems(
-          prev,
-          imported.map((it) => it.leaderName),
-        ),
+      const nextLeaderNames = collectLeadersFromItems(
+        leaderNames,
+        imported.map((it) => it.leaderName),
       )
+
+      setItems(nextItems)
+      setLeaderNames(nextLeaderNames)
       if (imported[0]) setNewlyAddedId(imported[0].id)
-      cancelScheduled()
-      window.setTimeout(() => {
-        void flushRef.current(false)
-      }, 0)
+
+      const nextDraft = {
+        title,
+        date,
+        plannedStartTime,
+        settings,
+        leaderNames: nextLeaderNames,
+        items: nextItems,
+      }
+
+      if (session) {
+        session.replaceSetupDraft(nextDraft)
+      }
+
       if (productionMode) {
         void reconcileRuntime(nextItems, { type: 'import', mode: importMode })
       }
     },
-    [cancelScheduled, items, productionMode, reconcileRuntime],
+    [
+      date,
+      items,
+      leaderNames,
+      plannedStartTime,
+      productionMode,
+      reconcileRuntime,
+      session,
+      settings,
+      title,
+    ],
   )
 
   const onResetConfirm = () => {
@@ -631,14 +637,6 @@ function SetupPageInner({
     setNewlyAddedId(null)
     setResetModalOpen(false)
 
-    const emptySnapshot = serializeSetupSnapshot({
-      title,
-      date,
-      plannedStartTime,
-      settings,
-      leaderNames,
-      items: [],
-    })
     const emptyDraft = {
       title,
       date,
@@ -648,25 +646,8 @@ function SetupPageInner({
       items: nextItems,
     }
 
-    cancelScheduled()
-    markSnapshotSaved(emptySnapshot)
-
     if (session) {
       session.replaceSetupDraft(emptyDraft)
-      session.markSetupDraftSaved(emptySnapshot)
-    }
-
-    if (lastEventId || routeEventId) {
-      const roster = collectLeadersFromItems(leaderNames, [])
-      const savedEvent = buildEvent(roster)
-      if (workspaceSync) {
-        workspaceSync.persistDraft({ event: savedEvent, items: [] })
-        session?.notifyProgramPersisted(savedEvent, [])
-      } else {
-        void persistSetupRef.current({ touchRuntime: false }).then((result) => {
-          if (result && !result.isError) markSnapshotSaved(emptySnapshot)
-        })
-      }
     }
 
     if (productionMode) {
@@ -674,7 +655,9 @@ function SetupPageInner({
     }
   }
 
-  const saving = autoSaving || startSaving || navSaving
+  const saving = autoSaving || startSaving || manualSaving || navSaving
+  const saveDisabled =
+    saving || (!isDirty && Boolean(routeEventId ?? lastEventId))
 
   const validateTitle = (): boolean => {
     if (title.trim()) {
@@ -706,43 +689,6 @@ function SetupPageInner({
 
   const displayTitle = title.trim() || t('event.untitled')
 
-  const openControlRoom = useCallback(async () => {
-    if (!setupEventId) return
-    setNavSaving(true)
-    cancelScheduled()
-    try {
-      if (session?.isSetupDraftDirty() || saveStatus === 'pending' || saveStatus === 'saving') {
-        await flush(false)
-      }
-    } finally {
-      setNavSaving(false)
-    }
-    nav(`/start/${setupEventId}`)
-  }, [setupEventId, cancelScheduled, flush, nav, saveStatus, session])
-
-  const openStageView = useCallback(async () => {
-    if (!setupEventId) return
-    setNavSaving(true)
-    cancelScheduled()
-    try {
-      if (session?.isSetupDraftDirty() || saveStatus === 'pending' || saveStatus === 'saving') {
-        await flush(false)
-      }
-    } finally {
-      setNavSaving(false)
-    }
-    nav(getOutputLink(setupEventId, 'stage').path)
-  }, [setupEventId, cancelScheduled, flush, nav, saveStatus, session])
-
-  const controlShellNavProps = setupEventId
-    ? {
-        onControlNavigate: openControlRoom,
-        controlNavigateDisabled: navSaving,
-        onStageNavigate: openStageView,
-        stageNavigateDisabled: navSaving,
-      }
-    : {}
-
   const {
     leaveModalOpen,
     leaveModalTitle,
@@ -753,9 +699,85 @@ function SetupPageInner({
     leaveDestinationKey,
   } = useLeaveControl(productionMode)
 
-  if (showCreatingEventLoading) {
-    return <FullScreenLoading message={t('setup.creatingEvent')} />
-  }
+  const hasUnsavedChanges = useCallback(
+    () => needsSetupPersistBeforeNav(session, saveStatus, items) || isDirty,
+    [isDirty, items, saveStatus, session],
+  )
+
+  const ensureSaved = useCallback(async (): Promise<string | null> => {
+    if (!hasUnsavedChanges()) {
+      return routeEventId ?? lastEventId ?? null
+    }
+    setNavSaving(true)
+    try {
+      const result = await flush(false)
+      if (!result || result.isError) return null
+      const navId = result.cloudEventId ?? result.localId ?? routeEventId ?? lastEventId ?? null
+      if (needsInitialEventId && !routeEventId && navId) {
+        nav(`/setup/${navId}`, { replace: true })
+      }
+      return navId
+    } finally {
+      setNavSaving(false)
+    }
+  }, [
+    flush,
+    hasUnsavedChanges,
+    lastEventId,
+    nav,
+    needsInitialEventId,
+    routeEventId,
+  ])
+
+  const onSave = useCallback(async () => {
+    setManualSaving(true)
+    try {
+      const result = await flush(false)
+      if (needsInitialEventId) {
+        const navId = result?.cloudEventId ?? result?.localId
+        if (navId) nav(`/setup/${navId}`, { replace: true })
+      }
+    } finally {
+      setManualSaving(false)
+    }
+  }, [flush, nav, needsInitialEventId])
+
+  const openControlRoom = useCallback(async () => {
+    const eventId = await ensureSaved()
+    if (!eventId) return
+    nav(`/start/${eventId}`)
+  }, [ensureSaved, nav])
+
+  const openStageView = useCallback(async () => {
+    const eventId = await ensureSaved()
+    if (!eventId) return
+    nav(getOutputLink(eventId, 'stage').path)
+  }, [ensureSaved, nav])
+
+  const onLibraryNavigate = useCallback(async () => {
+    const saved = await ensureSaved()
+    if (hasUnsavedChanges() && !saved) return
+    if (productionMode) {
+      requestLeave()
+    } else {
+      nav('/services')
+    }
+  }, [ensureSaved, hasUnsavedChanges, nav, productionMode, requestLeave])
+
+  const handleLeaveToLibrary = useCallback(async () => {
+    const saved = await ensureSaved()
+    if (hasUnsavedChanges() && !saved) return
+    requestLeave()
+  }, [ensureSaved, hasUnsavedChanges, requestLeave])
+
+  const controlShellNavProps = setupEventId
+    ? {
+        onControlNavigate: openControlRoom,
+        controlNavigateDisabled: saving,
+        onStageNavigate: openStageView,
+        stageNavigateDisabled: saving,
+      }
+    : {}
 
   return (
     <ControlShell
@@ -769,7 +791,14 @@ function SetupPageInner({
         productionMode,
         eventTitle: title,
       }}
-      onLeaveToLibrary={requestLeave}
+      onLeaveToLibrary={() => void handleLeaveToLibrary()}
+      footer={
+        <SetupFormStatusBar
+          isDirty={isDirty}
+          saveStatus={saveStatus}
+          saveNotice={saveNotice}
+        />
+      }
       {...controlShellNavProps}
       aside={
         <>
@@ -811,28 +840,30 @@ function SetupPageInner({
             {isPaid ? (
               <>
                 <div className="setupToolbarGroup">
-                  {productionMode ? (
-                    <button
-                      className="btnGhost setupToolbarBtn btnWithIcon"
-                      type="button"
-                      onClick={requestLeave}
-                    >
-                      <BookIcon />
-                      <span>{t('nav.library')}</span>
-                    </button>
-                  ) : (
-                    <Link className="btnGhost setupToolbarBtn btnWithIcon" to="/services">
-                      <BookIcon />
-                      <span>{t('nav.library')}</span>
-                    </Link>
-                  )}
+                  <button
+                    className="btnGhost setupToolbarBtn btnWithIcon"
+                    type="button"
+                    onClick={() => void onLibraryNavigate()}
+                  >
+                    <BookIcon />
+                    <span>{t('nav.library')}</span>
+                  </button>
                 </div>
                 <span className="setupToolbarDivider" aria-hidden />
               </>
             ) : null}
             <div className="setupToolbarGroup">
               <button
-                className="btnGhost controlTopActionBtn setupToolbarBtnDanger"
+                className="btnPrimary controlTopActionBtn setupToolbarBtn btnWithIcon"
+                type="button"
+                onClick={() => void onSave()}
+                disabled={saveDisabled}
+              >
+                <SaveIcon />
+                <span>{saving ? t('setup.saving') : t('setup.save')}</span>
+              </button>
+              <button
+                className="btnGhost controlTopActionBtn setupToolbarBtn setupToolbarBtnDanger btnWithIcon"
                 type="button"
                 onClick={onResetClick}
                 disabled={!items.length || (productionMode && livePhase === 'running')}

@@ -35,6 +35,18 @@ export function programToDraftItems(
   }))
 }
 
+/** Reuse stable row ids when server refresh rebuilds draft items (match by order). */
+export function preserveDraftItemIds(
+  previous: DraftItem[],
+  incoming: DraftItem[],
+): DraftItem[] {
+  const idByOrder = new Map(previous.map((it) => [it.order, it.id]))
+  return incoming.map((it) => ({
+    ...it,
+    id: idByOrder.get(it.order) ?? it.id,
+  }))
+}
+
 export function draftBundleFromEventProgram(params: {
   event: WorshipEvent
   programItems: ProgramItem[]

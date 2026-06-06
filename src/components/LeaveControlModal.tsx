@@ -90,6 +90,72 @@ type SwitchControlModalProps = {
   onCancel: () => void
 }
 
+type TakeoverControlModalProps = {
+  open: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}
+
+export function TakeoverControlModal({ open, onConfirm, onCancel }: TakeoverControlModalProps) {
+  const { t } = useLocale()
+  const cancelRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    cancelRef.current?.focus()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onCancel])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="modalOverlay"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel()
+      }}
+    >
+      <div
+        className="modalCard"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="takeover-control-title"
+      >
+        <header className="modalHeader">
+          <h2 id="takeover-control-title" className="modalTitle">
+            {t('control.lease.takeoverTitle')}
+          </h2>
+          <button className="btnGhost modalClose" type="button" onClick={onCancel} aria-label={t('common.close')}>
+            ✕
+          </button>
+        </header>
+
+        <div className="modalBody">
+          <p>{t('control.lease.takeoverBody')}</p>
+        </div>
+
+        <footer className="modalFooter">
+          <button ref={cancelRef} className="btnPrimary" type="button" onClick={onCancel}>
+            {t('common.cancel')}
+          </button>
+          <button className="btnDanger" type="button" onClick={onConfirm}>
+            {t('control.lease.takeoverConfirm')}
+          </button>
+        </footer>
+      </div>
+    </div>
+  )
+}
+
 export function SwitchControlModal({
   open,
   fromTitle,

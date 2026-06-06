@@ -68,6 +68,14 @@ export type RuntimeState = {
   activeMessage?: LiveMessage | null
 }
 
+/** Single-writer lock for the control room (`/start`) on cloud events. */
+export type ControlLease = {
+  holderUid: string
+  holderSessionId: string
+  claimedAtMs: number
+  heartbeatAtMs: number
+}
+
 export type EventDoc = {
   id: string
   data: WorshipEvent
