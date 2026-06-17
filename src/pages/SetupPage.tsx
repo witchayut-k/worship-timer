@@ -691,7 +691,7 @@ function SetupPageInner({
         !isOfflineEventId(lastEventId)
       const touchRuntime = cloudMode ? !reuseCloudId : false
       const result = await flush(touchRuntime)
-      const eventId = result?.cloudEventId ?? result?.localId
+      const eventId = result?.cloudEventId ?? routeEventId ?? result?.localId ?? lastEventId
       if (eventId) startWithEventId(eventId)
     } finally {
       setStartSaving(false)
@@ -723,7 +723,7 @@ function SetupPageInner({
     try {
       const result = await flush(false)
       if (!result || result.isError) return null
-      const navId = result.cloudEventId ?? result.localId ?? routeEventId ?? lastEventId ?? null
+      const navId = result.cloudEventId ?? routeEventId ?? result.localId ?? lastEventId ?? null
       if (needsInitialEventId && !routeEventId && navId) {
         nav(`/setup/${navId}`, { replace: true })
       }
