@@ -408,8 +408,9 @@ function SetupPageInner({
       const cloudRouteId =
         routeEventId && !isOfflineEventId(routeEventId) ? routeEventId : null
       const reuseCloudId =
-        isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)
-      const eventId = cloudRouteId ?? (reuseCloudId ? lastEventId! : newCloudEventId())
+        (isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)) ||
+        (!cloudRouteId && lastEventId !== null && !isOfflineEventId(lastEventId))
+      const eventId = cloudRouteId ?? (reuseCloudId ? lastEventId : newCloudEventId())
       const roster = collectLeadersFromItems(
         leadersToUse,
         itemsToUse.map((it) => it.leaderName),
