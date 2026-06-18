@@ -411,6 +411,7 @@ function SetupPageInner({
         (isEdit && routeEventId && lastEventId === routeEventId && !isOfflineEventId(lastEventId)) ||
         (!cloudRouteId && lastEventId !== null && !isOfflineEventId(lastEventId))
       const eventId = cloudRouteId ?? (reuseCloudId ? lastEventId : newCloudEventId())
+      console.debug('[persistCloud]', { routeEventId, lastEventId, cloudRouteId, reuseCloudId, eventId, touchRuntime })
       const roster = collectLeadersFromItems(
         leadersToUse,
         itemsToUse.map((it) => it.leaderName),
@@ -690,8 +691,10 @@ function SetupPageInner({
         lastEventId === routeEventId &&
         !isOfflineEventId(lastEventId)
       const touchRuntime = cloudMode ? !reuseCloudId : false
+      console.debug('[onStartControl]', { routeEventId, lastEventId, reuseCloudId, touchRuntime })
       const result = await flush(touchRuntime)
       const eventId = result?.cloudEventId ?? routeEventId ?? result?.localId ?? lastEventId
+      console.debug('[onStartControl] navigating to', eventId, 'result=', result)
       if (eventId) startWithEventId(eventId)
     } finally {
       setStartSaving(false)
@@ -717,13 +720,17 @@ function SetupPageInner({
 
   const ensureSaved = useCallback(async (): Promise<string | null> => {
     if (!hasUnsavedChanges()) {
-      return routeEventId ?? lastEventId ?? null
+      const fastId = routeEventId ?? lastEventId ?? null
+      console.debug('[ensureSaved] no changes, returning', fastId)
+      return fastId
     }
     setNavSaving(true)
     try {
       const result = await flush(false)
+      console.debug('[ensureSaved] flush result', result)
       if (!result || result.isError) return null
       const navId = result.cloudEventId ?? routeEventId ?? result.localId ?? lastEventId ?? null
+      console.debug('[ensureSaved] navId', { navId, routeEventId, lastEventId, cloudEventId: result.cloudEventId })
       if (needsInitialEventId && !routeEventId && navId) {
         nav(`/setup/${navId}`, { replace: true })
       }
@@ -754,10 +761,12 @@ function SetupPageInner({
   }, [flush, nav, needsInitialEventId])
 
   const openControlRoom = useCallback(async () => {
+    console.debug('[openControlRoom] called, routeEventId=', routeEventId, 'lastEventId=', lastEventId)
     const eventId = await ensureSaved()
+    console.debug('[openControlRoom] navigating to', eventId)
     if (!eventId) return
     nav(`/start/${eventId}`)
-  }, [ensureSaved, nav])
+  }, [ensureSaved, nav, routeEventId, lastEventId])
 
   const openStageView = useCallback(async () => {
     const eventId = await ensureSaved()
