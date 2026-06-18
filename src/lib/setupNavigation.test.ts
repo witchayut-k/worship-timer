@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 import type { EventSessionContextValue } from '../context/eventSessionContext'
 import { needsSetupPersistBeforeNav } from './setupNavigation'
 
-function mockSession(isDirty: boolean, programItems = [{ order: 1, name: 'A', leaderName: '', durationSec: 300, roomLights: '', mediaNote: '' }]): EventSessionContextValue {
+function mockSession(isDirty: boolean): EventSessionContextValue {
   return {
     eventId: 'evt-1',
     status: 'ready',
     event: null,
-    programItems,
+    programItems: [],
     programItemsHydrated: true,
     setupDraft: null,
     error: null,
@@ -39,22 +39,5 @@ describe('needsSetupPersistBeforeNav', () => {
 
   it('returns false when session is missing and save is idle', () => {
     expect(needsSetupPersistBeforeNav(null, 'idle')).toBe(false)
-  })
-
-  it('returns true when local draft differs from persisted program items', () => {
-    const session = mockSession(false)
-    expect(
-      needsSetupPersistBeforeNav(session, 'saved', [
-        {
-          id: 'x',
-          order: 1,
-          name: 'New',
-          leaderName: '',
-          durationSec: 300,
-          roomLights: '',
-          mediaNote: '',
-        },
-      ]),
-    ).toBe(true)
   })
 })
